@@ -2,11 +2,13 @@
 // Структура повторяет будущие таблицы Supabase (masters, services, schedules),
 // чтобы при подключении БД заменить только функции получения данных.
 
+import type { Locale } from "./i18n";
+
 export type Service = {
   id: string;
-  name: string;
+  name: string; // тексты услуг пишет сам мастер, они не переводятся
   durationMin: number;
-  price: number; // в сумах
+  price: number; // целое число в минимальных единицах валюты мастера
 };
 
 export type ScheduleDay = {
@@ -23,6 +25,9 @@ export type Master = {
   address: string;
   bio: string;
   avatarUrl: string | null;
+  marketId: string; // ссылка на реестр рынков (lib/markets.ts)
+  locale: Locale; // язык страницы мастера
+  timezone: string; // IANA, может отличаться от дефолта рынка
   services: Service[];
   schedule: ScheduleDay[];
 };
@@ -35,6 +40,9 @@ const masters: Master[] = [
     address: "Ташкент, Чиланзар, ул. Бунёдкор 12",
     bio: "Мужские стрижки и оформление бороды. Опыт 7 лет.",
     avatarUrl: null,
+    marketId: "UZ",
+    locale: "ru",
+    timezone: "Asia/Tashkent",
     services: [
       { id: "s1", name: "Мужская стрижка", durationMin: 60, price: 80000 },
       { id: "s2", name: "Стрижка + борода", durationMin: 90, price: 120000 },
@@ -59,8 +67,4 @@ export function getMasterBySlug(slug: string): Master | undefined {
 
 export function getAllMasters(): Master[] {
   return masters;
-}
-
-export function formatPrice(price: number): string {
-  return price.toLocaleString("ru-RU") + " сум";
 }

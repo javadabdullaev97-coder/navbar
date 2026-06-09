@@ -2,31 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Master, Service } from "@/lib/data";
-import { formatPrice } from "@/lib/data";
-
-const DOW_LABELS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
-const MONTH_LABELS = [
-  "января",
-  "февраля",
-  "марта",
-  "апреля",
-  "мая",
-  "июня",
-  "июля",
-  "августа",
-  "сентября",
-  "октября",
-  "ноября",
-  "декабря",
-];
+import { t } from "@/lib/i18n";
+import {
+  formatPrice,
+  getMarket,
+  nowInTimeZone,
+  validatePhone,
+} from "@/lib/markets";
 
 // JS getDay(): 0=вс..6=сб → наша схема: 0=пн..6=вс
 function toOurDow(date: Date): number {
   return (date.getDay() + 6) % 7;
 }
 
-function timeToMinutes(t: string): number {
-  const [h, m] = t.split(":").map(Number);
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 }
 
@@ -43,19 +33,31 @@ function isSlotBusy(date: Date, slotMin: number): boolean {
 }
 
 export default function BookingWidget({ master }: { master: Master }) {
+  const market = getMarket(master.marketId);
+  const locale = master.locale;
+
   const [days, setDays] = useState<Date[]>([]);
   const [service, setService] = useState<Service | null>(null);
   const [day, setDay] = useState<Date | null>(null);
   const [slot, setSlot] = useState<number | null>(null);
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("+998 ");
+  const [phone, setPhone] = useState(market.phone.dialCode + " ");
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+
+  const dowFormat = useMemo(
+    () => new Intl.DateTimeFormat(locale, { weekday: "short" }),
+    [locale]
+  );
+  const dateFormat = useMemo(
+    () => new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    [locale]
+  );
 
   // Даты генерируем после маунта, чтобы серверный и клиентский
   // рендер не разошлись на границе суток
   useEffect(() => {
-    const today = new Date();
+    const today = nowInTimeZone(master.timezone);
     today.setHours(0, 0, 0, 0);
     const list: Date[] = [];
     for (let i = 0; i < 14; i++) {
@@ -64,7 +66,7 @@ export default function BookingWidget({ master }: { master: Master }) {
       list.push(d);
     }
     setDays(list);
-  }, []);
+  }, [master.timezone]);
 
   const slots = useMemo(() => {
     if (!day || !service) return [];
@@ -73,17 +75,18 @@ export default function BookingWidget({ master }: { master: Master }) {
 
     const start = timeToMinutes(sched.startTime);
     const end = timeToMinutes(sched.endTime);
-    const now = new Date();
+    // «Сегодня» и «сейчас» — в часовом поясе мастера, не клиента
+    const now = nowInTimeZone(master.timezone);
     const isToday = day.toDateString() === now.toDateString();
     const nowMin = now.getHours() * 60 + now.getMinutes();
 
     const result: { min: number; busy: boolean }[] = [];
-    for (let t = start; t + service.durationMin <= end; t += 30) {
-      if (isToday && t <= nowMin) continue;
-      result.push({ min: t, busy: isSlotBusy(day, t) });
+    for (let tMin = start; tMin + service.durationMin <= end; tMin += 30) {
+      if (isToday && tMin <= nowMin) continue;
+      result.push({ min: tMin, busy: isSlotBusy(day, tMin) });
     }
     return result;
-  }, [day, service, master.schedule]);
+  }, [day, service, master.schedule, master.timezone]);
 
   function selectService(s: Service) {
     setService(s);
@@ -97,13 +100,12 @@ export default function BookingWidget({ master }: { master: Master }) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const digits = phone.replace(/\D/g, "");
     if (name.trim().length < 2) {
-      setError("Введите имя");
+      setError(t(locale, "errName"));
       return;
     }
-    if (!digits.startsWith("998") || digits.length !== 12) {
-      setError("Введите номер в формате +998 XX XXX XX XX");
+    if (!validatePhone(phone, market)) {
+      setError(t(locale, "errPhone", { format: market.phone.placeholder }));
       return;
     }
     setError("");
@@ -115,17 +117,16 @@ export default function BookingWidget({ master }: { master: Master }) {
     return (
       <div className="success-box card">
         <div className="success-icon">✓</div>
-        <div className="success-title">Вы записаны!</div>
+        <div className="success-title">{t(locale, "booked")}</div>
         <div className="success-details">
           {service.name}
           <br />
-          {day.getDate()} {MONTH_LABELS[day.getMonth()]},{" "}
-          {minutesToTime(slot)}
+          {dateFormat.format(day)}, {minutesToTime(slot)}
           <br />
           {master.name} · {master.address}
         </div>
         <div className="success-hint">
-          Мы напомним о записи в Telegram за 2 часа до визита
+          {t(locale, "reminderHint", { channel: market.reminderChannel })}
         </div>
       </div>
     );
@@ -133,7 +134,7 @@ export default function BookingWidget({ master }: { master: Master }) {
 
   return (
     <div>
-      <div className="section-title">Услуги</div>
+      <div className="section-title">{t(locale, "services")}</div>
       {master.services.map((s) => (
         <button
           key={s.id}
@@ -142,15 +143,19 @@ export default function BookingWidget({ master }: { master: Master }) {
         >
           <div>
             <div className="service-name">{s.name}</div>
-            <div className="service-duration">{s.durationMin} мин</div>
+            <div className="service-duration">
+              {s.durationMin} {t(locale, "min")}
+            </div>
           </div>
-          <div className="service-price">{formatPrice(s.price)}</div>
+          <div className="service-price">
+            {formatPrice(s.price, market, locale)}
+          </div>
         </button>
       ))}
 
       {service && (
         <>
-          <div className="section-title">Дата</div>
+          <div className="section-title">{t(locale, "date")}</div>
           <div className="days-scroll">
             {days.map((d) => {
               const sched = master.schedule.find(
@@ -165,7 +170,7 @@ export default function BookingWidget({ master }: { master: Master }) {
                   disabled={off}
                   onClick={() => selectDay(d)}
                 >
-                  <span className="dow">{DOW_LABELS[toOurDow(d)]}</span>
+                  <span className="dow">{dowFormat.format(d)}</span>
                   <span className="num">{d.getDate()}</span>
                 </button>
               );
@@ -176,11 +181,9 @@ export default function BookingWidget({ master }: { master: Master }) {
 
       {service && day && (
         <>
-          <div className="section-title">Время</div>
+          <div className="section-title">{t(locale, "time")}</div>
           {slots.length === 0 ? (
-            <div className="empty-note">
-              На этот день свободных слотов нет
-            </div>
+            <div className="empty-note">{t(locale, "noSlots")}</div>
           ) : (
             <div className="slots-grid">
               {slots.map(({ min, busy }) => (
@@ -200,30 +203,30 @@ export default function BookingWidget({ master }: { master: Master }) {
 
       {service && day && slot !== null && (
         <form onSubmit={submit}>
-          <div className="section-title">Ваши данные</div>
+          <div className="section-title">{t(locale, "yourDetails")}</div>
           <div className="field">
-            <label htmlFor="name">Имя</label>
+            <label htmlFor="name">{t(locale, "name")}</label>
             <input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Как к вам обращаться"
+              placeholder={t(locale, "namePlaceholder")}
             />
           </div>
           <div className="field">
-            <label htmlFor="phone">Номер телефона</label>
+            <label htmlFor="phone">{t(locale, "phone")}</label>
             <input
               id="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+998 90 123 45 67"
+              placeholder={market.phone.placeholder}
             />
           </div>
           {error && <div className="form-error">{error}</div>}
           <button type="submit" className="btn-primary">
-            Записаться · {minutesToTime(slot)},{" "}
-            {day.getDate()} {MONTH_LABELS[day.getMonth()]}
+            {t(locale, "book")} · {minutesToTime(slot)},{" "}
+            {dateFormat.format(day)}
           </button>
         </form>
       )}
