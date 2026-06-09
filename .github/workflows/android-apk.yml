@@ -1,0 +1,47 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build APK
+        working-directory: mobile
+        run: flutter build apk --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: navbar-apk
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+
+      # Постоянная ссылка на свежий APK: Releases → apk-latest
+      - name: Publish to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "Navbar — свежий APK для Android"
+          body: "Скачай app-release.apk и установи на телефон. Собрано автоматически из main."
+          files: mobile/build/app/outputs/flutter-apk/app-release.apk
