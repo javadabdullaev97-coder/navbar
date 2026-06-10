@@ -105,6 +105,7 @@ class S {
 
   static const clientComingSoon =
       'Кабинет клиента появится в следующей версии.\nПока запись — по ссылке мастера.';
+  static const backToRoleSelect = 'Вернуться к выбору роли';
   static const min = 'мин';
   static const back = 'Назад';
   static const cancel = 'Отмена';

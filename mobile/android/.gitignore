@@ -12,3 +12,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Исключение: тестовый CI-ключ, НЕ для публикации в Google Play
+!keystores/ci-test.keystore

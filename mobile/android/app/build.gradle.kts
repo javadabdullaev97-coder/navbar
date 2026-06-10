@@ -25,11 +25,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Постоянный ТЕСТОВЫЙ ключ: нужен, чтобы APK из CI обновлялись
+        // поверх друг друга. Перед публикацией в Google Play заменить
+        // на секретный release-ключ (через GitHub Secrets, не в репозитории).
+        create("ciTest") {
+            storeFile = file("../keystores/ci-test.keystore")
+            storePassword = "navbar-test"
+            keyAlias = "navbar-test"
+            keyPassword = "navbar-test"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("ciTest")
         }
     }
 }
