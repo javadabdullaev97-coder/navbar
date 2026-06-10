@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../i18n.dart';
 import '../theme.dart';
 import 'client_home.dart';
+import 'client_records.dart';
 import 'client_settings.dart';
 
 class ClientShell extends StatefulWidget {
@@ -18,6 +19,7 @@ class _ClientShellState extends State<ClientShell> {
   Widget build(BuildContext context) {
     final screens = [
       const ClientHomeScreen(),
+      const ClientRecordsScreen(),
       const ClientSettingsScreen(),
     ];
     return Scaffold(
@@ -29,6 +31,8 @@ class _ClientShellState extends State<ClientShell> {
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined), label: 'Navbar'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.event_note_outlined), label: S.historyTitle),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined), label: S.navSettings),
         ],

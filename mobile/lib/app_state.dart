@@ -16,6 +16,8 @@ class AppState {
   String address = '';
   String slug = '';
   bool isPro = false;
+  List<String> interests = []; // категории, интересные клиенту
+  String lang = 'ru'; // 'ru' | 'uz' | 'en' | 'es'
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
@@ -27,6 +29,8 @@ class AppState {
     address = _prefs.getString('address') ?? '';
     slug = _prefs.getString('slug') ?? '';
     isPro = _prefs.getBool('isPro') ?? false;
+    interests = _prefs.getStringList('interests') ?? [];
+    lang = _prefs.getString('lang') ?? 'ru';
   }
 
   Future<void> save() async {
@@ -38,6 +42,8 @@ class AppState {
     await _prefs.setString('address', address);
     await _prefs.setString('slug', slug);
     await _prefs.setBool('isPro', isPro);
+    await _prefs.setStringList('interests', interests);
+    await _prefs.setString('lang', lang);
   }
 
   Future<void> reset() async {
@@ -50,5 +56,7 @@ class AppState {
     address = '';
     slug = '';
     isPro = false;
+    interests = [];
+    lang = 'ru';
   }
 }

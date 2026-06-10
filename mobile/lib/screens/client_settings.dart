@@ -3,6 +3,7 @@ import '../app_state.dart';
 import '../i18n.dart';
 import '../theme.dart';
 import 'role_select.dart';
+import 'settings_screen.dart' show kLangNames, showLanguagePicker;
 
 class ClientSettingsScreen extends StatelessWidget {
   const ClientSettingsScreen({super.key});
@@ -35,6 +36,7 @@ class ClientSettingsScreen extends StatelessWidget {
                 );
               },
             ),
+            _LangTile(),
             _Tile(
               icon: Icons.swap_horiz,
               title: S.changeRole,
@@ -52,6 +54,26 @@ class ClientSettingsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LangTile extends StatefulWidget {
+  @override
+  State<_LangTile> createState() => _LangTileState();
+}
+
+class _LangTileState extends State<_LangTile> {
+  @override
+  Widget build(BuildContext context) {
+    return _Tile(
+      icon: Icons.language,
+      title: S.language,
+      subtitle: kLangNames[AppState.instance.lang] ?? AppState.instance.lang,
+      onTap: () async {
+        await showLanguagePicker(context);
+        setState(() {});
+      },
     );
   }
 }

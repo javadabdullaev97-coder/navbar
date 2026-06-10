@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../i18n.dart';
 import 'analytics_screen.dart';
 import 'clients_screen.dart';
+import 'master_chats.dart';
 import 'schedule_screen.dart';
 import 'settings_screen.dart';
 
@@ -20,6 +21,7 @@ class _MasterShellState extends State<MasterShell> {
     final screens = [
       const ScheduleScreen(),
       const ClientsScreen(),
+      const MasterChatsScreen(),
       const AnalyticsScreen(),
       const SettingsScreen(),
     ];
@@ -35,6 +37,8 @@ class _MasterShellState extends State<MasterShell> {
               label: S.navSchedule),
           BottomNavigationBarItem(
               icon: Icon(Icons.people_outline), label: S.navClients),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble_outline), label: S.navChats),
           BottomNavigationBarItem(
               icon: Icon(Icons.bar_chart_outlined), label: S.navAnalytics),
           BottomNavigationBarItem(

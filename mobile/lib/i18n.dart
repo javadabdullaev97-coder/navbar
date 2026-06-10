@@ -25,7 +25,8 @@ class S {
   static const profileSlug = 'Ссылка для записи';
   static const profileSlugHint = 'например: asror';
   static const start = 'Начать';
-  static const errPhone = 'Введите номер в формате +998 XX XXX XX XX';
+  static const errPhone =
+      'Введите номер с кодом страны, например +998 90 123 45 67';
   static const errRequired = 'Заполните обязательные поля';
 
   static const navSchedule = 'Расписание';
@@ -105,6 +106,38 @@ class S {
 
   // Кабинет клиента
   static const backToRoleSelect = 'Вернуться к выбору роли';
+  static const interestsTitle = 'Что вас интересует?';
+  static const interestsSubtitle =
+      'Подберём лучших мастеров по вашим интересам';
+  static const searchMasters = 'Имя мастера или номер телефона';
+  static const topMasters = 'Лучшие мастера';
+  static const allCategories = 'Категории';
+  static const nothingFound = 'Ничего не найдено';
+  static const reviewsTitle = 'Отзывы';
+  static const portfolioTitle = 'Портфолио';
+  static const servicesTitle = 'Услуги';
+  static const totalLabel = 'Итого';
+  static const chooseSlots = 'Выбрать время';
+  static const writeMessage = 'Написать';
+  static const chatTitle = 'Чат';
+  static const messageHint = 'Сообщение…';
+  static const navChats = 'Чаты';
+  static const noChats = 'Пока нет переписок';
+  static const pendingConfirm = 'Ожидает подтверждения мастера';
+  static const conflictTitle = 'Вы уже записаны';
+  static const conflictText =
+      'В это время у вас запись: {что}. Выберите другое время.';
+  static const ok = 'Понятно';
+  static const leaveReview = 'Оценить';
+  static const yourReview = 'Ваш отзыв';
+  static const send = 'Отправить';
+  static const reviewThanks = 'Спасибо за отзыв!';
+  static const blockSlotTitle = 'Заблокировать время';
+  static const blockSlot = 'Заблокировать';
+  static const blockedLabel = 'Заблокировано';
+  static const unblock = 'Разблокировать';
+  static const language = 'Язык';
+  static const langNote = 'Перевод интерфейса — на этапе локализации';
   static const yourName = 'Как вас зовут?';
   static const upcoming = 'Ближайшая запись';
   static const myMasters = 'Мои мастера';

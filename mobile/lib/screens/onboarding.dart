@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../i18n.dart';
 import '../theme.dart';
+import '../client_store.dart' show kCategories;
 import 'client_shell.dart';
 import 'master_shell.dart';
 
@@ -27,8 +28,9 @@ class _PhoneScreenState extends State<PhoneScreen> {
   }
 
   void _next() {
+    // Любая страна: E.164 — от 8 до 15 цифр с кодом страны
     final digits = _ctrl.text.replaceAll(RegExp(r'\D'), '');
-    if (!digits.startsWith('998') || digits.length != 12) {
+    if (digits.length < 8 || digits.length > 15) {
       setState(() => _error = S.errPhone);
       return;
     }
@@ -182,14 +184,10 @@ class _ClientNameScreenState extends State<ClientNameScreen> {
       setState(() => _error = S.errRequired);
       return;
     }
-    final app = AppState.instance;
-    app.name = _ctrl.text.trim();
-    app.onboarded = true;
-    await app.save();
+    AppState.instance.name = _ctrl.text.trim();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const ClientShell()),
-      (_) => false,
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const InterestsScreen()),
     );
   }
 
@@ -217,6 +215,77 @@ class _ClientNameScreenState extends State<ClientNameScreen> {
                   style: const TextStyle(
                       color: AppColors.warning, fontSize: 13)),
             ],
+            const Spacer(),
+            _PrimaryButton(label: S.start, onPressed: _finish),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InterestsScreen extends StatefulWidget {
+  const InterestsScreen({super.key});
+
+  @override
+  State<InterestsScreen> createState() => _InterestsScreenState();
+}
+
+class _InterestsScreenState extends State<InterestsScreen> {
+  final _selected = <String>{};
+
+  Future<void> _finish() async {
+    final app = AppState.instance;
+    app.interests = _selected.toList();
+    app.onboarded = true;
+    await app.save();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const ClientShell()),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(S.interestsTitle,
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            const Text(S.interestsSubtitle,
+                style:
+                    TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: kCategories.map((c) {
+                final on = _selected.contains(c);
+                return FilterChip(
+                  label: Text(c),
+                  selected: on,
+                  onSelected: (_) => setState(
+                      () => on ? _selected.remove(c) : _selected.add(c)),
+                  selectedColor:
+                      AppColors.accentClient.withValues(alpha: 0.15),
+                  checkmarkColor: AppColors.accentClient,
+                  labelStyle: TextStyle(
+                      color: on
+                          ? AppColors.accentClient
+                          : AppColors.textSecondary),
+                  backgroundColor: AppColors.bgCard,
+                  side: BorderSide(
+                      color:
+                          on ? AppColors.accentClient : AppColors.border),
+                );
+              }).toList(),
+            ),
             const Spacer(),
             _PrimaryButton(label: S.start, onPressed: _finish),
           ],

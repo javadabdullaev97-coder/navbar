@@ -130,6 +130,42 @@ class MockStore {
 
   static const freeClientsLimit = 50;
 
+  // Слоты, заблокированные мастером вручную
+  final blockedSlots = <BlockedSlot>[];
+
+  // Демо-связь с клиентской стороной: при смене статуса записи
+  // клиент видит обновление (аналог Supabase Realtime)
+  void Function(String apptId, AppointmentStatus status)? onStatusChanged;
+
+  void blockSlot(DateTime day, int startMin, int endMin, [String? note]) {
+    blockedSlots.add(BlockedSlot(
+      day: DateTime(day.year, day.month, day.day),
+      startMin: startMin,
+      endMin: endMin,
+      note: note,
+    ));
+  }
+
+  void unblockSlot(BlockedSlot b) => blockedSlots.remove(b);
+
+  bool isBlocked(DateTime day, int startMin, int durationMin) {
+    final end = startMin + durationMin;
+    return blockedSlots.any((b) =>
+        b.day.year == day.year &&
+        b.day.month == day.month &&
+        b.day.day == day.day &&
+        startMin < b.endMin &&
+        end > b.startMin);
+  }
+
+  List<BlockedSlot> blockedOn(DateTime day) => blockedSlots
+      .where((b) =>
+          b.day.year == day.year &&
+          b.day.month == day.month &&
+          b.day.day == day.day)
+      .toList()
+    ..sort((a, b) => a.startMin.compareTo(b.startMin));
+
   Client clientById(String id) => clients.firstWhere((c) => c.id == id);
   Service? serviceById(String id) {
     final found = services.where((s) => s.id == id);
@@ -204,18 +240,21 @@ class MockStore {
     return c;
   }
 
-  void addAppointment({
+  Appointment addAppointment({
     required Client client,
     required Service service,
     required DateTime startsAt,
+    AppointmentStatus status = AppointmentStatus.confirmed,
   }) {
-    appointments.add(Appointment(
+    final a = Appointment(
       id: 'a${appointments.length + 1}',
       clientId: client.id,
       serviceId: service.id,
       startsAt: startsAt,
-      status: AppointmentStatus.confirmed,
-    ));
+      status: status,
+    );
+    appointments.add(a);
+    return a;
   }
 
   void setStatus(Appointment a, AppointmentStatus status) {
@@ -225,6 +264,7 @@ class MockStore {
       c.visitCount += 1;
       c.lastVisitAt = a.startsAt;
     }
+    onStatusChanged?.call(a.id, status);
   }
 
   void addService(String name, int durationMin, int price) {

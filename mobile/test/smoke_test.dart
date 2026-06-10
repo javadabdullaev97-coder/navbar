@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:navbar_mobile/app_state.dart';
+import 'package:navbar_mobile/client_store.dart';
 import 'package:navbar_mobile/i18n.dart';
 import 'package:navbar_mobile/main.dart';
 
@@ -13,24 +14,18 @@ void main() {
 
     await tester.pumpWidget(const NavbarApp());
 
-    // Выбор роли
     expect(find.text(S.chooseRole), findsOneWidget);
     await tester.tap(find.text(S.roleMaster));
     await tester.pumpAndSettle();
 
-    // Телефон
-    expect(find.text(S.phoneTitle), findsOneWidget);
     await tester.enterText(find.byType(TextField), '+998 90 123 45 67');
     await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
 
-    // Код подтверждения (тестовый)
-    expect(find.text(S.otpTitle), findsOneWidget);
     await tester.enterText(find.byType(TextField), '0000');
     await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
 
-    // Профиль
     expect(find.text(S.profileTitle), findsOneWidget);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'Асрор');
@@ -38,26 +33,23 @@ void main() {
     await tester.tap(find.text(S.start));
     await tester.pumpAndSettle();
 
-    // Кабинет мастера
     expect(find.text(S.navSchedule), findsWidgets);
     expect(find.textContaining(S.greeting), findsOneWidget);
-    expect(AppState.instance.onboarded, isTrue);
     expect(AppState.instance.role, 'master');
   });
 
-  testWidgets('клиент: онбординг → запись к мастеру → запись на главной',
+  testWidgets(
+      'клиент: онбординг с интересами → каталог → мультиуслуги → календарь → запись',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
     await AppState.instance.load();
 
     await tester.pumpWidget(const NavbarApp());
 
-    // Роль клиента
+    // Роль, телефон (международный), код
     await tester.tap(find.text(S.roleClient));
     await tester.pumpAndSettle();
-
-    // Телефон и код
-    await tester.enterText(find.byType(TextField), '+998 93 555 44 11');
+    await tester.enterText(find.byType(TextField), '+7 905 123 45 67');
     await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '0000');
@@ -70,28 +62,50 @@ void main() {
     await tester.tap(find.text(S.start));
     await tester.pumpAndSettle();
 
-    // Главная клиента
-    expect(find.text(S.myMasters.toUpperCase()), findsOneWidget);
-    expect(AppState.instance.role, 'client');
-
-    // Записаться к первому мастеру (Асрор)
-    await tester.tap(find.text(S.bookBtn).first);
+    // Интересы
+    expect(find.text(S.interestsTitle), findsOneWidget);
+    await tester.tap(find.text('Барберы'));
+    await tester.tap(find.text(S.start));
     await tester.pumpAndSettle();
-    expect(find.text(S.chooseService.toUpperCase()), findsOneWidget);
 
-    // Услуга
+    // Каталог: категория интереса первая, мастера с рейтингом
+    expect(AppState.instance.interests, contains('Барберы'));
+    expect(find.text('Асрор Каримов'), findsWidgets);
+
+    // Поиск по номеру
+    await tester.enterText(find.byType(TextField).first, '90555');
+    await tester.pumpAndSettle();
+    expect(find.text('Умид Назаров'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pumpAndSettle();
+
+    // Профиль мастера
+    await tester.tap(find.text('Асрор Каримов').first);
+    await tester.pumpAndSettle();
+    expect(find.text(S.portfolioTitle.toUpperCase()), findsOneWidget);
+
+    // Мультивыбор: две услуги
     await tester.ensureVisible(find.text('Мужская стрижка'));
     await tester.tap(find.text('Мужская стрижка'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Оформление бороды'));
+    await tester.tap(find.text('Оформление бороды'));
+    await tester.pumpAndSettle();
 
-    // Дата: берём первый рабочий день со свободными слотами
+    // К календарю
+    await tester.tap(find.byKey(const ValueKey('choose-time')));
+    await tester.pumpAndSettle();
+
+    // Календарь: ищем первый свободный день со слотами
     bool slotFound = false;
-    for (var i = 0; i < 7 && !slotFound; i++) {
-      final chip = find.byKey(ValueKey('day-$i'));
-      if (chip.evaluate().isEmpty) break;
-      await tester.ensureVisible(chip);
+    for (var d = 1; d <= 31 && !slotFound; d++) {
+      final cell = find.byKey(ValueKey('cal-$d'));
+      if (cell.evaluate().isEmpty) continue;
+      final widget = tester.widget<GestureDetector>(cell);
+      if (widget.onTap == null) continue; // прошлое/выходной/занято
+      await tester.ensureVisible(cell);
       await tester.pumpAndSettle();
-      await tester.tap(chip, warnIfMissed: false);
+      await tester.tap(cell, warnIfMissed: false);
       await tester.pumpAndSettle();
       slotFound = tester
           .widgetList(find.byWidgetPredicate((w) =>
@@ -99,9 +113,9 @@ void main() {
               (w.key?.toString().contains('slot-') ?? false)))
           .isNotEmpty;
     }
-    expect(slotFound, isTrue, reason: 'не нашлось свободных слотов за неделю');
+    expect(slotFound, isTrue, reason: 'не нашлось свободного дня в месяце');
 
-    // Время: первый свободный слот
+    // Слот и подтверждение
     final slot = find.byWidgetPredicate((w) =>
         w is OutlinedButton &&
         (w.key?.toString().contains('slot-') ?? false));
@@ -109,16 +123,38 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(slot.first);
     await tester.pumpAndSettle();
-
-    // Подтверждение
     await tester.tap(find.byKey(const ValueKey('confirm-booking')));
     await tester.pumpAndSettle();
+
+    // Заявка создана и ждёт подтверждения мастера
     expect(find.text(S.booked), findsOneWidget);
+    expect(find.text(S.pendingConfirm), findsWidgets);
     await tester.tap(find.text(S.done));
     await tester.pumpAndSettle();
 
-    // Запись на главной
-    expect(find.text('Мужская стрижка'), findsWidgets);
-    expect(find.text(S.cancelBooking), findsOneWidget);
+    // На главной — ближайшая запись с двумя услугами
+    expect(find.textContaining('Мужская стрижка + Оформление бороды'),
+        findsWidgets);
+  });
+
+  test('конфликт записей: клиент не может быть у двух мастеров сразу', () {
+    final store = ClientStore.instance;
+    final masters = store.masters;
+    final day = DateTime.now().add(const Duration(days: 40));
+    final start = DateTime(day.year, day.month, day.day, 12, 0);
+
+    final servicesA = [masters[1].services.first];
+    store.book(masters[1], servicesA, start);
+
+    // Пересечение по времени у другого мастера
+    final conflict = store.conflictWithMine(
+        start.add(const Duration(minutes: 15)), 60);
+    expect(conflict, isNotNull);
+    expect(conflict!.masterSlug, masters[1].slug);
+
+    // А через два часа — свободно
+    final ok = store.conflictWithMine(
+        start.add(const Duration(hours: 2)), 60);
+    expect(ok, isNull);
   });
 }

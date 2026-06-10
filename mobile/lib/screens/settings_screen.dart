@@ -9,6 +9,54 @@ import 'role_select.dart';
 import 'services_screen.dart';
 import 'work_hours_screen.dart';
 
+const kLangNames = {
+  'ru': 'Русский',
+  'uz': "O'zbekcha",
+  'en': 'English',
+  'es': 'Español',
+};
+
+Future<void> showLanguagePicker(BuildContext context) async {
+  final app = AppState.instance;
+  final picked = await showDialog<String>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      backgroundColor: AppColors.bgCard,
+      title: const Text(S.language),
+      children: kLangNames.entries
+          .map((e) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, e.key),
+                child: Row(
+                  children: [
+                    Text(e.value,
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: app.lang == e.key
+                                ? AppColors.accentMaster
+                                : AppColors.text)),
+                    if (app.lang == e.key) ...[
+                      const Spacer(),
+                      const Icon(Icons.check,
+                          size: 18, color: AppColors.accentMaster),
+                    ],
+                  ],
+                ),
+              ))
+          .toList(),
+    ),
+  );
+  if (picked != null && picked != app.lang) {
+    app.lang = picked;
+    await app.save();
+    if (context.mounted && picked != 'ru') {
+      // TODO: словари uz/en/es — этап локализации (как в web/lib/i18n.ts)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(S.langNote)),
+      );
+    }
+  }
+}
+
 // Тестовое включение Про — реальная оплата (Payme/Click) придёт позже
 // и будет идти через веб-страницу, не через покупки в маркетах.
 Future<void> showUpgradeDialog(BuildContext context) async {
@@ -162,6 +210,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () async {
                 await Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const WorkHoursScreen()));
+                setState(() {});
+              },
+            ),
+            _SettingsTile(
+              icon: Icons.language,
+              title: S.language,
+              subtitle: kLangNames[app.lang] ?? app.lang,
+              onTap: () async {
+                await showLanguagePicker(context);
                 setState(() {});
               },
             ),

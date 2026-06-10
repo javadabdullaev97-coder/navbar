@@ -90,8 +90,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  // Мастер блокирует время под свои дела — клиенты эти слоты не видят
+  Future<void> _blockSlotDialog() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDay,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 60)),
+    );
+    if (date == null || !mounted) return;
+    final start = await showTimePicker(
+        context: context, initialTime: const TimeOfDay(hour: 13, minute: 0));
+    if (start == null || !mounted) return;
+    final end = await showTimePicker(
+        context: context, initialTime: const TimeOfDay(hour: 14, minute: 0));
+    if (end == null) return;
+    setState(() {
+      store.blockSlot(
+          date, start.hour * 60 + start.minute, end.hour * 60 + end.minute);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final blocked = store.blockedOn(_selectedDay);
     final todayAppointments = store
         .appointmentsOn(DateTime.now())
         .where((a) => a.status != AppointmentStatus.cancelled)
@@ -112,10 +134,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              '${S.greeting}, ${store.masterName} 👋',
-              style:
-                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${S.greeting}, ${store.masterName} 👋',
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                IconButton(
+                  tooltip: S.blockSlotTitle,
+                  onPressed: _blockSlotDialog,
+                  icon: const Icon(Icons.lock_clock,
+                      color: AppColors.textSecondary),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Row(
@@ -179,7 +213,39 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            if (dayAppointments.isEmpty)
+            ...blocked.map((b) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_clock,
+                          size: 18, color: AppColors.warning),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                            '${S.blockedLabel} · ${formatMinutes(b.startMin)}–${formatMinutes(b.endMin)}',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary)),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => store.unblockSlot(b)),
+                        child: const Text(S.unblock,
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textTertiary)),
+                      ),
+                    ],
+                  ),
+                )),
+            if (dayAppointments.isEmpty && blocked.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
                 child: Center(
