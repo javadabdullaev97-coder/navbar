@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../i18n.dart';
+import 'analytics_screen.dart';
 import 'clients_screen.dart';
 import 'schedule_screen.dart';
 import 'settings_screen.dart';
@@ -19,6 +20,7 @@ class _MasterShellState extends State<MasterShell> {
     final screens = [
       const ScheduleScreen(),
       const ClientsScreen(),
+      const AnalyticsScreen(),
       const SettingsScreen(),
     ];
     return Scaffold(
@@ -26,12 +28,15 @@ class _MasterShellState extends State<MasterShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today_outlined),
               label: S.navSchedule),
           BottomNavigationBarItem(
               icon: Icon(Icons.people_outline), label: S.navClients),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart_outlined), label: S.navAnalytics),
           BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined), label: S.navSettings),
         ],

@@ -1,16 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../app_state.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
 import '../theme.dart';
+import 'onboarding.dart';
+import 'role_select.dart';
+import 'services_screen.dart';
+import 'work_hours_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+// Тестовое включение Про — реальная оплата (Payme/Click) придёт позже
+// и будет идти через веб-страницу, не через покупки в маркетах.
+Future<void> showUpgradeDialog(BuildContext context) async {
+  final app = AppState.instance;
+  final enable = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: AppColors.bgCard,
+      title: const Text(S.tariffMockTitle),
+      content: const Text(S.tariffMockText,
+          style: TextStyle(color: AppColors.textSecondary, height: 1.5)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text(S.cancel,
+              style: TextStyle(color: AppColors.textSecondary)),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.accentMaster,
+            foregroundColor: AppColors.bg,
+          ),
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text(S.tariffMockEnable),
+        ),
+      ],
+    ),
+  );
+  if (enable == true) {
+    app.isPro = true;
+    await app.save();
+  }
+}
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final store = MockStore.instance;
+
+  @override
   Widget build(BuildContext context) {
-    final store = MockStore.instance;
-    final pageUrl = 'navbar.uz/${store.master.slug}';
+    final app = AppState.instance;
+    final pageUrl = 'navbar.uz/${store.masterSlug}';
 
     return Scaffold(
       appBar: AppBar(title: const Text(S.navSettings)),
@@ -23,14 +69,21 @@ class SettingsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(
+                    color: app.isPro
+                        ? AppColors.accentMaster
+                        : AppColors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(S.tariffFree,
+                  Text(app.isPro ? S.tariffPro : S.tariffFree,
                       style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700)),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: app.isPro
+                              ? AppColors.accentMaster
+                              : AppColors.text)),
                   const SizedBox(height: 6),
                   Text(
                       '${store.clients.length}/${MockStore.freeClientsLimit} ${S.statClients}',
@@ -39,18 +92,32 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.accentMaster,
-                        foregroundColor: AppColors.bg,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      // TODO: оплата подписки (Payme/Click/Uzum)
-                      onPressed: () {},
-                      child: const Text(S.tariffUpgrade,
-                          style: TextStyle(fontWeight: FontWeight.w700)),
-                    ),
+                    child: app.isPro
+                        ? OutlinedButton(
+                            onPressed: () async {
+                              app.isPro = false;
+                              await app.save();
+                              setState(() {});
+                            },
+                            child: const Text(S.tariffDisable,
+                                style: TextStyle(
+                                    color: AppColors.textSecondary)),
+                          )
+                        : FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.accentMaster,
+                              foregroundColor: AppColors.bg,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () async {
+                              await showUpgradeDialog(context);
+                              setState(() {});
+                            },
+                            child: const Text(S.tariffUpgrade,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700)),
+                          ),
                   ),
                 ],
               ),
@@ -70,26 +137,61 @@ class SettingsScreen extends StatelessWidget {
             _SettingsTile(
               icon: Icons.person_outline,
               title: S.profile,
-              subtitle:
-                  '${store.master.name} · ${store.master.specialization}',
-              onTap: () {},
+              subtitle: '${store.masterName} · ${store.masterSpec}',
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) =>
+                        const ProfileSetupScreen(editMode: true)));
+                setState(() {});
+              },
             ),
             _SettingsTile(
               icon: Icons.design_services_outlined,
               title: S.myServices,
               subtitle: '${store.services.length}',
-              onTap: () {},
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ServicesScreen()));
+                setState(() {});
+              },
             ),
             _SettingsTile(
               icon: Icons.schedule_outlined,
               title: S.workHours,
-              subtitle: 'пн–пт 9:00–20:00, сб 10:00–18:00',
-              onTap: () {},
+              subtitle: _scheduleSummary(),
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const WorkHoursScreen()));
+                setState(() {});
+              },
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () async {
+                await AppState.instance.reset();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (_) => const RoleSelectScreen()),
+                  (_) => false,
+                );
+              },
+              child: const Text(S.logout,
+                  style: TextStyle(color: AppColors.textTertiary)),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _scheduleSummary() {
+    final working =
+        store.schedule.where((d) => !d.isDayOff).toList();
+    if (working.isEmpty) return S.dayOff;
+    final first = working.first;
+    return '${S.dows[working.first.dayOfWeek]}–${S.dows[working.last.dayOfWeek]} '
+        '${formatMinutes(first.startMin)}–${formatMinutes(first.endMin)}';
   }
 }
 

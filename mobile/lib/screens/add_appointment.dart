@@ -104,7 +104,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                           style: const TextStyle(fontSize: 14)),
                     ),
                     Text(
-                        formatPrice(s.price, store.master.currencySuffix),
+                        formatPrice(s.price, store.currencySuffix),
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

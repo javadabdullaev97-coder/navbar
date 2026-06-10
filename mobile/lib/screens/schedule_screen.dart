@@ -17,8 +17,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   late DateTime _selectedDay;
   late List<DateTime> _days;
 
-  static const _dowLabels = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
-
   @override
   void initState() {
     super.initState();
@@ -28,9 +26,76 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     _days = List.generate(14, (i) => today.add(Duration(days: i)));
   }
 
+  void _openActions(Appointment a) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.bgCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final client = store.clientById(a.clientId);
+        final service = store.serviceById(a.serviceId);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Text('${client.name} · ${service?.name ?? ''}',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700)),
+              Text('${formatTime(a.startsAt)}, ${formatDate(a.startsAt)}',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 8),
+              if (a.status == AppointmentStatus.pending)
+                ListTile(
+                  leading: const Icon(Icons.check_circle_outline,
+                      color: AppColors.accentMaster),
+                  title: const Text(S.actionConfirm),
+                  onTap: () {
+                    setState(() =>
+                        store.setStatus(a, AppointmentStatus.confirmed));
+                    Navigator.pop(ctx);
+                  },
+                ),
+              if (a.status == AppointmentStatus.pending ||
+                  a.status == AppointmentStatus.confirmed) ...[
+                ListTile(
+                  leading: const Icon(Icons.task_alt,
+                      color: AppColors.accentMaster),
+                  title: const Text(S.actionDone),
+                  onTap: () {
+                    setState(
+                        () => store.setStatus(a, AppointmentStatus.done));
+                    Navigator.pop(ctx);
+                  },
+                ),
+                ListTile(
+                  leading:
+                      const Icon(Icons.close, color: AppColors.warning),
+                  title: const Text(S.actionCancel),
+                  onTap: () {
+                    setState(() =>
+                        store.setStatus(a, AppointmentStatus.cancelled));
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final todayAppointments = store.appointmentsOn(DateTime.now());
+    final todayAppointments = store
+        .appointmentsOn(DateTime.now())
+        .where((a) => a.status != AppointmentStatus.cancelled)
+        .toList();
     final dayAppointments = store.appointmentsOn(_selectedDay);
 
     return Scaffold(
@@ -48,19 +113,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              '${S.greeting}, ${store.master.name} 👋',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              '${S.greeting}, ${store.masterName} 👋',
+              style:
+                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 _StatCard(
-                    value: '${todayAppointments.length}',
-                    label: S.statToday),
+                    value: '${todayAppointments.length}', label: S.statToday),
                 const SizedBox(width: 10),
                 _StatCard(
-                    value: formatPrice(
-                        store.todayRevenue(), store.master.currencySuffix),
+                    value:
+                        formatPrice(store.todayRevenue(), store.currencySuffix),
                     label: S.statRevenue),
                 const SizedBox(width: 10),
                 _StatCard(
@@ -92,7 +157,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(_dowLabels[(d.weekday - 1) % 7],
+                          Text(S.dows[(d.weekday - 1) % 7],
                               style: TextStyle(
                                   fontSize: 11,
                                   color: selected
@@ -123,7 +188,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               )
             else
-              ...dayAppointments.map((a) => _AppointmentCard(a: a)),
+              ...dayAppointments.map((a) => _AppointmentCard(
+                  a: a, onTap: () => _openActions(a))),
             const SizedBox(height: 72),
           ],
         ),
@@ -171,69 +237,84 @@ class _StatCard extends StatelessWidget {
 
 class _AppointmentCard extends StatelessWidget {
   final Appointment a;
+  final VoidCallback onTap;
 
-  const _AppointmentCard({required this.a});
+  const _AppointmentCard({required this.a, required this.onTap});
+
+  (String, Color) get _statusView => switch (a.status) {
+        AppointmentStatus.pending => (S.statusPending, AppColors.warning),
+        AppointmentStatus.confirmed =>
+          (S.statusConfirmed, AppColors.textTertiary),
+        AppointmentStatus.done => (S.statusDone, AppColors.accentMaster),
+        AppointmentStatus.cancelled =>
+          (S.statusCancelled, AppColors.textTertiary),
+      };
 
   @override
   Widget build(BuildContext context) {
     final store = MockStore.instance;
     final client = store.clientById(a.clientId);
     final service = store.serviceById(a.serviceId);
-    final pending = a.status == AppointmentStatus.pending;
+    final cancelled = a.status == AppointmentStatus.cancelled;
+    final (statusLabel, statusColor) = _statusView;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Column(
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: cancelled ? 0.45 : 1,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
             children: [
-              Text(formatTime(a.startsAt),
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
-              Text('${service.durationMin} ${S.min}',
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textTertiary)),
+              Column(
+                children: [
+                  Text(formatTime(a.startsAt),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text('${service?.durationMin ?? 0} ${S.min}',
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textTertiary)),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(client.name,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(service?.name ?? '',
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                      formatPrice(
+                          service?.price ?? 0, store.currencySuffix),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accentMaster)),
+                  const SizedBox(height: 4),
+                  Text(statusLabel,
+                      style: TextStyle(fontSize: 11, color: statusColor)),
+                ],
+              ),
             ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(client.name,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(service.name,
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(formatPrice(service.price, store.master.currencySuffix),
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.accentMaster)),
-              const SizedBox(height: 4),
-              Text(pending ? S.statusPending : S.statusConfirmed,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: pending
-                          ? AppColors.warning
-                          : AppColors.textTertiary)),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

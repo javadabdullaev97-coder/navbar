@@ -1,0 +1,317 @@
+import 'package:flutter/material.dart';
+import '../app_state.dart';
+import '../i18n.dart';
+import '../theme.dart';
+import 'client_home.dart';
+import 'master_shell.dart';
+
+// Онбординг: телефон → код → профиль (для мастера).
+// Код подтверждения пока тестовый (0000) — реальный OTP придёт с Supabase.
+
+class PhoneScreen extends StatefulWidget {
+  final String role; // 'master' | 'client'
+  const PhoneScreen({super.key, required this.role});
+
+  @override
+  State<PhoneScreen> createState() => _PhoneScreenState();
+}
+
+class _PhoneScreenState extends State<PhoneScreen> {
+  final _ctrl = TextEditingController(text: '+998 ');
+  String _error = '';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _next() {
+    final digits = _ctrl.text.replaceAll(RegExp(r'\D'), '');
+    if (!digits.startsWith('998') || digits.length != 12) {
+      setState(() => _error = S.errPhone);
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => OtpScreen(role: widget.role, phone: '+$digits'),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(S.phoneTitle,
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            const Text(S.phoneSubtitle,
+                style:
+                    TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            const SizedBox(height: 28),
+            TextField(
+              controller: _ctrl,
+              keyboardType: TextInputType.phone,
+              autofocus: true,
+              style: const TextStyle(fontSize: 20),
+              onSubmitted: (_) => _next(),
+            ),
+            if (_error.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(_error,
+                  style: const TextStyle(
+                      color: AppColors.warning, fontSize: 13)),
+            ],
+            const Spacer(),
+            _PrimaryButton(label: S.continueBtn, onPressed: _next),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OtpScreen extends StatefulWidget {
+  final String role;
+  final String phone;
+  const OtpScreen({super.key, required this.role, required this.phone});
+
+  @override
+  State<OtpScreen> createState() => _OtpScreenState();
+}
+
+class _OtpScreenState extends State<OtpScreen> {
+  final _ctrl = TextEditingController();
+  String _error = '';
+
+  static const _testCode = '0000';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _next() async {
+    if (_ctrl.text.trim() != _testCode) {
+      setState(() => _error = S.otpWrong);
+      return;
+    }
+    final app = AppState.instance;
+    app.phone = widget.phone;
+    app.role = widget.role;
+    if (widget.role == 'client') {
+      app.onboarded = true;
+      await app.save();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const ClientHomeScreen()),
+        (_) => false,
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ProfileSetupScreen()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(S.otpTitle,
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text('${S.otpSubtitle} ${widget.phone}',
+                style: const TextStyle(
+                    fontSize: 14, color: AppColors.textSecondary)),
+            const SizedBox(height: 28),
+            TextField(
+              controller: _ctrl,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              maxLength: 4,
+              style: const TextStyle(fontSize: 28, letterSpacing: 12),
+              textAlign: TextAlign.center,
+              onSubmitted: (_) => _next(),
+            ),
+            const SizedBox(height: 6),
+            const Text(S.otpTestHint,
+                style:
+                    TextStyle(fontSize: 13, color: AppColors.textTertiary)),
+            if (_error.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(_error,
+                  style: const TextStyle(
+                      color: AppColors.warning, fontSize: 13)),
+            ],
+            const Spacer(),
+            _PrimaryButton(label: S.continueBtn, onPressed: _next),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfileSetupScreen extends StatefulWidget {
+  final bool editMode;
+  const ProfileSetupScreen({super.key, this.editMode = false});
+
+  @override
+  State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+}
+
+class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  late final _name = TextEditingController(text: AppState.instance.name);
+  late final _spec =
+      TextEditingController(text: AppState.instance.specialization);
+  late final _address = TextEditingController(text: AppState.instance.address);
+  late final _slug = TextEditingController(text: AppState.instance.slug);
+  String _error = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _spec.dispose();
+    _address.dispose();
+    _slug.dispose();
+    super.dispose();
+  }
+
+  Future<void> _finish() async {
+    if (_name.text.trim().length < 2 || _spec.text.trim().isEmpty) {
+      setState(() => _error = S.errRequired);
+      return;
+    }
+    final app = AppState.instance;
+    app.name = _name.text.trim();
+    app.specialization = _spec.text.trim();
+    app.address = _address.text.trim();
+    app.slug = _slug.text.trim().toLowerCase().replaceAll(
+        RegExp(r'[^a-z0-9-]'), '');
+    app.onboarded = true;
+    await app.save();
+    if (!mounted) return;
+    if (widget.editMode) {
+      Navigator.of(context).pop(true);
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MasterShell()),
+        (_) => false,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          title: widget.editMode ? const Text(S.profile) : null),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          if (!widget.editMode)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 24),
+              child: Text(S.profileTitle,
+                  style:
+                      TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            ),
+          _Field(label: S.profileName, controller: _name),
+          _Field(
+              label: S.profileSpec,
+              controller: _spec,
+              hint: S.profileSpecHint),
+          _Field(
+              label: S.profileAddress,
+              controller: _address,
+              hint: S.profileAddressHint),
+          _Field(
+              label: S.profileSlug,
+              controller: _slug,
+              hint: S.profileSlugHint,
+              prefix: 'navbar.uz/'),
+          if (_error.isNotEmpty)
+            Text(_error,
+                style:
+                    const TextStyle(color: AppColors.warning, fontSize: 13)),
+          const SizedBox(height: 20),
+          _PrimaryButton(
+              label: widget.editMode ? S.save : S.start, onPressed: _finish),
+        ],
+      ),
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final String? hint;
+  final String? prefix;
+
+  const _Field(
+      {required this.label, required this.controller, this.hint, this.prefix});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 13, color: AppColors.textSecondary)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: AppColors.textTertiary),
+              prefixText: prefix,
+              prefixStyle: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrimaryButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _PrimaryButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.accentMaster,
+          foregroundColor: AppColors.bg,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: onPressed,
+        child: Text(label,
+            style:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+      ),
+    );
+  }
+}

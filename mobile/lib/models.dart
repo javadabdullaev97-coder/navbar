@@ -1,15 +1,15 @@
 // Модели повторяют структуру будущих таблиц Supabase
-// (services, clients, appointments) — см. docs/project-brief.md.
+// (services, clients, appointments, schedules) — см. docs/project-brief.md.
 
 enum AppointmentStatus { pending, confirmed, done, cancelled }
 
 class Service {
   final String id;
-  final String name;
-  final int durationMin;
-  final int price; // минимальные единицы валюты мастера
+  String name; // тексты услуг пишет сам мастер, они не переводятся
+  int durationMin;
+  int price; // минимальные единицы валюты мастера
 
-  const Service({
+  Service({
     required this.id,
     required this.name,
     required this.durationMin,
@@ -17,10 +17,25 @@ class Service {
   });
 }
 
+class ScheduleDay {
+  final int dayOfWeek; // 0=пн ... 6=вс
+  int startMin; // минуты от полуночи
+  int endMin;
+  bool isDayOff;
+
+  ScheduleDay({
+    required this.dayOfWeek,
+    required this.startMin,
+    required this.endMin,
+    this.isDayOff = false,
+  });
+}
+
 class Client {
   final String id;
-  final String name;
-  final String phone; // E.164
+  String name;
+  String phone; // E.164
+  String notes;
   int visitCount;
   DateTime? lastVisitAt;
 
@@ -28,6 +43,7 @@ class Client {
     required this.id,
     required this.name,
     required this.phone,
+    this.notes = '',
     this.visitCount = 0,
     this.lastVisitAt,
   });
@@ -38,27 +54,13 @@ class Appointment {
   final String clientId;
   final String serviceId;
   final DateTime startsAt;
-  final AppointmentStatus status;
+  AppointmentStatus status;
 
-  const Appointment({
+  Appointment({
     required this.id,
     required this.clientId,
     required this.serviceId,
     required this.startsAt,
     this.status = AppointmentStatus.pending,
-  });
-}
-
-class MasterProfile {
-  final String name;
-  final String specialization;
-  final String slug;
-  final String currencySuffix;
-
-  const MasterProfile({
-    required this.name,
-    required this.specialization,
-    required this.slug,
-    required this.currencySuffix,
   });
 }

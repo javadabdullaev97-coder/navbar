@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../i18n.dart';
 import '../theme.dart';
-import 'client_home.dart';
-import 'master_shell.dart';
+import 'onboarding.dart';
 
 class RoleSelectScreen extends StatelessWidget {
   const RoleSelectScreen({super.key});
@@ -42,8 +41,9 @@ class RoleSelectScreen extends StatelessWidget {
                 subtitle: S.roleMasterDesc,
                 accent: AppColors.accentMaster,
                 icon: Icons.content_cut,
-                onTap: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const MasterShell()),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const PhoneScreen(role: 'master')),
                 ),
               ),
               const SizedBox(height: 16),
@@ -53,7 +53,8 @@ class RoleSelectScreen extends StatelessWidget {
                 accent: AppColors.accentClient,
                 icon: Icons.event_available,
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ClientHomeScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const PhoneScreen(role: 'client')),
                 ),
               ),
             ],
