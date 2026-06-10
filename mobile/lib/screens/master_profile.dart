@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../app_state.dart';
 import '../client_store.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
@@ -54,6 +56,20 @@ class _MasterProfileScreenState extends State<MasterProfileScreen> {
         title: Text(m.name),
         actions: [
           IconButton(
+            icon: Icon(
+              AppState.instance.isFavorite(m.slug)
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: AppState.instance.isFavorite(m.slug)
+                  ? AppColors.warning
+                  : AppColors.textSecondary,
+            ),
+            onPressed: () async {
+              await AppState.instance.toggleFavorite(m.slug);
+              setState(() {});
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.chat_bubble_outline,
                 color: AppColors.accentClient),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(
@@ -100,15 +116,18 @@ class _MasterProfileScreenState extends State<MasterProfileScreen> {
             // Шапка
             Row(
               children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor:
-                      AppColors.accentClient.withValues(alpha: 0.12),
-                  child: Text(m.name.characters.first,
-                      style: const TextStyle(
-                          fontSize: 24,
-                          color: AppColors.accentClient,
-                          fontWeight: FontWeight.w700)),
+                Hero(
+                  tag: 'av-${m.slug}',
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor:
+                        avatarColor(m.name).withValues(alpha: 0.15),
+                    child: Text(m.name.characters.first,
+                        style: TextStyle(
+                            fontSize: 24,
+                            color: avatarColor(m.name),
+                            fontWeight: FontWeight.w700)),
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -140,10 +159,25 @@ class _MasterProfileScreenState extends State<MasterProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(m.address,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textTertiary)),
+                      GestureDetector(
+                        onTap: () => launchUrl(
+                            Uri.parse(
+                                'https://maps.google.com/?q=${Uri.encodeComponent(m.address)}'),
+                            mode: LaunchMode.externalApplication),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.place_outlined,
+                                size: 13, color: AppColors.accentClient),
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: Text(m.address,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.accentClient)),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

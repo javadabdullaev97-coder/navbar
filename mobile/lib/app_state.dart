@@ -17,7 +17,15 @@ class AppState {
   String slug = '';
   bool isPro = false;
   List<String> interests = []; // категории, интересные клиенту
+  List<String> favorites = []; // slug-и избранных мастеров
   String lang = 'ru'; // 'ru' | 'uz' | 'en' | 'es'
+
+  bool isFavorite(String slug) => favorites.contains(slug);
+
+  Future<void> toggleFavorite(String slug) async {
+    if (!favorites.remove(slug)) favorites.add(slug);
+    await _prefs.setStringList('favorites', favorites);
+  }
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
@@ -30,6 +38,7 @@ class AppState {
     slug = _prefs.getString('slug') ?? '';
     isPro = _prefs.getBool('isPro') ?? false;
     interests = _prefs.getStringList('interests') ?? [];
+    favorites = _prefs.getStringList('favorites') ?? [];
     lang = _prefs.getString('lang') ?? 'ru';
   }
 
@@ -43,6 +52,7 @@ class AppState {
     await _prefs.setString('slug', slug);
     await _prefs.setBool('isPro', isPro);
     await _prefs.setStringList('interests', interests);
+    await _prefs.setStringList('favorites', favorites);
     await _prefs.setString('lang', lang);
   }
 
@@ -57,6 +67,7 @@ class AppState {
     slug = '';
     isPro = false;
     interests = [];
+    favorites = [];
     lang = 'ru';
   }
 }

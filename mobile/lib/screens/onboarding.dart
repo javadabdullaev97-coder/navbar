@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../app_state.dart';
+import '../client_store.dart' show kCategories;
 import '../i18n.dart';
 import '../theme.dart';
-import '../client_store.dart' show kCategories;
+import '../widgets/inputs.dart';
 import 'client_shell.dart';
 import 'master_shell.dart';
 
-// Онбординг: телефон → код → профиль (для мастера).
+// Онбординг: телефон → код → профиль/имя (+интересы для клиента).
 // Код подтверждения пока тестовый (0000) — реальный OTP придёт с Supabase.
+
+int _totalSteps(String role) => role == 'client' ? 4 : 3;
+
+Color _accent(String role) =>
+    role == 'client' ? AppColors.accentClient : AppColors.accentMaster;
 
 class PhoneScreen extends StatefulWidget {
   final String role; // 'master' | 'client'
@@ -48,6 +55,11 @@ class _PhoneScreenState extends State<PhoneScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            StepLabel(
+                step: 1,
+                total: _totalSteps(widget.role),
+                accent: _accent(widget.role)),
+            const SizedBox(height: 24),
             const Text(S.phoneTitle,
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
@@ -59,6 +71,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
               controller: _ctrl,
               keyboardType: TextInputType.phone,
               autofocus: true,
+              inputFormatters: [PhoneFormatter()],
               style: const TextStyle(fontSize: 20),
               onSubmitted: (_) => _next(),
             ),
@@ -69,7 +82,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
                       color: AppColors.warning, fontSize: 13)),
             ],
             const Spacer(),
-            _PrimaryButton(label: S.continueBtn, onPressed: _next),
+            _PrimaryButton(
+                label: S.continueBtn,
+                accent: _accent(widget.role),
+                onPressed: _next),
           ],
         ),
       ),
@@ -87,27 +103,21 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final _ctrl = TextEditingController();
   String _error = '';
 
   static const _testCode = '0000';
 
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _next() async {
-    if (_ctrl.text.trim() != _testCode) {
+  Future<void> _verify(String code) async {
+    if (code != _testCode) {
       setState(() => _error = S.otpWrong);
       return;
     }
+    HapticFeedback.lightImpact();
     final app = AppState.instance;
     app.phone = widget.phone;
     app.role = widget.role;
+    if (!mounted) return;
     if (widget.role == 'client') {
-      if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const ClientNameScreen()),
       );
@@ -127,6 +137,11 @@ class _OtpScreenState extends State<OtpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            StepLabel(
+                step: 2,
+                total: _totalSteps(widget.role),
+                accent: _accent(widget.role)),
+            const SizedBox(height: 24),
             const Text(S.otpTitle,
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
@@ -134,16 +149,8 @@ class _OtpScreenState extends State<OtpScreen> {
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textSecondary)),
             const SizedBox(height: 28),
-            TextField(
-              controller: _ctrl,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              maxLength: 4,
-              style: const TextStyle(fontSize: 28, letterSpacing: 12),
-              textAlign: TextAlign.center,
-              onSubmitted: (_) => _next(),
-            ),
-            const SizedBox(height: 6),
+            OtpInput(onComplete: _verify),
+            const SizedBox(height: 12),
             const Text(S.otpTestHint,
                 style:
                     TextStyle(fontSize: 13, color: AppColors.textTertiary)),
@@ -153,8 +160,6 @@ class _OtpScreenState extends State<OtpScreen> {
                   style: const TextStyle(
                       color: AppColors.warning, fontSize: 13)),
             ],
-            const Spacer(),
-            _PrimaryButton(label: S.continueBtn, onPressed: _next),
           ],
         ),
       ),
@@ -200,6 +205,9 @@ class _ClientNameScreenState extends State<ClientNameScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const StepLabel(
+                step: 3, total: 4, accent: AppColors.accentClient),
+            const SizedBox(height: 24),
             const Text(S.yourName,
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             const SizedBox(height: 28),
@@ -216,7 +224,10 @@ class _ClientNameScreenState extends State<ClientNameScreen> {
                       color: AppColors.warning, fontSize: 13)),
             ],
             const Spacer(),
-            _PrimaryButton(label: S.start, onPressed: _finish),
+            _PrimaryButton(
+                label: S.continueBtn,
+                accent: AppColors.accentClient,
+                onPressed: _finish),
           ],
         ),
       ),
@@ -255,6 +266,9 @@ class _InterestsScreenState extends State<InterestsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const StepLabel(
+                step: 4, total: 4, accent: AppColors.accentClient),
+            const SizedBox(height: 24),
             const Text(S.interestsTitle,
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
@@ -287,7 +301,10 @@ class _InterestsScreenState extends State<InterestsScreen> {
               }).toList(),
             ),
             const Spacer(),
-            _PrimaryButton(label: S.start, onPressed: _finish),
+            _PrimaryButton(
+                label: S.start,
+                accent: AppColors.accentClient,
+                onPressed: _finish),
           ],
         ),
       ),
@@ -352,13 +369,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          if (!widget.editMode)
+          if (!widget.editMode) ...[
+            const StepLabel(
+                step: 3, total: 3, accent: AppColors.accentMaster),
+            const SizedBox(height: 24),
             const Padding(
               padding: EdgeInsets.only(bottom: 24),
               child: Text(S.profileTitle,
                   style:
                       TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
             ),
+          ],
           _Field(label: S.profileName, controller: _name),
           _Field(
               label: S.profileSpec,
@@ -379,7 +400,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     const TextStyle(color: AppColors.warning, fontSize: 13)),
           const SizedBox(height: 20),
           _PrimaryButton(
-              label: widget.editMode ? S.save : S.start, onPressed: _finish),
+              label: widget.editMode ? S.save : S.start,
+              accent: AppColors.accentMaster,
+              onPressed: _finish),
         ],
       ),
     );
@@ -423,9 +446,11 @@ class _Field extends StatelessWidget {
 
 class _PrimaryButton extends StatelessWidget {
   final String label;
+  final Color accent;
   final VoidCallback onPressed;
 
-  const _PrimaryButton({required this.label, required this.onPressed});
+  const _PrimaryButton(
+      {required this.label, required this.accent, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -434,7 +459,7 @@ class _PrimaryButton extends StatelessWidget {
       height: 54,
       child: FilledButton(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.accentMaster,
+          backgroundColor: accent,
           foregroundColor: AppColors.bg,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

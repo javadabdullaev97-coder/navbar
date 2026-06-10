@@ -15,6 +15,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   final store = MockStore.instance;
   int _period = 0; // 0=неделя, 1=месяц, 2=3 месяца
+  int? _selectedBar;
 
   static const _periodDays = [7, 30, 90];
   static const _periodLabels = [S.periodWeek, S.periodMonth, S.period3Months];
@@ -52,7 +53,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   child: ChoiceChip(
                     label: Text(_periodLabels[i]),
                     selected: selected,
-                    onSelected: (_) => setState(() => _period = i),
+                    onSelected: (_) => setState(() {
+                      _period = i;
+                      _selectedBar = null;
+                    }),
                     selectedColor:
                         AppColors.accentMaster.withValues(alpha: 0.15),
                     labelStyle: TextStyle(
@@ -80,35 +84,78 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     color: AppColors.accentMaster)),
             const SizedBox(height: 20),
             Container(
-              height: 160,
+              height: 190,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: bars
-                    .map((v) => Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 3),
-                            child: FractionallySizedBox(
-                              heightFactor:
-                                  (v / maxBar).clamp(0.02, 1.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentMaster
-                                      .withValues(alpha: 0.8),
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(4)),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 18,
+                    child: _selectedBar != null && _selectedBar! < bars.length
+                        ? Text(
+                            formatPrice(
+                                bars[_selectedBar!], store.currencySuffix),
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.accentMaster))
+                        : null,
+                  ),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        for (var i = 0; i < bars.length; i++)
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() =>
+                                  _selectedBar =
+                                      _selectedBar == i ? null : i),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 3),
+                                child: FractionallySizedBox(
+                                  heightFactor: (bars[i] / maxBar)
+                                      .clamp(0.02, 1.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accentMaster
+                                          .withValues(
+                                              alpha: _selectedBar == i
+                                                  ? 1.0
+                                                  : 0.7),
+                                      borderRadius:
+                                          const BorderRadius.vertical(
+                                              top: Radius.circular(4)),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ))
-                    .toList(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(_periodStartLabel(days),
+                          style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textTertiary)),
+                      const Text(S.today,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textTertiary)),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -158,6 +205,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         ),
       ),
     );
+  }
+
+  String _periodStartLabel(int days) {
+    final d = DateTime.now().subtract(Duration(days: days - 1));
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}';
   }
 
   void _refresh() => setState(() {});

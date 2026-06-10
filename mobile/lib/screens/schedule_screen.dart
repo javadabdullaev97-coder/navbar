@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
 import '../models.dart';
@@ -54,6 +55,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       color: AppColors.accentMaster),
                   title: const Text(S.actionConfirm),
                   onTap: () {
+                    HapticFeedback.mediumImpact();
                     setState(() =>
                         store.setStatus(a, AppointmentStatus.confirmed));
                     Navigator.pop(ctx);
@@ -88,6 +90,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         );
       },
     );
+  }
+
+  bool _isToday(DateTime d) {
+    final now = DateTime.now();
+    return d.year == now.year && d.month == now.month && d.day == now.day;
   }
 
   // Мастер блокирует время под свои дела — клиенты эти слоты не видят
@@ -136,13 +143,20 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    '${S.greeting}, ${store.masterName} 👋',
-                    style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.w800),
+                const BrandLogo(),
+                const Spacer(),
+                if (!_isToday(_selectedDay))
+                  TextButton(
+                    onPressed: () => setState(() {
+                      final now = DateTime.now();
+                      _selectedDay =
+                          DateTime(now.year, now.month, now.day);
+                    }),
+                    child: const Text(S.today,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.accentMaster)),
                   ),
-                ),
                 IconButton(
                   tooltip: S.blockSlotTitle,
                   onPressed: _blockSlotDialog,
@@ -150,6 +164,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       color: AppColors.textSecondary),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${S.greeting}, ${store.masterName} 👋',
+              style: const TextStyle(
+                  fontSize: 24, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 16),
             Row(
@@ -246,12 +266,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ),
                 )),
             if (dayAppointments.isEmpty && blocked.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(S.noAppointments,
-                      style: TextStyle(color: AppColors.textTertiary)),
-                ),
+              EmptyState(
+                icon: Icons.event_available,
+                text: S.noAppointmentsYet,
+                actionLabel: S.copyLinkCta,
+                onAction: () {
+                  Clipboard.setData(ClipboardData(
+                      text: 'https://navbar.uz/${store.masterSlug}'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text(S.linkCopied)),
+                  );
+                },
               )
             else
               ...dayAppointments.map((a) => _AppointmentCard(
@@ -307,22 +332,12 @@ class _AppointmentCard extends StatelessWidget {
 
   const _AppointmentCard({required this.a, required this.onTap});
 
-  (String, Color) get _statusView => switch (a.status) {
-        AppointmentStatus.pending => (S.statusPending, AppColors.warning),
-        AppointmentStatus.confirmed =>
-          (S.statusConfirmed, AppColors.textTertiary),
-        AppointmentStatus.done => (S.statusDone, AppColors.accentMaster),
-        AppointmentStatus.cancelled =>
-          (S.statusCancelled, AppColors.textTertiary),
-      };
-
   @override
   Widget build(BuildContext context) {
     final store = MockStore.instance;
     final client = store.clientById(a.clientId);
     final service = store.serviceById(a.serviceId);
     final cancelled = a.status == AppointmentStatus.cancelled;
-    final (statusLabel, statusColor) = _statusView;
 
     return GestureDetector(
       onTap: onTap,
@@ -374,8 +389,7 @@ class _AppointmentCard extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: AppColors.accentMaster)),
                   const SizedBox(height: 4),
-                  Text(statusLabel,
-                      style: TextStyle(fontSize: 11, color: statusColor)),
+                  StatusChip(status: a.status),
                 ],
               ),
             ],

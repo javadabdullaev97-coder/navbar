@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../client_store.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
@@ -84,6 +85,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
     }
 
     store.book(m, widget.services, startsAt);
+    HapticFeedback.mediumImpact();
     if (!mounted) return;
     await showDialog<void>(
       context: context,
@@ -97,15 +99,22 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.accentClient.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.4, end: 1),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.elasticOut,
+                builder: (_, v, child) =>
+                    Transform.scale(scale: v, child: child),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.accentClient.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.hourglass_top,
+                      color: AppColors.accentClient, size: 30),
                 ),
-                child: const Icon(Icons.hourglass_top,
-                    color: AppColors.accentClient, size: 30),
               ),
               const SizedBox(height: 16),
               const Text(S.booked,
@@ -149,6 +158,63 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
     if (mounted) Navigator.of(context).pop(true);
   }
 
+  List<Widget> _slotGroups(List<int> slots) {
+    final groups = <(String, List<int>)>[
+      (S.slotMorning, slots.where((t) => t < 12 * 60).toList()),
+      (S.slotDay,
+          slots.where((t) => t >= 12 * 60 && t < 17 * 60).toList()),
+      (S.slotEvening, slots.where((t) => t >= 17 * 60).toList()),
+    ];
+    final widgets = <Widget>[];
+    for (final (label, group) in groups) {
+      if (group.isEmpty) continue;
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 8, top: 4),
+        child: Text(label,
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textTertiary)),
+      ));
+      widgets.add(GridView.count(
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 2.1,
+        children: group.map((t) {
+          final selected = _slot == t;
+          return OutlinedButton(
+            key: ValueKey('slot-$t'),
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.zero,
+              backgroundColor: AppColors.bgCard,
+              side: BorderSide(
+                  color: selected
+                      ? AppColors.accentClient
+                      : AppColors.border),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              setState(() => _slot = t);
+            },
+            child: Text(formatMinutes(t),
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        selected ? FontWeight.w700 : FontWeight.w400,
+                    color: selected
+                        ? AppColors.accentClient
+                        : AppColors.text)),
+          );
+        }).toList(),
+      ));
+      widgets.add(const SizedBox(height: 8));
+    }
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     final slots =
@@ -160,6 +226,14 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
     final firstDow = (_month.weekday - 1) % 7;
     final daysInMonth =
         DateTime(_month.year, _month.month + 1, 0).day;
+    // Свободные слоты по дням — и для статуса, и для счётчика
+    final freeByDay = <int, int>{};
+    for (var i = 1; i <= daysInMonth; i++) {
+      final d = DateTime(_month.year, _month.month, i);
+      if (store.dayState(m, _totalMin, d) == DayState.free) {
+        freeByDay[i] = store.freeSlots(m, _totalMin, d).length;
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(m.name)),
@@ -285,10 +359,13 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                       fg = AppColors.warning.withValues(alpha: 0.7);
                       border = AppColors.warning.withValues(alpha: 0.25);
                     case DayState.free:
-                      onTap = () => setState(() {
-                            _day = d;
-                            _slot = null;
-                          });
+                      onTap = () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          _day = d;
+                          _slot = null;
+                        });
+                      };
                   }
                   if (selected) {
                     border = AppColors.accentClient;
@@ -304,14 +381,24 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: border),
                       ),
-                      child: Center(
-                        child: Text('${i + 1}',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: selected
-                                    ? FontWeight.w800
-                                    : FontWeight.w500,
-                                color: fg)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('${i + 1}',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: selected
+                                      ? FontWeight.w800
+                                      : FontWeight.w500,
+                                  color: fg)),
+                          if (freeByDay.containsKey(i + 1))
+                            Text('${freeByDay[i + 1]}',
+                                style: TextStyle(
+                                    fontSize: 8.5,
+                                    color: selected
+                                        ? AppColors.accentClient
+                                        : AppColors.textTertiary)),
+                        ],
                       ),
                     ),
                   );
@@ -351,40 +438,7 @@ class _BookingCalendarScreenState extends State<BookingCalendarScreen> {
                       style: TextStyle(color: AppColors.textTertiary)),
                 )
               else
-                GridView.count(
-                  crossAxisCount: 4,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 2.1,
-                  children: slots.map((t) {
-                    final selected = _slot == t;
-                    return OutlinedButton(
-                      key: ValueKey('slot-$t'),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: AppColors.bgCard,
-                        side: BorderSide(
-                            color: selected
-                                ? AppColors.accentClient
-                                : AppColors.border),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () => setState(() => _slot = t),
-                      child: Text(formatMinutes(t),
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                              color: selected
-                                  ? AppColors.accentClient
-                                  : AppColors.text)),
-                    );
-                  }).toList(),
-                ),
+                ..._slotGroups(slots),
               const SizedBox(height: 80),
             ],
           ],

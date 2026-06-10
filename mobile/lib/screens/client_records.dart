@@ -4,6 +4,7 @@ import '../i18n.dart';
 import '../mock_data.dart';
 import '../models.dart';
 import '../theme.dart';
+import 'master_profile.dart';
 
 // Записи клиента: предстоящие + история с возможностью оставить отзыв.
 class ClientRecordsScreen extends StatefulWidget {
@@ -131,39 +132,50 @@ class _ClientRecordsScreenState extends State<ClientRecordsScreen> {
               const _Title(S.upcoming),
               ...future.map((a) => _RecordCard(
                     a: a,
-                    trailing: a.status == AppointmentStatus.pending
-                        ? const Text(S.statusPending,
-                            style: TextStyle(
-                                fontSize: 11, color: AppColors.warning))
-                        : const Text(S.statusConfirmed,
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.accentClient)),
+                    trailing: StatusChip(status: a.status),
                   )),
               const SizedBox(height: 20),
             ],
             const _Title(S.historyTitle),
             if (past.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(
-                  child: Text(S.noVisits,
-                      style: TextStyle(color: AppColors.textTertiary)),
-                ),
+              const EmptyState(
+                icon: Icons.event_available,
+                text: S.noVisitsClient,
+                accent: AppColors.accentClient,
               )
             else
               ...past.map((a) => _RecordCard(
                     a: a,
-                    trailing: a.reviewed
-                        ? const Icon(Icons.star,
-                            size: 18, color: AppColors.warning)
-                        : TextButton(
-                            onPressed: () => _leaveReview(a),
-                            child: const Text(S.leaveReview,
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.accentClient)),
-                          ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        a.reviewed
+                            ? const Padding(
+                                padding: EdgeInsets.all(8),
+                                child: Icon(Icons.star,
+                                    size: 18, color: AppColors.warning),
+                              )
+                            : TextButton(
+                                onPressed: () => _leaveReview(a),
+                                child: const Text(S.leaveReview,
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.accentClient)),
+                              ),
+                        IconButton(
+                          tooltip: S.repeatBooking,
+                          icon: const Icon(Icons.replay,
+                              size: 18, color: AppColors.textSecondary),
+                          onPressed: () async {
+                            await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => MasterProfileScreen(
+                                        slug: a.masterSlug)));
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
                   )),
           ],
         ),

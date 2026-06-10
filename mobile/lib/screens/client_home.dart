@@ -60,11 +60,24 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
     final searching = _query.trim().isNotEmpty;
     final results = searching ? store.search(_query) : <MasterPublic>[];
 
+    final favorites = AppState.instance.favorites
+        .map((slug) => store.masters.where((m) => m.slug == slug))
+        .expand((x) => x)
+        .toList();
+
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: RefreshIndicator(
+          color: AppColors.accentClient,
+          onRefresh: () async {
+            await Future<void>.delayed(const Duration(milliseconds: 400));
+            if (mounted) setState(() {});
+          },
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const BrandLogo(),
+            const SizedBox(height: 12),
             Text(
               name.isEmpty ? '${S.greeting} 👋' : '${S.greeting}, $name 👋',
               style:
@@ -86,12 +99,10 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
 
             if (searching) ...[
               if (results.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: Text(S.nothingFound,
-                        style: TextStyle(color: AppColors.textTertiary)),
-                  ),
+                const EmptyState(
+                  icon: Icons.search_off,
+                  text: S.nothingFound,
+                  accent: AppColors.accentClient,
                 )
               else
                 ...results.map((m) =>
@@ -103,6 +114,14 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 _UpcomingCard(
                     a: upcoming, onCancel: () => _confirmCancel(upcoming)),
                 const SizedBox(height: 24),
+              ],
+
+              // Избранные мастера
+              if (favorites.isNotEmpty) ...[
+                const _SectionTitle(S.favorites),
+                ...favorites.map((m) =>
+                    _MasterListCard(m: m, onTap: () => _openMaster(m))),
+                const SizedBox(height: 14),
               ],
 
               // Каталог: интересные категории первыми
@@ -126,6 +145,7 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               }),
             ],
           ],
+          ),
         ),
       ),
     );
@@ -225,15 +245,18 @@ class _MasterTopCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor:
-                      AppColors.accentClient.withValues(alpha: 0.12),
-                  child: Text(m.name.characters.first,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          color: AppColors.accentClient,
-                          fontWeight: FontWeight.w700)),
+                Hero(
+                  tag: 'av-${m.slug}',
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor:
+                        avatarColor(m.name).withValues(alpha: 0.15),
+                    child: Text(m.name.characters.first,
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: avatarColor(m.name),
+                            fontWeight: FontWeight.w700)),
+                  ),
                 ),
                 const Spacer(),
                 const Icon(Icons.star,
@@ -287,11 +310,10 @@ class _MasterListCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor:
-                  AppColors.accentClient.withValues(alpha: 0.12),
+              backgroundColor: avatarColor(m.name).withValues(alpha: 0.15),
               child: Text(m.name.characters.first,
-                  style: const TextStyle(
-                      color: AppColors.accentClient,
+                  style: TextStyle(
+                      color: avatarColor(m.name),
                       fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 14),

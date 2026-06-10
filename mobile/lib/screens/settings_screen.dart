@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../app_state.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
@@ -181,6 +182,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SnackBar(content: Text(S.linkCopied)),
                 );
               },
+            ),
+            _SettingsTile(
+              icon: Icons.ios_share,
+              title: S.shareMyPage,
+              subtitle: pageUrl,
+              onTap: () => Share.share('${S.shareText}https://$pageUrl'),
             ),
             _SettingsTile(
               icon: Icons.person_outline,

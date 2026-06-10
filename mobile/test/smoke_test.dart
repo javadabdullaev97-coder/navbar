@@ -6,6 +6,15 @@ import 'package:navbar_mobile/client_store.dart';
 import 'package:navbar_mobile/i18n.dart';
 import 'package:navbar_mobile/main.dart';
 
+
+Future<void> enterOtp(WidgetTester tester) async {
+  final fields = find.byType(TextField);
+  for (var i = 0; i < 4; i++) {
+    await tester.enterText(fields.at(i), '0');
+  }
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('онбординг мастера: роль → телефон → код → профиль → кабинет',
       (tester) async {
@@ -22,14 +31,14 @@ void main() {
     await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), '0000');
-    await tester.tap(find.text(S.continueBtn));
-    await tester.pumpAndSettle();
+    await enterOtp(tester);
 
     expect(find.text(S.profileTitle), findsOneWidget);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'Асрор');
     await tester.enterText(fields.at(1), 'Барбер');
+    await tester.ensureVisible(find.text(S.start));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(S.start));
     await tester.pumpAndSettle();
 
@@ -52,14 +61,12 @@ void main() {
     await tester.enterText(find.byType(TextField), '+7 905 123 45 67');
     await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '0000');
-    await tester.tap(find.text(S.continueBtn));
-    await tester.pumpAndSettle();
+    await enterOtp(tester);
 
     // Имя
     expect(find.text(S.yourName), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Тимур');
-    await tester.tap(find.text(S.start));
+    await tester.tap(find.text(S.continueBtn));
     await tester.pumpAndSettle();
 
     // Интересы

@@ -138,6 +138,21 @@ class S {
   static const unblock = 'Разблокировать';
   static const language = 'Язык';
   static const langNote = 'Перевод интерфейса — на этапе локализации';
+  static const findMaster = 'Найти мастера';
+  static const copyLinkCta = 'Скопировать ссылку для клиентов';
+  static const shareMyPage = 'Поделиться страницей';
+  static const shareText = 'Запишись ко мне онлайн: ';
+  static const today = 'Сегодня';
+  static const repeatBooking = 'Повторить';
+  static const favorites = 'Избранное';
+  static const slotMorning = 'Утро';
+  static const slotDay = 'День';
+  static const slotEvening = 'Вечер';
+  static const noAppointmentsYet =
+      'Записей на этот день нет.\nПоделитесь ссылкой — пусть клиенты записываются сами';
+  static const noVisitsClient = 'Пока ни одного визита.\nНайдите мастера и запишитесь';
+
+  static String stepOf(int n, int total) => 'Шаг $n из $total';
   static const yourName = 'Как вас зовут?';
   static const upcoming = 'Ближайшая запись';
   static const myMasters = 'Мои мастера';

@@ -30,11 +30,17 @@ class _ClientShellState extends State<ClientShell> {
         selectedItemColor: AppColors.accentClient,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined), label: 'Navbar'),
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Navbar'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.event_note_outlined), label: S.historyTitle),
+              icon: Icon(Icons.event_note_outlined),
+              activeIcon: Icon(Icons.event_note),
+              label: S.historyTitle),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined), label: S.navSettings),
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: S.navSettings),
         ],
       ),
     );
