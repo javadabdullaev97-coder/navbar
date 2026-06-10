@@ -29,7 +29,19 @@ class NavbarApp extends StatelessWidget {
       title: 'Navbar',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      scrollBehavior: const _NoStretchScrollBehavior(),
       home: home,
     );
   }
+}
+
+// Android 12+ по умолчанию растягивает контент при перетягивании списка —
+// на тёмном UI выглядит плохо. Убираем эффект, pull-to-refresh сохраняется.
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+          BuildContext context, Widget child, ScrollableDetails details) =>
+      child;
 }
