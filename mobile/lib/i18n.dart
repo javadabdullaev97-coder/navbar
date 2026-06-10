@@ -153,6 +153,16 @@ class S {
   static const noVisitsClient = 'Пока ни одного визита.\nНайдите мастера и запишитесь';
 
   static String stepOf(int n, int total) => 'Шаг $n из $total';
+
+  // Оценки
+  static const later = 'Позже';
+  static const rateVisitTitle = 'Как прошёл визит?';
+  static const rateClientTitle = 'Оцените клиента';
+  static const rateClientNote =
+      'Анонимно. Клиент видит только свой средний балл';
+  static const yourRating = 'Ваш рейтинг';
+  static const yourRatingDesc = 'Средняя оценка от мастеров';
+  static const noRatingYet = 'Оценок пока нет';
   static const yourName = 'Как вас зовут?';
   static const upcoming = 'Ближайшая запись';
   static const myMasters = 'Мои мастера';

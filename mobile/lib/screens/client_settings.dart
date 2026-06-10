@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../i18n.dart';
+import '../mock_data.dart';
 import '../theme.dart';
 import 'role_select.dart';
 import 'settings_screen.dart' show kLangNames, showLanguagePicker;
@@ -36,6 +37,22 @@ class ClientSettingsScreen extends StatelessWidget {
                 );
               },
             ),
+            Builder(builder: (context) {
+              // Свой средний балл (анонимные оценки мастеров).
+              // В мок-режиме ищем себя по номеру телефона.
+              final me = MockStore.instance.clients
+                  .where((c) => c.phone == app.phone)
+                  .toList();
+              final rating = me.isEmpty ? null : me.first.rating;
+              return _Tile(
+                icon: Icons.star_outline,
+                title: S.yourRating,
+                subtitle: rating == null
+                    ? S.noRatingYet
+                    : '★ ${rating.toStringAsFixed(1)} · ${S.yourRatingDesc}',
+                onTap: () {},
+              );
+            }),
             _LangTile(),
             _Tile(
               icon: Icons.swap_horiz,

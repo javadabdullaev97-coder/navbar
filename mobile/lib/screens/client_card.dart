@@ -3,6 +3,7 @@ import '../i18n.dart';
 import '../mock_data.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/rate_sheet.dart';
 
 class ClientCardScreen extends StatefulWidget {
   final Client client;
@@ -58,9 +59,18 @@ class _ClientCardScreenState extends State<ClientCardScreen> {
                         style: const TextStyle(
                             fontSize: 14, color: AppColors.textSecondary)),
                     const SizedBox(height: 2),
-                    Text('${c.visitCount} ${S.visits}',
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.textTertiary)),
+                    Row(
+                      children: [
+                        if (c.rating != null) ...[
+                          Stars(value: c.rating!),
+                          const SizedBox(width: 8),
+                        ],
+                        Text('${c.visitCount} ${S.visits}',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textTertiary)),
+                      ],
+                    ),
                   ],
                 ),
               ],

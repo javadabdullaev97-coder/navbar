@@ -4,6 +4,7 @@ import '../i18n.dart';
 import '../mock_data.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/rate_sheet.dart';
 import 'master_profile.dart';
 
 // Записи клиента: предстоящие + история с возможностью оставить отзыв.
@@ -18,97 +19,25 @@ class _ClientRecordsScreenState extends State<ClientRecordsScreen> {
   final store = ClientStore.instance;
 
   Future<void> _leaveReview(ClientAppointment a) async {
-    var stars = 5;
-    final text = TextEditingController();
-    final sent = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.bgCard,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${S.yourReview} · ${a.masterName}',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 14),
-              Row(
-                children: List.generate(
-                  5,
-                  (i) => IconButton(
-                    onPressed: () => setSheet(() => stars = i + 1),
-                    icon: Icon(
-                      i < stars ? Icons.star : Icons.star_border,
-                      color: AppColors.warning,
-                      size: 30,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: text,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: S.notesHint,
-                  hintStyle: TextStyle(color: AppColors.textTertiary),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accentClient,
-                    foregroundColor: AppColors.bg,
-                  ),
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text(S.send,
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    final result = await showRateSheet(
+      context,
+      title: S.rateVisitTitle,
+      subtitle: '${a.serviceName} · ${a.masterName}',
     );
-    if (sent == true) {
-      setState(() {
-        store.addReview(
-          a.masterSlug,
-          Review(
-            author: _authorName(),
-            stars: stars,
-            text: text.text.trim(),
-            at: DateTime.now(),
-          ),
-        );
-        a.reviewed = true;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(S.reviewThanks)),
-        );
-      }
+    if (result == null) return;
+    final (stars, text) = result;
+    setState(() {
+      store.addReview(
+        a.masterSlug,
+        Review(author: 'Вы', stars: stars, text: text, at: DateTime.now()),
+      );
+      a.reviewed = true;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(S.reviewThanks)),
+      );
     }
-    text.dispose();
-  }
-
-  String _authorName() {
-    final n = ClientStore.instance.myAppointments.isEmpty ? '' : '';
-    return n.isEmpty ? 'Вы' : n;
   }
 
   @override

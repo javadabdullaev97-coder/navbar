@@ -4,6 +4,7 @@ import '../i18n.dart';
 import '../mock_data.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../widgets/rate_sheet.dart';
 import 'add_appointment.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -67,10 +68,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   leading: const Icon(Icons.task_alt,
                       color: AppColors.accentMaster),
                   title: const Text(S.actionDone),
-                  onTap: () {
+                  onTap: () async {
                     setState(
                         () => store.setStatus(a, AppointmentStatus.done));
                     Navigator.pop(ctx);
+                    // «Как в Яндексе»: сразу предлагаем оценить клиента
+                    final result = await showRateSheet(
+                      context,
+                      title: S.rateClientTitle,
+                      subtitle: S.rateClientNote,
+                      withText: false,
+                      accent: AppColors.accentMaster,
+                    );
+                    if (result != null) {
+                      setState(() =>
+                          store.rateClient(client, result.$1));
+                    }
                   },
                 ),
                 ListTile(

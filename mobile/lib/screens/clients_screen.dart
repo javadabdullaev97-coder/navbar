@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../i18n.dart';
 import '../mock_data.dart';
 import '../theme.dart';
+import '../widgets/rate_sheet.dart';
 import 'client_card.dart';
 
 class ClientsScreen extends StatefulWidget {
@@ -166,6 +167,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
+                          if (c.rating != null) Stars(value: c.rating!),
                           Text('${c.visitCount} ${S.visits}',
                               style: const TextStyle(
                                   fontSize: 12,

@@ -38,6 +38,10 @@ class Client {
   String notes;
   int visitCount;
   DateTime? lastVisitAt;
+  // Анонимные оценки от мастеров: храним только агрегат,
+  // отдельные оценки не раскрываются никому
+  int ratingSum;
+  int ratingCount;
 
   Client({
     required this.id,
@@ -46,7 +50,12 @@ class Client {
     this.notes = '',
     this.visitCount = 0,
     this.lastVisitAt,
+    this.ratingSum = 0,
+    this.ratingCount = 0,
   });
+
+  double? get rating =>
+      ratingCount == 0 ? null : ratingSum / ratingCount;
 }
 
 class Review {

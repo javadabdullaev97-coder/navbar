@@ -41,18 +41,24 @@ class MockStore {
         phone: '+998901112233',
         notes: 'Фейд по бокам, сверху подлиннее',
         visitCount: 12,
+        ratingSum: 49,
+        ratingCount: 10,
         lastVisitAt: DateTime.now().subtract(const Duration(days: 6))),
     Client(
         id: 'c2',
         name: 'Жасур',
         phone: '+998935554411',
         visitCount: 8,
+        ratingSum: 38,
+        ratingCount: 8,
         lastVisitAt: DateTime.now().subtract(const Duration(days: 2))),
     Client(
         id: 'c3',
         name: 'Тимур',
         phone: '+998909990077',
         visitCount: 3,
+        ratingSum: 13,
+        ratingCount: 3,
         lastVisitAt: DateTime.now().subtract(const Duration(days: 20))),
     Client(
         id: 'c4',
@@ -255,6 +261,12 @@ class MockStore {
     );
     appointments.add(a);
     return a;
+  }
+
+  // Мастер анонимно оценивает клиента — копится только агрегат
+  void rateClient(Client c, int stars) {
+    c.ratingSum += stars;
+    c.ratingCount += 1;
   }
 
   void setStatus(Appointment a, AppointmentStatus status) {
