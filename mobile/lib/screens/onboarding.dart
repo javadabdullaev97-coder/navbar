@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../i18n.dart';
 import '../theme.dart';
-import 'client_home.dart';
+import 'client_shell.dart';
 import 'master_shell.dart';
 
 // Онбординг: телефон → код → профиль (для мастера).
@@ -105,12 +105,9 @@ class _OtpScreenState extends State<OtpScreen> {
     app.phone = widget.phone;
     app.role = widget.role;
     if (widget.role == 'client') {
-      app.onboarded = true;
-      await app.save();
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ClientHomeScreen()),
-        (_) => false,
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ClientNameScreen()),
       );
     } else {
       Navigator.of(context).push(
@@ -156,6 +153,72 @@ class _OtpScreenState extends State<OtpScreen> {
             ],
             const Spacer(),
             _PrimaryButton(label: S.continueBtn, onPressed: _next),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ClientNameScreen extends StatefulWidget {
+  const ClientNameScreen({super.key});
+
+  @override
+  State<ClientNameScreen> createState() => _ClientNameScreenState();
+}
+
+class _ClientNameScreenState extends State<ClientNameScreen> {
+  final _ctrl = TextEditingController();
+  String _error = '';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _finish() async {
+    if (_ctrl.text.trim().length < 2) {
+      setState(() => _error = S.errRequired);
+      return;
+    }
+    final app = AppState.instance;
+    app.name = _ctrl.text.trim();
+    app.onboarded = true;
+    await app.save();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const ClientShell()),
+      (_) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(S.yourName,
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 28),
+            TextField(
+              controller: _ctrl,
+              autofocus: true,
+              style: const TextStyle(fontSize: 18),
+              onSubmitted: (_) => _finish(),
+            ),
+            if (_error.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(_error,
+                  style: const TextStyle(
+                      color: AppColors.warning, fontSize: 13)),
+            ],
+            const Spacer(),
+            _PrimaryButton(label: S.start, onPressed: _finish),
           ],
         ),
       ),

@@ -103,9 +103,31 @@ class S {
   // График
   static const dayOff = 'Выходной';
 
-  static const clientComingSoon =
-      'Кабинет клиента появится в следующей версии.\nПока запись — по ссылке мастера.';
+  // Кабинет клиента
   static const backToRoleSelect = 'Вернуться к выбору роли';
+  static const yourName = 'Как вас зовут?';
+  static const upcoming = 'Ближайшая запись';
+  static const myMasters = 'Мои мастера';
+  static const historyTitle = 'История визитов';
+  static const noUpcoming = 'Запишитесь к мастеру — запись появится здесь';
+  static const bookBtn = 'Записаться';
+  static const chooseService = 'Выберите услугу';
+  static const chooseDate = 'Дата';
+  static const chooseTime = 'Время';
+  static const noSlots = 'На этот день свободного времени нет';
+  static const bookFor = 'Записаться';
+  static const booked = 'Вы записаны!';
+  static const bookedReminder = 'Напомним за 2 часа до визита';
+  static const done = 'Готово';
+  static const cancelBooking = 'Отменить запись';
+  static const cancelBookingQ = 'Отменить эту запись?';
+  static const yesCancel = 'Да, отменить';
+  static const keepBooking = 'Оставить';
+  static const connectTelegram = 'Подключить Telegram';
+  static const connectTelegramDesc = 'Напоминания о записях в Telegram';
+  static const stubExternal = 'Появится на этапе интеграций';
+  static const changeRole = 'Сменить роль';
+  static const clientProfile = 'Профиль';
   static const min = 'мин';
   static const back = 'Назад';
   static const cancel = 'Отмена';

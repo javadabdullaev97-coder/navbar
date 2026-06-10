@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_state.dart';
-import 'screens/client_home.dart';
+import 'screens/client_shell.dart';
 import 'screens/master_shell.dart';
 import 'screens/role_select.dart';
 import 'theme.dart';
@@ -21,7 +21,7 @@ class NavbarApp extends StatelessWidget {
     if (!app.onboarded) {
       home = const RoleSelectScreen();
     } else if (app.role == 'client') {
-      home = const ClientHomeScreen();
+      home = const ClientShell();
     } else {
       home = const MasterShell();
     }

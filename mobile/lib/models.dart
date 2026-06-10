@@ -49,6 +49,53 @@ class Client {
   });
 }
 
+// Публичный профиль мастера — то, что видит клиент
+// (аналог будущего запроса к masters + services + schedules).
+class MasterPublic {
+  final String slug;
+  final String name;
+  final String specialization;
+  final String address;
+  final String bio;
+  final List<Service> services;
+  final List<ScheduleDay> schedule;
+
+  const MasterPublic({
+    required this.slug,
+    required this.name,
+    required this.specialization,
+    required this.address,
+    required this.bio,
+    required this.services,
+    required this.schedule,
+  });
+}
+
+// Запись глазами клиента (денормализована, как вернёт API)
+class ClientAppointment {
+  final String id;
+  final String masterSlug;
+  final String masterName;
+  final String masterAddress;
+  final String serviceName;
+  final int durationMin;
+  final int price;
+  final DateTime startsAt;
+  AppointmentStatus status;
+
+  ClientAppointment({
+    required this.id,
+    required this.masterSlug,
+    required this.masterName,
+    required this.masterAddress,
+    required this.serviceName,
+    required this.durationMin,
+    required this.price,
+    required this.startsAt,
+    this.status = AppointmentStatus.confirmed,
+  });
+}
+
 class Appointment {
   final String id;
   final String clientId;
