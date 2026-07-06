@@ -74,3 +74,52 @@ reset role;
 \echo '========================================'
 \echo '  AUTH/CABINET TEST PASSED ✓'
 \echo '========================================'
+
+-- ── Управление данными мастера (0005) ──
+set role authenticated;
+select set_config('request.jwt.claim.sub', '55555555-5555-5555-5555-555555555555', false);
+do $$
+declare j jsonb; sid uuid; n int;
+begin
+  -- get_my_master отдаёт профиль + услуги + график
+  j := get_my_master();
+  if j is null then raise exception 'FAIL: get_my_master null'; end if;
+  if jsonb_array_length(j->'services') < 1 then raise exception 'FAIL: no services'; end if;
+
+  -- создать услугу
+  sid := upsert_service(null, 'Тест-услуга', 40, 55000);
+  j := get_my_master();
+  select count(*) into n from jsonb_array_elements(j->'services') e
+    where e->>'name' = 'Тест-услуга';
+  if n <> 1 then raise exception 'FAIL: service not created'; end if;
+
+  -- изменить её
+  perform upsert_service(sid, 'Тест-услуга-2', 50, 65000);
+  -- удалить
+  perform delete_service(sid);
+  j := get_my_master();
+  select count(*) into n from jsonb_array_elements(j->'services') e
+    where e->>'id' = sid::text;
+  if n <> 0 then raise exception 'FAIL: service not deleted'; end if;
+
+  -- график: выходной на вс (6)
+  perform set_availability(6, 0, 0, true);
+  -- профиль
+  perform update_my_profile('Мастер-барбер', 'обо мне', 'адрес', true, null);
+  j := get_my_master();
+  if j->>'specialization' <> 'Мастер-барбер' then raise exception 'FAIL: profile not updated'; end if;
+end $$;
+
+-- Чужой пользователь не может править услуги демо-мастера
+select set_config('request.jwt.claim.sub', '77777777-7777-7777-7777-777777777777', false);
+do $$
+declare ok boolean := false; sid uuid;
+begin
+  -- у чужого нет профиля → upsert должен упасть
+  begin perform upsert_service(null, 'hack', 30, 1000);
+  exception when others then ok := true; end;
+  if not ok then raise exception 'FAIL: stranger created a service'; end if;
+end $$;
+reset role;
+
+\echo '  MASTER-MANAGE TEST PASSED ✓'
