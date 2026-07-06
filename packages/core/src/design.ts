@@ -18,36 +18,35 @@ export interface ThemeColors {
   danger: string;
 }
 
-// Тёплая «журнальная» палитра. Нейтральная база одинаковой температуры
-// в обеих темах; красится только акцент.
+// Чистая нейтральная база (без коричневого); красится только акцент.
 export const light: ThemeColors = {
-  bg: "#EFE7DE",
-  surface: "#F7F1EB",
-  surfaceAlt: "#F3ECE4",
+  bg: "#F6F6F4",
+  surface: "#FFFFFF",
+  surfaceAlt: "#F0F0EE",
   surfaceHigh: "#FFFFFF",
-  border: "#E7DCD1",
-  ink: "#2A2320",
-  inkStrong: "#1A1613",
-  muted: "#7A6E64",
-  faint: "#B7A99C",
+  border: "#E5E5E2",
+  ink: "#1B1B1A",
+  inkStrong: "#0D0D0C",
+  muted: "#6E6E6B",
+  faint: "#A2A29E",
   accent: "#A83254",
   accentInk: "#FFFFFF",
-  danger: "#C65A3A",
+  danger: "#C0442E",
 };
 
 export const dark: ThemeColors = {
-  bg: "#1A1613",
-  surface: "#241E1A",
-  surfaceAlt: "#2C251F",
-  surfaceHigh: "#322A24",
-  border: "#382F28",
-  ink: "#F3ECE4",
+  bg: "#121212",
+  surface: "#1C1C1D",
+  surfaceAlt: "#232324",
+  surfaceHigh: "#2A2A2B",
+  border: "#2E2E30",
+  ink: "#ECECEB",
   inkStrong: "#FFFFFF",
-  muted: "#B7A99C",
-  faint: "#7A6E64",
-  accent: "#C24A6B", // чуть светлее для тёмного фона
-  accentInk: "#1A1613",
-  danger: "#E07A54",
+  muted: "#9B9B98",
+  faint: "#6A6A67",
+  accent: "#D45C7A", // светлее для тёмного фона
+  accentInk: "#121212",
+  danger: "#E0765A",
 };
 
 // Курируемая палитра акцентов категорий (общая для тем)

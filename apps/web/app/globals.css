@@ -170,3 +170,28 @@ textarea.input { resize: vertical; }
   .site-nav a:not(.nav-cta) { display: none; }
   .wrap, .narrow { padding: 20px 16px 64px; }
 }
+
+/* --- Шапка: роль-тумблер, иконки, сегмент --- */
+.nav-link { color: var(--muted); }
+.nav-link:hover { color: var(--ink); }
+.role-toggle, .seg {
+  display: inline-flex; background: var(--surface-alt); border: 1px solid var(--border);
+  border-radius: var(--r-pill, 999px); padding: 3px;
+}
+.role-toggle button, .seg button {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  padding: 6px 14px; border-radius: var(--r-pill, 999px); font-size: 14px; font-weight: 600;
+}
+.role-toggle button.on, .seg button.on { background: var(--accent); color: var(--accent-ink); }
+.seg { display: flex; width: 100%; }
+.seg button { flex: 1; padding: 12px; }
+.icon-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-pill, 999px);
+  width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--ink); font-size: 16px;
+}
+.icon-btn:hover { border-color: var(--accent); }
+@media (max-width: 720px) {
+  .site-nav { gap: 10px; }
+  .nav-link { display: none; }
+}
