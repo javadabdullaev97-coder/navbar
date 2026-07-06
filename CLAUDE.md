@@ -4,14 +4,22 @@
 
 ---
 
-## 1. СТЕК — подтвердить (одна строка задаёт весь скелет)
+## 1. СТЕК — ПОДТВЕРЖДЁН (одна строка задаёт весь скелет)
 
-- [ ] **Flutter** — один код → iOS / Android / Web / Huawei AppGallery. Telegram Mini App добавляется позже тонким web-клиентом. Переиспользует существующий прототип `uz.navbar.navbar_mobile`.
-- [ ] **React + React Native** — web и Telegram Mini App на React (Next.js), мобайл на Expo/RN. Общий TS-core.
+- [ ] ~~**Flutter**~~ — отклонён. Прототип `uz.navbar.navbar_mobile` (`mobile/`) НЕ используется как основа.
+- [x] **React + React Native (Expo)** — web и Telegram Mini App на React (Next.js), мобайл на Expo/RN. Общий **TS-core**. Монорепо.
 
-**По умолчанию: Flutter** (есть рабочий прототип, покрывает 4 из 5 поверхностей одной базой). Хочешь React/RN — переключи галочку, остальной файл не меняется.
+**ВЫБРАНО: React + React Native (Expo), монорепо с общим TS-core.** Flutter-прототип остаётся в истории репозитория только как визуальный референс по UX и объёму фич; продукт строится заново на React/RN. Общий core не дублировать между web и mobile.
 
-**Бэкенд (для любого варианта):** Supabase — Postgres, Auth, Storage, RLS, edge functions.
+**Целевая структура монорепо:**
+```
+packages/core   — типы, Supabase-клиент, доменная логика, Zod-схемы, i18n-словари
+apps/web        — Next.js (публичная запись + Telegram Mini App + салонный десктоп-веб)
+apps/mobile     — Expo / React Native (iOS + Android)
+supabase/       — миграции, RLS-политики, edge functions, тесты изоляции
+```
+
+**Бэкенд:** Supabase — Postgres, Auth, Storage, RLS, edge functions.
 
 ---
 
