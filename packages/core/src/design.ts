@@ -15,38 +15,62 @@ export interface ThemeColors {
   faint: string; // третичный
   accent: string; // бренд-акцент
   accentInk: string; // текст на акценте
+  gold: string; // рейтинг (звёзды)
   danger: string;
+  shadow1: string; // мягкая тень карточек
+  shadow2: string; // тень модалок/поповеров
 }
 
-// Чистая нейтральная база (без коричневого); красится только акцент.
+// Цвета бейджей статусов (из DESIGN.md): bg + text
+export const statusBadge = {
+  pending: { bg: "#FFFBEB", fg: "#92400E" },
+  confirmed: { bg: "#ECFDF5", fg: "#065F46" },
+  done: { bg: "#EFF3FF", fg: "#1E40AF" },
+  cancelled: { bg: "#F3F4F6", fg: "#374151" },
+};
+export const statusBadgeDark = {
+  pending: { bg: "#3A2E12", fg: "#F5C971" },
+  confirmed: { bg: "#123227", fg: "#6EE7B7" },
+  done: { bg: "#16233F", fg: "#93B4FF" },
+  cancelled: { bg: "#26272B", fg: "#B4B8BF" },
+};
+
+// «Modern Editorial»: глубокий лесной зелёный акцент, тёплый белый фон,
+// серифные заголовки. По дизайн-системе из Stitch (DESIGN.md).
 export const light: ThemeColors = {
-  bg: "#F6F6F4",
-  surface: "#FFFFFF",
-  surfaceAlt: "#F0F0EE",
+  bg: "#FDFCFB", // тёплый белый (не клинический)
+  surface: "#FFFFFF", // приподнятые карточки
+  surfaceAlt: "#F6F3F2",
   surfaceHigh: "#FFFFFF",
-  border: "#E5E5E2",
-  ink: "#1B1B1A",
-  inkStrong: "#0D0D0C",
-  muted: "#6E6E6B",
-  faint: "#A2A29E",
-  accent: "#A83254",
+  border: "#EEEDEB", // тонкие линии
+  ink: "#1A1A1A",
+  inkStrong: "#111111",
+  muted: "#6B7280",
+  faint: "#9CA3AF",
+  accent: "#064E3B", // deep forest
   accentInk: "#FFFFFF",
-  danger: "#C0442E",
+  gold: "#D4AF37",
+  danger: "#BA1A1A",
+  shadow1: "0 4px 20px rgba(0,0,0,0.04)",
+  shadow2: "0 10px 30px rgba(0,0,0,0.08)",
 };
 
 export const dark: ThemeColors = {
-  bg: "#121212",
-  surface: "#1C1C1D",
-  surfaceAlt: "#232324",
-  surfaceHigh: "#2A2A2B",
-  border: "#2E2E30",
-  ink: "#ECECEB",
+  bg: "#0F172A", // deep navy-black
+  surface: "#1E293B",
+  surfaceAlt: "#172033",
+  surfaceHigh: "#24344D",
+  border: "#263143",
+  ink: "#F9FAFB",
   inkStrong: "#FFFFFF",
-  muted: "#9B9B98",
-  faint: "#6A6A67",
-  accent: "#D45C7A", // светлее для тёмного фона
-  accentInk: "#121212",
-  danger: "#E0765A",
+  muted: "#94A3B8",
+  faint: "#64748B",
+  accent: "#10B981", // ярче для контраста
+  accentInk: "#06231A",
+  gold: "#E9C349",
+  danger: "#FF6B6B",
+  shadow1: "0 4px 20px rgba(0,0,0,0.25)",
+  shadow2: "0 10px 30px rgba(0,0,0,0.4)",
 };
 
 // Курируемая палитра акцентов категорий (общая для тем)
@@ -78,7 +102,7 @@ export const space = {
 };
 
 export const fonts = {
-  display: "'Fraunces', Georgia, serif", // заголовки — серифный
+  display: "'Libre Caslon Text', Georgia, serif", // заголовки — серифный
   body: "'Manrope', system-ui, sans-serif", // текст/интерфейс
 };
 
@@ -96,7 +120,10 @@ export function cssVars(c: ThemeColors): string {
     "--faint": c.faint,
     "--accent": c.accent,
     "--accent-ink": c.accentInk,
+    "--gold": c.gold,
     "--danger": c.danger,
+    "--shadow-1": c.shadow1,
+    "--shadow-2": c.shadow2,
     "--r-sm": radii.sm,
     "--r-md": radii.md,
     "--r-lg": radii.lg,

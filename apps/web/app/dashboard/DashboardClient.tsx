@@ -49,12 +49,6 @@ const STATUS_LABEL: Record<Booking["status"], string> = {
   done: "выполнена",
   cancelled: "отменена",
 };
-const STATUS_COLOR: Record<Booking["status"], string> = {
-  pending: "#D68A2E",
-  confirmed: "#6F8F4A",
-  done: "#566072",
-  cancelled: "#B7A99C",
-};
 const DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 function fmt(iso: string): string {
@@ -143,7 +137,7 @@ export default function DashboardClient({
             <div key={b.id} className="card" style={{ marginTop: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <strong>{b.client_name}</strong>
-                <span style={{ color: STATUS_COLOR[b.status], fontSize: 13 }}>{STATUS_LABEL[b.status]}</span>
+                <span className={`st st-${b.status}`}>{STATUS_LABEL[b.status]}</span>
               </div>
               <p className="muted" style={{ marginTop: 4 }}>{b.service_name} · {fmt(b.starts_at)}<br />{b.client_phone}</p>
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
@@ -157,7 +151,7 @@ export default function DashboardClient({
             <div key={b.id} className="card" style={{ marginTop: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <strong>{b.client_name}</strong>
-                <span style={{ color: STATUS_COLOR[b.status], fontSize: 13 }}>{STATUS_LABEL[b.status]}</span>
+                <span className={`st st-${b.status}`}>{STATUS_LABEL[b.status]}</span>
               </div>
               <p className="muted" style={{ marginTop: 4 }}>{b.service_name} · {fmt(b.starts_at)}</p>
               {b.status === "confirmed" && (

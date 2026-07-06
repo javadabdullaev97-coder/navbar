@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Libre_Caslon_Text, Manrope } from "next/font/google";
 import { cssVars, dark, light } from "@navbar/core";
 import "./globals.css";
 import SiteHeader from "./SiteHeader";
 
-const fraunces = Fraunces({
+const caslon = Libre_Caslon_Text({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
   variable: "--f-display",
 });
 const manrope = Manrope({
@@ -29,7 +30,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" className={`${fraunces.variable} ${manrope.variable}`}>
+    <html lang="ru" className={`${caslon.variable} ${manrope.variable}`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeCss }} />
         {/* Тема из localStorage до отрисовки — без мигания */}

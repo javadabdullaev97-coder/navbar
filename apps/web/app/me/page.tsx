@@ -26,13 +26,6 @@ const LABEL: Record<ClientBooking["status"], string> = {
   done: "выполнена",
   cancelled: "отменена",
 };
-const COLOR: Record<ClientBooking["status"], string> = {
-  pending: "#D68A2E",
-  confirmed: "#6F8F4A",
-  done: "#566072",
-  cancelled: "#B7A99C",
-};
-
 function fmt(iso: string): string {
   const d = new Date(iso);
   const p = (n: number) => String(n).padStart(2, "0");
@@ -86,7 +79,7 @@ export default function MePage() {
         <div key={b.id} className="card" style={{ marginTop: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <strong>{b.service_name}</strong>
-            <span style={{ color: COLOR[b.status], fontSize: 13 }}>{LABEL[b.status]}</span>
+            <span className={`st st-${b.status}`}>{LABEL[b.status]}</span>
           </div>
           <p className="muted" style={{ marginTop: 4 }}>
             {b.master_name} · {fmt(b.starts_at)}<br />{b.master_address}
@@ -100,7 +93,7 @@ export default function MePage() {
         <div key={b.id} className="card" style={{ marginTop: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <strong>{b.service_name}</strong>
-            <span style={{ color: COLOR[b.status], fontSize: 13 }}>{LABEL[b.status]}</span>
+            <span className={`st st-${b.status}`}>{LABEL[b.status]}</span>
           </div>
           <p className="muted" style={{ marginTop: 4 }}>
             <Link href={`/${b.master_slug}`} style={{ color: "var(--accent)" }}>{b.master_name}</Link> · {fmt(b.starts_at)}
@@ -114,7 +107,7 @@ export default function MePage() {
           {favs.map((m) => (
             <Link key={m.slug} href={`/${m.slug}`} className="row" style={{ textDecoration: "none" }}>
               <span><strong>{m.name}</strong> <span className="muted" style={{ fontSize: 13 }}>{m.specialization}</span></span>
-              <span style={{ color: "#D68A2E" }}>♥</span>
+              <span style={{ color: "var(--accent)" }}>♥</span>
             </Link>
           ))}
         </>
