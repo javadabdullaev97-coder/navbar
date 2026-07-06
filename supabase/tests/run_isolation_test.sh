@@ -42,8 +42,11 @@ createdb -h "$SOCK" -U postgres navbar_test
 run()  { psql -v ON_ERROR_STOP=1 -h "$SOCK" -U postgres -d navbar_test -q -f "$1"; }
 show() { psql -v ON_ERROR_STOP=1 -h "$SOCK" -U postgres -d navbar_test    -f "$1"; }
 
-echo "→ apply 0001_schema.sql"; run  "$SUPA/migrations/0001_schema.sql"
-echo "→ apply 0002_rls.sql";    run  "$SUPA/migrations/0002_rls.sql"
-echo "→ run isolation_test.sql"; show "$SUPA/tests/isolation_test.sql"
+echo "→ apply 0001_schema.sql";     run  "$SUPA/migrations/0001_schema.sql"
+echo "→ apply 0002_rls.sql";        run  "$SUPA/migrations/0002_rls.sql"
+echo "→ apply 0003_public_rpc.sql"; run  "$SUPA/migrations/0003_public_rpc.sql"
+echo "→ run isolation_test.sql";    show "$SUPA/tests/isolation_test.sql"
+echo "→ apply seed.sql";            run  "$SUPA/seed.sql"
+echo "→ run rpc_test.sql";          show "$SUPA/tests/rpc_test.sql"
 
 echo "✓ OK"
