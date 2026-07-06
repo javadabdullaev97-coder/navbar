@@ -123,3 +123,19 @@ end $$;
 reset role;
 
 \echo '  MASTER-MANAGE TEST PASSED ✓'
+
+-- ── Портфолио (0007) ──
+set role authenticated;
+select set_config('request.jwt.claim.sub', '55555555-5555-5555-5555-555555555555', false);
+do $$
+declare gid uuid; j jsonb;
+begin
+  gid := add_gallery_item('https://example.com/1.jpg', 'Фейд');
+  j := get_my_gallery();
+  if jsonb_array_length(j) < 1 then raise exception 'FAIL: gallery empty after add'; end if;
+  perform delete_gallery_item(gid);
+  j := get_my_gallery();
+  if jsonb_array_length(j) <> 0 then raise exception 'FAIL: gallery not empty after delete'; end if;
+end $$;
+reset role;
+\echo '  PORTFOLIO TEST PASSED ✓'

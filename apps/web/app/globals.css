@@ -138,3 +138,12 @@ textarea.input { resize: vertical; font-family: inherit; }
 /* --- Рейтинг --- */
 .stars { color: #ffc850; font-weight: 700; font-size: 14px; white-space: nowrap; }
 select.input { appearance: none; cursor: pointer; }
+
+/* --- Галерея портфолио --- */
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gallery-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); display: block; }
+.gallery-del {
+  position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
+  border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff;
+  cursor: pointer; font-size: 12px; line-height: 1;
+}

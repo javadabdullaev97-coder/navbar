@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabaseClient } from "@/lib/supabase-client";
 
 export interface Booking {
@@ -25,6 +25,11 @@ export interface MyAvailability {
   start_min: number;
   end_min: number;
   is_day_off: boolean;
+}
+export interface GalleryItem {
+  id: string;
+  url: string;
+  caption: string | null;
 }
 export interface MyMaster {
   org_id: string;
@@ -65,7 +70,7 @@ function toMin(hhmm: string): number {
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
-type Tab = "bookings" | "services" | "schedule" | "profile";
+type Tab = "bookings" | "services" | "schedule" | "portfolio" | "profile";
 
 export default function DashboardClient({
   initialBookings,
@@ -111,7 +116,7 @@ export default function DashboardClient({
       <p className="muted" style={{ fontSize: 13 }}>{email}</p>
 
       <div className="tabs">
-        {([["bookings", "Заявки"], ["services", "Услуги"], ["schedule", "График"], ["profile", "Профиль"]] as [Tab, string][]).map(
+        {([["bookings", "Заявки"], ["services", "Услуги"], ["schedule", "График"], ["portfolio", "Портфолио"], ["profile", "Профиль"]] as [Tab, string][]).map(
           ([k, label]) => (
             <button key={k} className={`tab${tab === k ? " on" : ""}`} onClick={() => setTab(k)}>
               {label}
@@ -158,6 +163,7 @@ export default function DashboardClient({
 
       {tab === "services" && <ServicesTab master={master} sb={sb} onChange={reloadMaster} />}
       {tab === "schedule" && <ScheduleTab master={master} sb={sb} onChange={reloadMaster} />}
+      {tab === "portfolio" && <PortfolioTab master={master} sb={sb} onChange={reloadMaster} />}
       {tab === "profile" && <ProfileTab master={master} sb={sb} onChange={reloadMaster} />}
     </main>
   );
@@ -254,6 +260,65 @@ function ScheduleTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onCha
           </div>
         );
       })}
+    </>
+  );
+}
+
+function PortfolioTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onChange: () => void }) {
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function load() {
+    const { data } = await sb.rpc("get_my_gallery");
+    setItems((data as GalleryItem[]) ?? []);
+  }
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    const { data: userRes } = await sb.auth.getUser();
+    const uid = userRes?.user?.id;
+    const path = `${uid}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
+    const up = await sb.storage.from("portfolio").upload(path, file, { upsert: false });
+    if (up.error) { setError("Ошибка загрузки: " + up.error.message); setBusy(false); return; }
+    const { data: pub } = sb.storage.from("portfolio").getPublicUrl(path);
+    await sb.rpc("add_gallery_item", { p_url: pub.publicUrl, p_caption: null });
+    setBusy(false);
+    load();
+    onChange();
+  }
+
+  async function remove(id: string) {
+    await sb.rpc("delete_gallery_item", { p_id: id });
+    load();
+    onChange();
+  }
+
+  return (
+    <>
+      <div className="section">Портфолио</div>
+      <p className="muted" style={{ marginBottom: 12 }}>Фото ваших работ — их видят клиенты на публичной странице.</p>
+      <label className="btn" style={{ display: "inline-block", width: "auto", cursor: "pointer" }}>
+        {busy ? "Загружаем…" : "+ Добавить фото"}
+        <input type="file" accept="image/*" hidden onChange={onFile} disabled={busy} />
+      </label>
+      {error && <div className="err">{error}</div>}
+      <div className="gallery" style={{ marginTop: 16 }}>
+        {items.map((g) => (
+          <div key={g.id} style={{ position: "relative" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={g.url} alt={g.caption ?? ""} className="gallery-img" />
+            <button className="gallery-del" onClick={() => remove(g.id)}>✕</button>
+          </div>
+        ))}
+      </div>
     </>
   );
 }

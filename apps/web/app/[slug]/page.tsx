@@ -84,6 +84,18 @@ export default async function MasterPage({ params }: Props) {
         </p>
       )}
 
+      {master.portfolio.length > 0 && (
+        <>
+          <div className="section">Портфолио</div>
+          <div className="gallery">
+            {master.portfolio.map((p, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={p.url} alt={p.caption ?? "работа"} className="gallery-img" />
+            ))}
+          </div>
+        </>
+      )}
+
       <BookingWidget master={master} />
       <Reviews slug={master.slug} />
     </main>

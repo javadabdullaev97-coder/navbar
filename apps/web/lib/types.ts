@@ -23,6 +23,7 @@ export interface PublicMaster {
     end_min: number;
     is_day_off: boolean;
   }[];
+  portfolio: { url: string; caption: string | null }[];
 }
 
 export interface BusyInterval {
