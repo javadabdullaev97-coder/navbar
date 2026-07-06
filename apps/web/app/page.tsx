@@ -34,6 +34,9 @@ export default async function Home() {
       <div className="logo">
         nav<span>bar</span>
       </div>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <Link href="/me" className="linkbtn">Мои записи →</Link>
+      </div>
       <h1>Найдите своего мастера</h1>
       <p className="muted">Барберы и мастера красоты — запись онлайн за 30 секунд.</p>
 

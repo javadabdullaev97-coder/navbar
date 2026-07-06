@@ -49,6 +49,7 @@ echo "→ apply 0004_auth_master.sql";run  "$SUPA/migrations/0004_auth_master.sq
 echo "→ apply 0005_master_manage.sql"; run "$SUPA/migrations/0005_master_manage.sql"
 echo "→ apply 0006_catalog_reviews.sql"; run "$SUPA/migrations/0006_catalog_reviews.sql"
 echo "→ apply 0007_portfolio.sql"; run "$SUPA/migrations/0007_portfolio.sql"
+echo "→ apply 0008_client_account.sql"; run "$SUPA/migrations/0008_client_account.sql"
 echo "→ run isolation_test.sql";    show "$SUPA/tests/isolation_test.sql"
 echo "→ apply seed.sql";            run  "$SUPA/seed.sql"
 echo "→ run rpc_test.sql";          show "$SUPA/tests/rpc_test.sql"

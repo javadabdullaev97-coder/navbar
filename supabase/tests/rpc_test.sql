@@ -97,3 +97,42 @@ end $$;
 reset role;
 
 \echo '  CATALOG/REVIEWS TEST PASSED ✓'
+
+-- ── Клиентский аккаунт (0008) ──
+-- Анонимный клиент (authenticated с uid) бронирует → видит свои записи
+set role authenticated;
+select set_config('request.jwt.claim.sub', '88888888-8888-8888-8888-888888888888', false);
+do $$
+declare svc uuid; res jsonb; mine jsonb; fav boolean; bid uuid;
+begin
+  select id into svc from service where org_id = '11111111-0000-0000-0000-0000000000aa' limit 1;
+  res := create_public_booking('asror', array[svc],
+    (date_trunc('week', now()) + interval '2 weeks' + interval '12 hours')::timestamptz,
+    'Клиент Аноним', '+998900002233');
+
+  mine := get_my_client_bookings();
+  if jsonb_array_length(mine) < 1 then raise exception 'FAIL: my client bookings empty'; end if;
+  if mine->0->>'master_slug' <> 'asror' then raise exception 'FAIL: wrong master in my bookings'; end if;
+
+  -- избранное
+  fav := toggle_favorite('asror');
+  if not fav then raise exception 'FAIL: favorite not added'; end if;
+  if jsonb_array_length(get_my_favorites()) <> 1 then raise exception 'FAIL: favorites count'; end if;
+  fav := toggle_favorite('asror');
+  if fav then raise exception 'FAIL: favorite not removed'; end if;
+
+  -- отмена своей брони
+  bid := (res->>'booking_id')::uuid;
+  perform cancel_my_booking(bid);
+end $$;
+
+-- Другой клиент НЕ видит чужие записи
+select set_config('request.jwt.claim.sub', '99999999-9999-9999-9999-999999999999', false);
+do $$
+begin
+  if jsonb_array_length(get_my_client_bookings()) <> 0 then
+    raise exception 'FAIL: other client sees foreign bookings';
+  end if;
+end $$;
+reset role;
+\echo '  CLIENT-ACCOUNT TEST PASSED ✓'

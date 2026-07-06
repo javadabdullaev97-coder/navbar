@@ -8,7 +8,8 @@ import {
   validatePhone,
   MARKET_UZ,
 } from "@/lib/booking";
-import { supabaseBrowser } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabase-client";
+import { ensureAnonSession } from "@/lib/client-auth";
 import type { BusyInterval, PublicMaster } from "@/lib/types";
 
 const DOW = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
@@ -20,7 +21,7 @@ const MONTHS = [
 type Service = PublicMaster["services"][number];
 
 export default function BookingWidget({ master }: { master: PublicMaster }) {
-  const sb = useMemo(() => supabaseBrowser(), []);
+  const sb = useMemo(() => supabaseClient(), []);
   const [days, setDays] = useState<Date[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [day, setDay] = useState<Date | null>(null);
@@ -33,6 +34,7 @@ export default function BookingWidget({ master }: { master: PublicMaster }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    ensureAnonSession();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     setDays(Array.from({ length: 14 }, (_, i) => {
@@ -82,6 +84,7 @@ export default function BookingWidget({ master }: { master: PublicMaster }) {
     if (!day || slot === null) return;
     setError("");
     setSaving(true);
+    await ensureAnonSession();
 
     const startsAt = new Date(day);
     startsAt.setHours(Math.floor(slot / 60), slot % 60, 0, 0);

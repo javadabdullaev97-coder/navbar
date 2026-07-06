@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { supabaseBrowser, supabaseConfigured } from "@/lib/supabase";
 import type { PublicMaster } from "@/lib/types";
+import Link from "next/link";
 import BookingWidget from "./BookingWidget";
 import Reviews from "./Reviews";
+import FavoriteButton from "./FavoriteButton";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -52,8 +54,14 @@ export default async function MasterPage({ params }: Props) {
 
   return (
     <main className="wrap">
-      <div className="logo">
-        nav<span>bar</span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="logo">
+          nav<span>bar</span>
+        </div>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/me" className="linkbtn">Мои записи</Link>
+          <FavoriteButton slug={master.slug} />
+        </div>
       </div>
 
       <div className="master-header">
