@@ -15,6 +15,12 @@ export default function Home() {
           Открыть публичную страницу барбера Асрора
         </p>
       </Link>
+      <Link href="/login" className="card" style={{ display: "block" }}>
+        <strong>Кабинет мастера →</strong>
+        <p className="muted" style={{ marginTop: 6 }}>
+          Вход для мастера: заявки и подтверждение записей
+        </p>
+      </Link>
     </main>
   );
 }

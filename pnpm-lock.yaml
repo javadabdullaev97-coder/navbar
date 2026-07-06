@@ -13,6 +13,12 @@ importers:
       '@navbar/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@supabase/ssr':
+        specifier: ^0.5.2
+        version: 0.5.2(@supabase/supabase-js@2.110.0)
+      '@supabase/supabase-js':
+        specifier: ^2.45.0
+        version: 2.110.0
       next:
         specifier: 16.2.8
         version: 16.2.8(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -284,6 +290,11 @@ packages:
     resolution: {integrity: sha512-Wn2AWpneZuDFTkp/65tqctvoh+3JvyTjMam8sTMqVWy5BgkU8zAvFwilPYPPPhkINeKF8NAJKP7FclJ2iGCUMw==}
     engines: {node: '>=22.0.0'}
 
+  '@supabase/ssr@0.5.2':
+    resolution: {integrity: sha512-n3plRhr2Bs8Xun1o4S3k1CDv17iH5QY9YcoEvXX3bxV1/5XSasA0mNXYycFmADIdtdE6BG9MRjP5CGIs8qxC8A==}
+    peerDependencies:
+      '@supabase/supabase-js': ^2.43.4
+
   '@supabase/storage-js@2.110.0':
     resolution: {integrity: sha512-71+gU3HrhiylAhftY6FmO5PPdcsScnVcS766CVD+vTYK9qTDLbrx8FhgBYbqGm3iV/wkTfzrNJfjGsMeFRkJRQ==}
     engines: {node: '>=22.0.0'}
@@ -294,6 +305,9 @@ packages:
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
+
+  '@types/cookie@0.6.0':
+    resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
   '@types/node@22.20.0':
     resolution: {integrity: sha512-QWlFW2wf3nTjC13/DqRnBpR4ZO36VJH/JVBkA/vcnmbTBNQIlnObqyqZE1tUR7+Ni23Lda8R1BxMfbXRpCUx5g==}
@@ -316,6 +330,10 @@ packages:
 
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
+
+  cookie@0.7.2:
+    resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
+    engines: {node: '>= 0.6'}
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -562,6 +580,12 @@ snapshots:
       '@supabase/phoenix': 0.4.4
       tslib: 2.8.1
 
+  '@supabase/ssr@0.5.2(@supabase/supabase-js@2.110.0)':
+    dependencies:
+      '@supabase/supabase-js': 2.110.0
+      '@types/cookie': 0.6.0
+      cookie: 0.7.2
+
   '@supabase/storage-js@2.110.0':
     dependencies:
       iceberg-js: 0.8.1
@@ -578,6 +602,8 @@ snapshots:
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
+
+  '@types/cookie@0.6.0': {}
 
   '@types/node@22.20.0':
     dependencies:
@@ -596,6 +622,8 @@ snapshots:
   caniuse-lite@1.0.30001802: {}
 
   client-only@0.0.1: {}
+
+  cookie@0.7.2: {}
 
   csstype@3.2.3: {}
 
