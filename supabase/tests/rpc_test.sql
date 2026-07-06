@@ -60,3 +60,40 @@ reset role;
 \echo '========================================'
 \echo '  RPC TEST PASSED — публичный срез ✓'
 \echo '========================================'
+
+-- ── Каталог и отзывы (0006) ──
+set role anon;
+select set_config('request.jwt.claim.sub', '', false);
+do $$
+declare j jsonb; r jsonb;
+begin
+  -- каталог содержит asror с рейтингом
+  j := list_public_masters(null);
+  if jsonb_array_length(j) < 1 then raise exception 'FAIL: catalog empty'; end if;
+  if not exists (select 1 from jsonb_array_elements(j) e where e->>'slug' = 'asror') then
+    raise exception 'FAIL: asror not in catalog';
+  end if;
+
+  -- фильтр по категории
+  j := list_public_masters('Барберы');
+  if jsonb_array_length(j) < 1 then raise exception 'FAIL: category filter empty'; end if;
+  j := list_public_masters('Массаж');
+  if jsonb_array_length(j) <> 0 then raise exception 'FAIL: category filter should be empty'; end if;
+
+  -- рейтинг в публичном профиле
+  j := get_public_master('asror');
+  if (j->>'review_count')::int < 3 then raise exception 'FAIL: review_count < 3'; end if;
+  if (j->>'rating')::numeric < 4 then raise exception 'FAIL: rating too low'; end if;
+
+  -- список отзывов (сначала новые)
+  r := get_master_reviews('asror');
+  if jsonb_array_length(r) < 3 then raise exception 'FAIL: reviews < 3'; end if;
+
+  -- оставить отзыв
+  perform add_review('asror', 5, 'Отличный мастер', 'Аноним');
+  r := get_master_reviews('asror');
+  if jsonb_array_length(r) < 4 then raise exception 'FAIL: review not added'; end if;
+end $$;
+reset role;
+
+\echo '  CATALOG/REVIEWS TEST PASSED ✓'

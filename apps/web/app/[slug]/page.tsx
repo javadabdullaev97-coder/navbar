@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { supabaseBrowser, supabaseConfigured } from "@/lib/supabase";
 import type { PublicMaster } from "@/lib/types";
 import BookingWidget from "./BookingWidget";
+import Reviews from "./Reviews";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -62,6 +63,14 @@ export default async function MasterPage({ params }: Props) {
         <div>
           <div className="master-name">{master.name}</div>
           <div className="muted">{master.specialization}</div>
+          {master.review_count > 0 && (
+            <div className="stars" style={{ marginTop: 2 }}>
+              ★ {master.rating.toFixed(1)}
+              <span className="muted" style={{ fontSize: 13, marginLeft: 6 }}>
+                · {master.review_count} отзыв(ов)
+              </span>
+            </div>
+          )}
           {master.address && (
             <div className="muted" style={{ fontSize: 13 }}>
               {master.address}
@@ -76,6 +85,7 @@ export default async function MasterPage({ params }: Props) {
       )}
 
       <BookingWidget master={master} />
+      <Reviews slug={master.slug} />
     </main>
   );
 }

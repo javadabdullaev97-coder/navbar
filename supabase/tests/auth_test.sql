@@ -105,7 +105,7 @@ begin
   -- график: выходной на вс (6)
   perform set_availability(6, 0, 0, true);
   -- профиль
-  perform update_my_profile('Мастер-барбер', 'обо мне', 'адрес', true, null);
+  perform update_my_profile('Мастер-барбер', 'обо мне', 'адрес', true, null, 'Барберы');
   j := get_my_master();
   if j->>'specialization' <> 'Мастер-барбер' then raise exception 'FAIL: profile not updated'; end if;
 end $$;

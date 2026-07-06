@@ -15,18 +15,26 @@ insert into membership(org_id, user_id, role, status) values
   ('11111111-0000-0000-0000-0000000000aa', '11111111-0000-0000-0000-000000000001', 'master', 'active')
 on conflict (org_id, user_id, role) do nothing;
 
-insert into master_profile(id, org_id, user_id, slug, specialization, bio, address, cover_color, visible_in_search)
+insert into master_profile(id, org_id, user_id, slug, specialization, category, bio, address, cover_color, visible_in_search)
 values (
   '11111111-0000-0000-0000-0000000000b1',
   '11111111-0000-0000-0000-0000000000aa',
   '11111111-0000-0000-0000-000000000001',
-  'asror', 'Барбер',
+  'asror', 'Барбер', 'Барберы',
   'Мужские стрижки и оформление бороды. Опыт 7 лет.',
   'Ташкент, Чиланзар, ул. Бунёдкор 12',
   '#a8ff78', true
 ) on conflict (id) do update set
-  specialization = excluded.specialization, bio = excluded.bio,
-  address = excluded.address, visible_in_search = excluded.visible_in_search;
+  specialization = excluded.specialization, category = excluded.category,
+  bio = excluded.bio, address = excluded.address,
+  visible_in_search = excluded.visible_in_search;
+
+-- Демо-отзывы (идемпотентно: чистим и вставляем заново)
+delete from review where master_id = '11111111-0000-0000-0000-000000000001';
+insert into review(org_id, master_id, author_name, stars, text, created_at) values
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','Бекзод',5,'Лучший фейд в городе', now() - interval '12 days'),
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','Жасур', 5,'Хожу два года, всегда топ', now() - interval '40 days'),
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','Тимур', 4,'Хорошо, но пришлось подождать', now() - interval '90 days');
 
 -- Услуги (фикс. id, чтобы seed был идемпотентным)
 insert into service(id, org_id, master_id, name, duration_min, price, sort_order) values

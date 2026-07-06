@@ -30,6 +30,7 @@ export interface MyMaster {
   org_id: string;
   slug: string | null;
   specialization: string | null;
+  category: string | null;
   bio: string | null;
   address: string | null;
   visible_in_search: boolean;
@@ -257,8 +258,11 @@ function ScheduleTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onCha
   );
 }
 
+const CATEGORIES = ["Барберы", "Парикмахеры", "Ногти", "Брови и ресницы", "Макияж", "Массаж"];
+
 function ProfileTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onChange: () => void }) {
   const [spec, setSpec] = useState(master.specialization ?? "");
+  const [category, setCategory] = useState(master.category ?? "");
   const [bio, setBio] = useState(master.bio ?? "");
   const [address, setAddress] = useState(master.address ?? "");
   const [visible, setVisible] = useState(master.visible_in_search);
@@ -269,7 +273,7 @@ function ProfileTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onChan
     setBusy(true);
     await sb.rpc("update_my_profile", {
       p_spec: spec.trim(), p_bio: bio.trim(), p_address: address.trim(),
-      p_visible: visible, p_slug: null,
+      p_visible: visible, p_slug: null, p_category: category || null,
     });
     setBusy(false); setSaved(true); onChange();
     setTimeout(() => setSaved(false), 2000);
@@ -279,6 +283,10 @@ function ProfileTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onChan
       <div className="section">Профиль и публичная страница</div>
       <p className="muted" style={{ marginBottom: 12 }}>Ваша ссылка: navbar.uz/{master.slug ?? "asror"}</p>
       <input className="input" placeholder="Специализация" value={spec} onChange={(e) => setSpec(e.target.value)} />
+      <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="">Категория (для каталога)</option>
+        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
       <textarea className="input" placeholder="О себе" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
       <input className="input" placeholder="Адрес" value={address} onChange={(e) => setAddress(e.target.value)} />
       <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0", color: "var(--text-secondary)" }}>
