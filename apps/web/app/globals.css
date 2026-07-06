@@ -172,7 +172,7 @@ textarea.input { resize: vertical; }
 }
 
 /* --- Шапка: роль-тумблер, иконки, сегмент --- */
-.nav-link { color: var(--muted); }
+.nav-link { color: var(--muted); min-width: 92px; text-align: right; }
 .nav-link:hover { color: var(--ink); }
 .role-toggle, .seg {
   display: inline-flex; background: var(--surface-alt); border: 1px solid var(--border);
@@ -180,7 +180,8 @@ textarea.input { resize: vertical; }
 }
 .role-toggle button, .seg button {
   background: none; border: none; cursor: pointer; color: var(--muted);
-  padding: 6px 14px; border-radius: var(--r-pill, 999px); font-size: 14px; font-weight: 600;
+  padding: 7px 0; min-width: 72px; text-align: center; border-radius: var(--r-pill, 999px);
+  font-size: 14px; font-weight: 600; transition: color .12s, background .12s;
 }
 .role-toggle button.on, .seg button.on { background: var(--accent); color: var(--accent-ink); }
 .seg { display: flex; width: 100%; }
@@ -190,7 +191,8 @@ textarea.input { resize: vertical; }
   width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--ink); font-size: 16px;
 }
-.icon-btn:hover { border-color: var(--accent); }
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn svg { display: block; }
 @media (max-width: 720px) {
   .site-nav { gap: 10px; }
   .nav-link { display: none; }

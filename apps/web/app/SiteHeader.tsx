@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { applyTheme, getRole, getTheme, setRole, type RolePref, type ThemePref } from "@/lib/prefs";
+import { AutoIcon, MoonIcon, SlidersIcon, SunIcon } from "./Icons";
 
 export default function SiteHeader() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function SiteHeader() {
     applyTheme(next);
   }
 
-  const themeIcon = theme === "light" ? "☀" : theme === "dark" ? "☾" : "◐";
+  const ThemeIcon = theme === "light" ? SunIcon : theme === "dark" ? MoonIcon : AutoIcon;
 
   return (
     <header className="site-header">
@@ -41,13 +42,15 @@ export default function SiteHeader() {
             <button className={role === "client" ? "on" : ""} onClick={() => switchRole("client")}>Клиент</button>
             <button className={role === "master" ? "on" : ""} onClick={() => switchRole("master")}>Мастер</button>
           </div>
-          {role === "client" ? (
-            <Link href="/me" className="nav-link">Мои записи</Link>
-          ) : (
-            <Link href="/dashboard" className="nav-link">Кабинет</Link>
-          )}
-          <button className="icon-btn" onClick={cycleTheme} title="Тема" aria-label="Тема">{themeIcon}</button>
-          <Link href="/settings" className="icon-btn" title="Настройки" aria-label="Настройки">⚙</Link>
+          <Link href={role === "client" ? "/me" : "/dashboard"} className="nav-link">
+            {role === "client" ? "Мои записи" : "Кабинет"}
+          </Link>
+          <button className="icon-btn" onClick={cycleTheme} title="Тема" aria-label="Сменить тему">
+            <ThemeIcon />
+          </button>
+          <Link href="/settings" className="icon-btn" title="Настройки" aria-label="Настройки">
+            <SlidersIcon />
+          </Link>
         </div>
       </div>
     </header>

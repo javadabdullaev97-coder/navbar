@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabaseClient } from "@/lib/supabase-client";
 import { ensureAnonSession } from "@/lib/client-auth";
+import { HeartIcon } from "../Icons";
 
 export default function FavoriteButton({ slug }: { slug: string }) {
   const [sb] = useState(() => supabaseClient());
@@ -25,8 +26,9 @@ export default function FavoriteButton({ slug }: { slug: string }) {
   }
 
   return (
-    <button className="favbtn" onClick={toggle} aria-label="Избранное">
-      <span style={{ color: fav ? "#D68A2E" : "var(--muted)" }}>{fav ? "♥" : "♡"}</span>
+    <button className="favbtn" onClick={toggle} aria-label="Избранное"
+      style={{ color: fav ? "var(--accent)" : "var(--muted)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+      <HeartIcon filled={fav} />
     </button>
   );
 }
