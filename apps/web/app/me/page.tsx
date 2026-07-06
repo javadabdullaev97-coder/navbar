@@ -27,10 +27,10 @@ const LABEL: Record<ClientBooking["status"], string> = {
   cancelled: "отменена",
 };
 const COLOR: Record<ClientBooking["status"], string> = {
-  pending: "#ffc850",
-  confirmed: "#a8ff78",
-  done: "#78b4ff",
-  cancelled: "rgba(255,255,255,0.35)",
+  pending: "#D68A2E",
+  confirmed: "#6F8F4A",
+  done: "#566072",
+  cancelled: "#B7A99C",
 };
 
 function fmt(iso: string): string {
@@ -70,10 +70,7 @@ export default function MePage() {
   const past = bookings.filter((b) => !(new Date(b.starts_at).getTime() > now && b.status !== "cancelled"));
 
   return (
-    <main className="wrap">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link href="/" className="logo">nav<span>bar</span></Link>
-      </div>
+    <main className="narrow">
       <h1>Мои записи</h1>
 
       {loading && <p className="muted">Загрузка…</p>}
@@ -117,7 +114,7 @@ export default function MePage() {
           {favs.map((m) => (
             <Link key={m.slug} href={`/${m.slug}`} className="row" style={{ textDecoration: "none" }}>
               <span><strong>{m.name}</strong> <span className="muted" style={{ fontSize: 13 }}>{m.specialization}</span></span>
-              <span style={{ color: "#ffc850" }}>♥</span>
+              <span style={{ color: "#D68A2E" }}>♥</span>
             </Link>
           ))}
         </>

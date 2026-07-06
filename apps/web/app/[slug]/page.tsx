@@ -32,7 +32,7 @@ export default async function MasterPage({ params }: Props) {
 
   if (!supabaseConfigured) {
     return (
-      <main className="wrap">
+      <main className="narrow">
         <div className="logo">
           nav<span>bar</span>
         </div>
@@ -53,15 +53,9 @@ export default async function MasterPage({ params }: Props) {
   const initial = master.name.charAt(0).toUpperCase();
 
   return (
-    <main className="wrap">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div className="logo">
-          nav<span>bar</span>
-        </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <Link href="/me" className="linkbtn">Мои записи</Link>
-          <FavoriteButton slug={master.slug} />
-        </div>
+    <main className="narrow">
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <FavoriteButton slug={master.slug} />
       </div>
 
       <div className="master-header">

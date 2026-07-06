@@ -58,7 +58,7 @@ export default function Reviews({ slug }: { slug: string }) {
           <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} onClick={() => setStars(n)}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 26, color: n <= stars ? "#ffc850" : "rgba(255,255,255,0.2)" }}>
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 26, color: n <= stars ? "#D68A2E" : "var(--border)" }}>
                 ★
               </button>
             ))}
@@ -76,7 +76,7 @@ export default function Reviews({ slug }: { slug: string }) {
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <strong>{r.author_name}</strong>
             <span>
-              <span style={{ color: "#ffc850" }}>{"★".repeat(r.stars)}</span>
+              <span style={{ color: "#D68A2E" }}>{"★".repeat(r.stars)}</span>
               <span className="muted" style={{ fontSize: 12, marginLeft: 8 }}>{fmtDate(r.created_at)}</span>
             </span>
           </div>

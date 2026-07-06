@@ -6,4 +6,5 @@ export * from "./types.js";
 export * from "./schemas.js";
 export * from "./slots.js";
 export * from "./supabase.js";
+export * from "./design.js";
 export { t, resolveInitialLocale, type MessageKey } from "./i18n/index.js";

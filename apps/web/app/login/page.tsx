@@ -27,7 +27,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="wrap">
+    <main className="narrow">
       <div className="logo">
         nav<span>bar</span>
       </div>

@@ -50,10 +50,10 @@ const STATUS_LABEL: Record<Booking["status"], string> = {
   cancelled: "отменена",
 };
 const STATUS_COLOR: Record<Booking["status"], string> = {
-  pending: "#ffc850",
-  confirmed: "#a8ff78",
-  done: "#78b4ff",
-  cancelled: "rgba(255,255,255,0.35)",
+  pending: "#D68A2E",
+  confirmed: "#6F8F4A",
+  done: "#566072",
+  cancelled: "#B7A99C",
 };
 const DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
@@ -115,7 +115,7 @@ export default function DashboardClient({
   const other = bookings.filter((b) => b.status !== "pending");
 
   return (
-    <main className="wrap">
+    <main className="narrow">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className="logo">nav<span>bar</span></div>
         <button className="linkbtn" onClick={logout}>Выйти</button>
@@ -411,7 +411,7 @@ function ProfileTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onChan
       </select>
       <textarea className="input" placeholder="О себе" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
       <input className="input" placeholder="Адрес" value={address} onChange={(e) => setAddress(e.target.value)} />
-      <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0", color: "var(--text-secondary)" }}>
+      <label style={{ display: "flex", gap: 8, alignItems: "center", margin: "8px 0", color: "var(--muted)" }}>
         <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} />
         Показывать в поиске
       </label>

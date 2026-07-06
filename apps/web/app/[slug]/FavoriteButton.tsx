@@ -26,7 +26,7 @@ export default function FavoriteButton({ slug }: { slug: string }) {
 
   return (
     <button className="favbtn" onClick={toggle} aria-label="Избранное">
-      <span style={{ color: fav ? "#ffc850" : "var(--text-secondary)" }}>{fav ? "♥" : "♡"}</span>
+      <span style={{ color: fav ? "#D68A2E" : "var(--muted)" }}>{fav ? "♥" : "♡"}</span>
     </button>
   );
 }

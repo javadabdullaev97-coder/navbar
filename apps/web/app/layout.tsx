@@ -1,17 +1,42 @@
 import type { Metadata } from "next";
+import { Fraunces, Manrope } from "next/font/google";
+import { cssVars, dark, light } from "@navbar/core";
 import "./globals.css";
+import SiteHeader from "./SiteHeader";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--f-display",
+});
+const manrope = Manrope({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--f-body",
+});
 
 export const metadata: Metadata = {
-  title: "Navbar — online booking",
-  description: "Online booking for beauty & service masters.",
+  title: "Navbar — онлайн-запись к мастерам",
+  description: "Барберы и мастера красоты. Запись онлайн.",
 };
+
+// Токены темы из @navbar/core — единый источник для web и mobile.
+const themeCss = `:root{${cssVars(light)}}
+:root[data-theme="dark"]{${cssVars(dark)}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){${cssVars(dark)}}}`;
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="ru" className={`${fraunces.variable} ${manrope.variable}`}>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      </head>
+      <body>
+        <SiteHeader />
+        {children}
+      </body>
     </html>
   );
 }
