@@ -1,0 +1,10 @@
+
+# Monorepo (Node / Next.js / TS)
+node_modules/
+.next/
+packages/*/dist/
+apps/*/.next/
+*.tsbuildinfo
+.env
+.env.local
+.env*.local

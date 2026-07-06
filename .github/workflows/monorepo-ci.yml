@@ -1,0 +1,35 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "apps/**"
+      - "package.json"
+      - "pnpm-*.yaml"
+      - "tsconfig.base.json"
+      - ".github/workflows/monorepo-ci.yml"
+  pull_request:
+    paths:
+      - "packages/**"
+      - "apps/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @navbar/core build
+      - run: pnpm --filter @navbar/core test
+      - run: pnpm -r typecheck
+      - run: pnpm --filter @navbar/web build
