@@ -136,3 +136,19 @@ begin
 end $$;
 reset role;
 \echo '  CLIENT-ACCOUNT TEST PASSED ✓'
+
+-- ── Поиск (0009) ──
+set role anon;
+select set_config('request.jwt.claim.sub', '', false);
+do $$
+declare j jsonb;
+begin
+  j := search_public_masters('асрор');
+  if jsonb_array_length(j) < 1 then raise exception 'FAIL: search by name empty'; end if;
+  j := search_public_masters('барбер');
+  if jsonb_array_length(j) < 1 then raise exception 'FAIL: search by spec empty'; end if;
+  j := search_public_masters('zzzznomatch');
+  if jsonb_array_length(j) <> 0 then raise exception 'FAIL: search should be empty'; end if;
+end $$;
+reset role;
+\echo '  SEARCH TEST PASSED ✓'

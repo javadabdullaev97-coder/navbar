@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase-server";
 import { supabaseConfigured } from "@/lib/supabase";
 import type { CatalogMaster } from "@/lib/types";
+import SearchBox from "./SearchBox";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function Home() {
       </div>
       <h1>Найдите своего мастера</h1>
       <p className="muted">Барберы и мастера красоты — запись онлайн за 30 секунд.</p>
+      <SearchBox />
 
       {masters.length === 0 && (
         <div className="card" style={{ marginTop: 16 }}>

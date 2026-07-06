@@ -139,3 +139,17 @@ begin
 end $$;
 reset role;
 \echo '  PORTFOLIO TEST PASSED ✓'
+
+-- ── Аналитика (0009) ──
+set role authenticated;
+select set_config('request.jwt.claim.sub', '55555555-5555-5555-5555-555555555555', false);
+do $$
+declare j jsonb;
+begin
+  j := get_my_analytics(90);
+  -- у claim-нутого мастера seed done-брони перешли → total > 0
+  if (j->>'total')::int <= 0 then raise exception 'FAIL: analytics total 0'; end if;
+  if jsonb_array_length(j->'by_service') < 1 then raise exception 'FAIL: by_service empty'; end if;
+end $$;
+reset role;
+\echo '  ANALYTICS TEST PASSED ✓'

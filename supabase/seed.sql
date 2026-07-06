@@ -56,3 +56,16 @@ insert into availability(id, org_id, master_id, day_of_week, start_min, end_min,
   ('11111111-0000-0000-0000-0000000000d6','11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001', 6, 0,   0,   true)
 on conflict (id) do update set
   start_min = excluded.start_min, end_min = excluded.end_min, is_day_off = excluded.is_day_off;
+
+-- Демо-клиент + завершённые визиты (для аналитики). После услуг/графика.
+insert into client(id, org_id, master_id, name, phone, visit_count)
+values ('11111111-0000-0000-0000-0000000000e1',
+  '11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001',
+  'Бекзод','+998901112233', 3)
+on conflict (id) do nothing;
+
+delete from booking where master_id = '11111111-0000-0000-0000-000000000001' and source = 'manual';
+insert into booking(org_id, master_id, client_id, service_id, starts_at, ends_at, status, source) values
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','11111111-0000-0000-0000-0000000000e1','11111111-0000-0000-0000-0000000000c1', now() - interval '3 days',  now() - interval '3 days'  + interval '60 min', 'done','manual'),
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','11111111-0000-0000-0000-0000000000e1','11111111-0000-0000-0000-0000000000c2', now() - interval '10 days', now() - interval '10 days' + interval '90 min', 'done','manual'),
+  ('11111111-0000-0000-0000-0000000000aa','11111111-0000-0000-0000-000000000001','11111111-0000-0000-0000-0000000000e1','11111111-0000-0000-0000-0000000000c1', now() - interval '20 days', now() - interval '20 days' + interval '60 min', 'done','manual');

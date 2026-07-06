@@ -70,7 +70,14 @@ function toMin(hhmm: string): number {
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
-type Tab = "bookings" | "services" | "schedule" | "portfolio" | "profile";
+type Tab = "bookings" | "services" | "schedule" | "portfolio" | "analytics" | "profile";
+
+interface Analytics {
+  total: number;
+  count: number;
+  by_day: { date: string; amount: number }[];
+  by_service: { name: string; count: number; total: number }[];
+}
 
 export default function DashboardClient({
   initialBookings,
@@ -116,7 +123,7 @@ export default function DashboardClient({
       <p className="muted" style={{ fontSize: 13 }}>{email}</p>
 
       <div className="tabs">
-        {([["bookings", "Заявки"], ["services", "Услуги"], ["schedule", "График"], ["portfolio", "Портфолио"], ["profile", "Профиль"]] as [Tab, string][]).map(
+        {([["bookings", "Заявки"], ["services", "Услуги"], ["schedule", "График"], ["portfolio", "Портфолио"], ["analytics", "Аналитика"], ["profile", "Профиль"]] as [Tab, string][]).map(
           ([k, label]) => (
             <button key={k} className={`tab${tab === k ? " on" : ""}`} onClick={() => setTab(k)}>
               {label}
@@ -164,6 +171,7 @@ export default function DashboardClient({
       {tab === "services" && <ServicesTab master={master} sb={sb} onChange={reloadMaster} />}
       {tab === "schedule" && <ScheduleTab master={master} sb={sb} onChange={reloadMaster} />}
       {tab === "portfolio" && <PortfolioTab master={master} sb={sb} onChange={reloadMaster} />}
+      {tab === "analytics" && <AnalyticsTab sb={sb} />}
       {tab === "profile" && <ProfileTab master={master} sb={sb} onChange={reloadMaster} />}
     </main>
   );
@@ -260,6 +268,55 @@ function ScheduleTab({ master, sb, onChange }: { master: MyMaster; sb: SB; onCha
           </div>
         );
       })}
+    </>
+  );
+}
+
+function AnalyticsTab({ sb }: { sb: SB }) {
+  const [period, setPeriod] = useState(30);
+  const [data, setData] = useState<Analytics | null>(null);
+
+  useEffect(() => {
+    sb.rpc("get_my_analytics", { p_days: period }).then((r: { data: Analytics }) => setData(r.data));
+  }, [period, sb]);
+
+  const maxBar = data ? Math.max(1, ...data.by_day.map((d) => d.amount)) : 1;
+
+  return (
+    <>
+      <div className="tabs" style={{ marginTop: 12 }}>
+        {[[7, "Неделя"], [30, "Месяц"], [90, "3 месяца"]].map(([d, label]) => (
+          <button key={d} className={`tab${period === d ? " on" : ""}`} onClick={() => setPeriod(d as number)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="section">Выручка за период</div>
+      <div style={{ fontSize: 30, fontWeight: 800, color: "var(--accent)" }}>
+        {(data?.total ?? 0).toLocaleString("ru-RU")} сум
+      </div>
+      <p className="muted">{data?.count ?? 0} завершённых визитов</p>
+
+      {data && data.by_day.length > 0 && (
+        <div className="card" style={{ marginTop: 16, height: 140, display: "flex", alignItems: "flex-end", gap: 4 }}>
+          {data.by_day.map((d, i) => (
+            <div key={i} title={`${d.date}: ${d.amount.toLocaleString("ru-RU")}`}
+              style={{ flex: 1, height: `${Math.max(4, (d.amount / maxBar) * 100)}%`, background: "var(--accent)", opacity: 0.8, borderRadius: "4px 4px 0 0" }} />
+          ))}
+        </div>
+      )}
+
+      {data && data.by_service.length > 0 && (
+        <>
+          <div className="section">По услугам</div>
+          {data.by_service.map((s, i) => (
+            <div key={i} className="row">
+              <span><strong>{s.name}</strong> <span className="muted" style={{ fontSize: 13 }}>× {s.count}</span></span>
+              <span className="price">{s.total.toLocaleString("ru-RU")} сум</span>
+            </div>
+          ))}
+        </>
+      )}
     </>
   );
 }
