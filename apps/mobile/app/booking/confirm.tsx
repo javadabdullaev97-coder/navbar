@@ -12,9 +12,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, PrimaryButton, Sym } from "../../components/ui";
+import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
+import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
-function Row({ label, value }: { label: string; value: string }) {
+function Field({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ gap: 4 }}>
       <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1 }}>{label}</AppText>
@@ -25,7 +27,14 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export default function Confirm() {
   const router = useRouter();
+  const { draft, confirmBooking } = useStore();
   const [comment, setComment] = useState("");
+  const date = draft.date ?? new Date();
+
+  function submit() {
+    confirmBooking();
+    router.replace("/booking/success");
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -39,30 +48,28 @@ export default function Confirm() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 24, gap: space.lg }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          {/* Сводка */}
           <Card padding={16}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, marginBottom: space.lg }}>
-              <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>Д</AppText></View>
+              <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>{draft.initial}</AppText></View>
               <View>
-                <AppText variant="labelMd" color={colors.ink}>Дилноза Каримова</AppText>
-                <AppText variant="labelSm" color={colors.secondary}>Клинический психолог</AppText>
+                <AppText variant="labelMd" color={colors.ink}>{draft.specialist}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{draft.spec}</AppText>
               </View>
             </View>
             <View style={styles.rows}>
-              <Row label="Услуга" value="Индивидуальная консультация" />
+              <Field label="Услуга" value={draft.service} />
               <View style={{ flexDirection: "row", gap: space.md }}>
-                <View style={{ flex: 1 }}><Row label="Дата" value="Пт, 12 июля" /></View>
-                <View style={{ flex: 1 }}><Row label="Время" value="11:00 (50 мин)" /></View>
+                <View style={{ flex: 1 }}><Field label="Дата" value={fmtDate(date)} /></View>
+                <View style={{ flex: 1 }}><Field label="Время" value={`${fmtTime(date)} (${draft.duration} мин)`} /></View>
               </View>
-              <Row label="Адрес" value="Ташкент, Мирабад" />
+              <Field label="Адрес" value={draft.address} />
               <View style={styles.total}>
                 <AppText variant="labelSm" color={colors.secondary}>ИТОГО</AppText>
-                <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>180 000 сум</AppText>
+                <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>{fmtMoney(draft.price)}</AppText>
               </View>
             </View>
           </Card>
 
-          {/* Комментарий */}
           <View style={{ gap: 4 }}>
             <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Комментарий специалисту</AppText>
             <TextInput
@@ -75,7 +82,6 @@ export default function Confirm() {
             />
           </View>
 
-          {/* Правила */}
           <View style={{ flexDirection: "row", gap: 8, opacity: 0.75 }}>
             <Sym name="info" size={18} color={colors.secondary} />
             <AppText variant="labelSm" color={colors.secondary} style={{ flex: 1 }}>
@@ -87,7 +93,7 @@ export default function Confirm() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Подтвердить запись" onPress={() => router.replace("/booking/success")} />
+        <PrimaryButton label="Подтвердить запись" onPress={submit} />
       </View>
     </SafeAreaView>
   );
@@ -100,10 +106,6 @@ const styles = StyleSheet.create({
   avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26 },
   rows: { gap: space.md, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: space.lg },
   total: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1, borderTopColor: colors.outlineVariant, borderStyle: "dashed", paddingTop: space.md, marginTop: 4 },
-  textarea: {
-    minHeight: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant,
-    borderRadius: radius.xl, padding: space.md, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink,
-    textAlignVertical: "top",
-  },
+  textarea: { minHeight: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, padding: space.md, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink, textAlignVertical: "top" },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.bg },
 });

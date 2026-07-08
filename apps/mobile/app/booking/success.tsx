@@ -2,6 +2,8 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, GhostBorderButton, PrimaryButton, Sym } from "../../components/ui";
+import { fmtDate, fmtTime } from "../../lib/format";
+import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
 function Line({ icon, label, value }: { icon: any; label: string; value: string }) {
@@ -18,6 +20,8 @@ function Line({ icon, label, value }: { icon: any; label: string; value: string 
 
 export default function Success() {
   const router = useRouter();
+  const { draft } = useStore();
+  const date = draft.date ?? new Date();
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.body}>
@@ -35,16 +39,16 @@ export default function Success() {
         {/* Сводка */}
         <Card padding={24} style={{ width: "100%" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, marginBottom: 24 }}>
-            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>Д</AppText></View>
+            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>{draft.initial}</AppText></View>
             <View>
-              <AppText variant="labelMd" color={colors.ink}>Дилноза Каримова</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>Специалист по психологии</AppText>
+              <AppText variant="labelMd" color={colors.ink}>{draft.specialist}</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{draft.spec}</AppText>
             </View>
           </View>
           <View style={{ gap: space.md }}>
-            <Line icon="content-paste" label="Услуга" value="Индивидуальная консультация" />
-            <Line icon="calendar-today" label="Дата и время" value="Пт, 12 июля · 11:00" />
-            <Line icon="location-on" label="Адрес" value="Ташкент, Мирабад" />
+            <Line icon="content-paste" label="Услуга" value={draft.service} />
+            <Line icon="calendar-today" label="Дата и время" value={`${fmtDate(date)} · ${fmtTime(date)}`} />
+            <Line icon="location-on" label="Адрес" value={draft.address} />
           </View>
         </Card>
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
 
 const TABS = ["Услуги", "Портфолио", "Отзывы"] as const;
@@ -15,8 +16,19 @@ const SERVICES = [
 
 export default function Specialist() {
   const router = useRouter();
+  const { patchDraft } = useStore();
   const [tab, setTab] = useState(0);
   const [saved, setSaved] = useState(false);
+
+  function startBooking() {
+    patchDraft({
+      specialist: "Дилноза Каримова",
+      initial: "Д",
+      spec: "Клинический психолог",
+      address: "Ташкент, Мирабад",
+    });
+    router.push("/booking/service");
+  }
 
   return (
     <View style={styles.root}>
@@ -70,7 +82,7 @@ export default function Specialist() {
         {tab === 0 && (
           <View style={{ paddingHorizontal: space.margin, gap: space.md, marginTop: space.md }}>
             {SERVICES.map((s) => (
-              <Pressable key={s.name} onPress={() => router.push("/booking/service")}>
+              <Pressable key={s.name} onPress={startBooking}>
                 <View style={[styles.service, cardShadow]}>
                   <View style={{ gap: 4 }}>
                     <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
@@ -111,7 +123,7 @@ export default function Specialist() {
 
       {/* Липкая кнопка */}
       <SafeAreaView edges={["bottom"]} style={styles.footer}>
-        <PrimaryButton label="Записаться" icon="calendar-today" onPress={() => router.push("/booking/service")} />
+        <PrimaryButton label="Записаться" icon="calendar-today" onPress={startBooking} />
       </SafeAreaView>
     </View>
   );

@@ -1,7 +1,9 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, GhostBorderButton, PrimaryButton, Sym } from "../../components/ui";
+import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
+import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
 function DetailRow({ icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string }) {
@@ -19,6 +21,20 @@ function DetailRow({ icon, label, value, sub }: { icon: any; label: string; valu
 
 export default function Appointment() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { bookings, cancelBooking } = useStore();
+  const b = bookings.find((x) => x.id === id) ?? bookings[0];
+
+  // Демо-данные, если запись не найдена (например, переход из уведомлений).
+  const specialist = b?.specialist ?? "Дилноза Каримова";
+  const initial = b?.initial ?? "Д";
+  const spec = b?.spec ?? "Клинический психолог";
+  const date = b?.date ?? new Date();
+  const service = b?.service ?? "Индивидуальная консультация";
+  const duration = b?.duration ?? 50;
+  const price = b?.price ?? 180000;
+  const address = b?.address ?? "Ташкент, Мирабад";
+  const cancelled = b?.status === "cancelled";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -32,18 +48,18 @@ export default function Appointment() {
         {/* Статус */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <AppText variant="headlineMd" color={colors.accent}>Детали записи</AppText>
-          <View style={[styles.badge, { backgroundColor: colors.successBg }]}>
-            <AppText variant="labelSm" color={colors.successText}>Подтверждена</AppText>
+          <View style={[styles.badge, { backgroundColor: cancelled ? colors.surfaceHigh : colors.successBg }]}>
+            <AppText variant="labelSm" color={cancelled ? colors.secondary : colors.successText}>{cancelled ? "Отменена" : "Подтверждена"}</AppText>
           </View>
         </View>
 
         {/* Специалист */}
         <Pressable onPress={() => router.push("/specialist/1")}>
           <Card padding={16} style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>Д</AppText></View>
+            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>{initial}</AppText></View>
             <View style={{ flex: 1 }}>
-              <AppText variant="labelMd" color={colors.ink}>Дилноза Каримова</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>Клинический психолог</AppText>
+              <AppText variant="labelMd" color={colors.ink}>{specialist}</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{spec}</AppText>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}>
                 <Sym name="star" size={16} color={colors.gold} />
                 <AppText variant="labelSm" color={colors.ink}>4.9 (124 отзыва)</AppText>
@@ -56,10 +72,10 @@ export default function Appointment() {
         {/* Услуга и время */}
         <Card padding={20}>
           <View style={{ paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant }}>
-            <DetailRow icon="content-paste" label="Услуга" value="Индивидуальная консультация" sub="50 минут" />
+            <DetailRow icon="content-paste" label="Услуга" value={service} sub={`${duration} минут`} />
           </View>
           <View style={{ paddingTop: 16 }}>
-            <DetailRow icon="calendar-today" label="Дата и время" value="Пт, 12 июля" sub="11:00 – 11:50" />
+            <DetailRow icon="calendar-today" label="Дата и время" value={fmtDate(date)} sub={fmtTime(date)} />
           </View>
         </Card>
 
@@ -84,11 +100,11 @@ export default function Appointment() {
         <Card padding={20}>
           <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Оплата</AppText>
           <View style={{ gap: 8 }}>
-            <View style={styles.payRow}><AppText variant="bodyMd" color={colors.secondary}>Услуга</AppText><AppText variant="bodyMd" color={colors.ink}>180 000 сум</AppText></View>
-            <View style={styles.payRow}><AppText variant="bodyMd" color={colors.secondary}>Сервисный сбор</AppText><AppText variant="bodyMd" color={colors.ink}>10 000 сум</AppText></View>
+            <View style={styles.payRow}><AppText variant="bodyMd" color={colors.secondary}>Услуга</AppText><AppText variant="bodyMd" color={colors.ink}>{fmtMoney(price)}</AppText></View>
+            <View style={styles.payRow}><AppText variant="bodyMd" color={colors.secondary}>Сервисный сбор</AppText><AppText variant="bodyMd" color={colors.ink}>{fmtMoney(10000)}</AppText></View>
             <View style={[styles.payRow, { borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: 12, marginTop: 4 }]}>
               <AppText variant="labelMd" color={colors.ink}>Итого</AppText>
-              <AppText variant="labelMd" color={colors.accent}>190 000 сум</AppText>
+              <AppText variant="labelMd" color={colors.accent}>{fmtMoney(price + 10000)}</AppText>
             </View>
           </View>
         </Card>
@@ -107,7 +123,9 @@ export default function Appointment() {
         <PrimaryButton label="Написать специалисту" icon="chat" onPress={() => router.push("/chat/1")} />
         <View style={{ flexDirection: "row", gap: 12 }}>
           <View style={{ flex: 1 }}><GhostBorderButton label="Перенести" onPress={() => router.push("/booking/datetime")} /></View>
-          <Pressable style={styles.cancelBtn}><AppText variant="labelMd" color={colors.error}>Отменить</AppText></Pressable>
+          <Pressable style={styles.cancelBtn} onPress={() => { if (b) cancelBooking(b.id); router.back(); }}>
+            <AppText variant="labelMd" color={colors.error}>Отменить</AppText>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>
