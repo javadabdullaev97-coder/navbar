@@ -9,7 +9,7 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: "home", title: "Главная", icon: "home" },
   { name: "search", title: "Поиск", icon: "search" },
   { name: "bookings", title: "Записи", icon: "calendar-today" },
-  { name: "favorites", title: "Избранное", icon: "favorite" },
+  { name: "favorites", title: "Специалисты", icon: "bookmark" },
   { name: "profile", title: "Профиль", icon: "person" },
 ];
 
