@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Sym } from "../../components/ui";
+import { useT } from "../../lib/i18n";
 import { cardShadow, colors, radius, space } from "../../theme";
 
 type Msg = { id: string; me: boolean; text: string; time: string };
@@ -22,13 +23,14 @@ const SEED: Msg[] = [
 
 export default function Chat() {
   const router = useRouter();
+  const t = useT();
   const [msgs, setMsgs] = useState<Msg[]>(SEED);
   const [text, setText] = useState("");
   const scroll = useRef<ScrollView>(null);
 
   function send() {
     if (!text.trim()) return;
-    setMsgs((m) => [...m, { id: String(m.length + 1), me: true, text: text.trim(), time: "сейчас" }]);
+    setMsgs((m) => [...m, { id: String(m.length + 1), me: true, text: text.trim(), time: t("сейчас") }]);
     setText("");
     setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);
   }
@@ -44,7 +46,7 @@ export default function Chat() {
             <AppText variant="labelMd" color={colors.accent}>Дилноза Каримова</AppText>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <View style={styles.dot} />
-              <AppText variant="labelSm" color={colors.secondary}>онлайн</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{t("онлайн")}</AppText>
             </View>
           </View>
         </View>
@@ -57,11 +59,11 @@ export default function Chat() {
           <View style={styles.contextRow}>
             <View style={styles.context}>
               <Sym name="calendar-today" size={16} color={colors.accent} />
-              <AppText variant="labelSm" color={colors.inkVariant}>Сессия: сегодня, 16:00</AppText>
+              <AppText variant="labelSm" color={colors.inkVariant}>{t("Сессия: сегодня, 16:00")}</AppText>
             </View>
           </View>
           <View style={{ alignItems: "center" }}>
-            <View style={styles.dayChip}><AppText variant="labelSm" color={colors.secondary}>СЕГОДНЯ</AppText></View>
+            <View style={styles.dayChip}><AppText variant="labelSm" color={colors.secondary}>{t("СЕГОДНЯ")}</AppText></View>
           </View>
 
           {msgs.map((m) => (
@@ -84,7 +86,7 @@ export default function Chat() {
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="Сообщение…"
+              placeholder={t("Сообщение…")}
               placeholderTextColor={colors.secondary}
               style={styles.input}
               multiline

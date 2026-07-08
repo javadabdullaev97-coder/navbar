@@ -15,6 +15,7 @@ import { AppText, Card, PrimaryButton, Sym } from "../../components/ui";
 import { createBooking } from "../../lib/api";
 import { supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
@@ -37,6 +38,7 @@ function toE164(raw: string): string {
 
 export default function Confirm() {
   const router = useRouter();
+  const t = useT();
   const { draft, confirmBooking, profile, setProfile } = useStore();
   const [comment, setComment] = useState("");
   const [name, setName] = useState(profile.name);
@@ -50,7 +52,7 @@ export default function Confirm() {
     const nameOk = name.trim().length >= 2;
     const phoneOk = phone.replace(/[^\d]/g, "").length >= 9;
     if (!nameOk || !phoneOk) {
-      Alert.alert("Заполните контакты", "Укажите имя и телефон — мастер свяжется с вами по ним.");
+      Alert.alert(t("Заполните контакты"), t("Укажите имя и телефон — мастер свяжется с вами по ним."));
       return;
     }
 
@@ -70,8 +72,8 @@ export default function Confirm() {
         });
       } catch (e) {
         setBusy(false);
-        const msg = e instanceof Error ? e.message : "Не удалось создать запись. Попробуйте ещё раз.";
-        Alert.alert("Ошибка", msg);
+        const msg = e instanceof Error ? e.message : t("Не удалось создать запись. Попробуйте ещё раз.");
+        Alert.alert(t("Ошибка"), msg);
         return;
       } finally {
         setBusy(false);
@@ -88,7 +90,7 @@ export default function Confirm() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Sym name="arrow-back" size={26} color={colors.accent} />
         </Pressable>
-        <AppText variant="headlineMd" color={colors.ink}>Подтверждение</AppText>
+        <AppText variant="headlineMd" color={colors.ink}>{t("Подтверждение")}</AppText>
         <View style={{ width: 26 }} />
       </View>
 
@@ -103,14 +105,14 @@ export default function Confirm() {
               </View>
             </View>
             <View style={styles.rows}>
-              <Field label="Услуга" value={draft.service} />
+              <Field label={t("Услуга")} value={draft.service} />
               <View style={{ flexDirection: "row", gap: space.md }}>
-                <View style={{ flex: 1 }}><Field label="Дата" value={fmtDate(date)} /></View>
-                <View style={{ flex: 1 }}><Field label="Время" value={`${fmtTime(date)} (${draft.duration} мин)`} /></View>
+                <View style={{ flex: 1 }}><Field label={t("Дата")} value={fmtDate(date)} /></View>
+                <View style={{ flex: 1 }}><Field label={t("Время")} value={`${fmtTime(date)} (${t("{count} мин", { count: draft.duration })})`} /></View>
               </View>
-              <Field label="Адрес" value={draft.address} />
+              <Field label={t("Адрес")} value={draft.address} />
               <View style={styles.total}>
-                <AppText variant="labelSm" color={colors.secondary}>ИТОГО</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{t("ИТОГО")}</AppText>
                 <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>{fmtMoney(draft.price)}</AppText>
               </View>
             </View>
@@ -118,19 +120,19 @@ export default function Confirm() {
 
           {/* Контакты клиента */}
           <View style={{ gap: space.md }}>
-            <AppText variant="labelMd" color={colors.ink} style={{ paddingHorizontal: 4 }}>Ваши контакты</AppText>
+            <AppText variant="labelMd" color={colors.ink} style={{ paddingHorizontal: 4 }}>{t("Ваши контакты")}</AppText>
             <View style={{ gap: 4 }}>
-              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Имя</AppText>
+              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>{t("Имя")}</AppText>
               <TextInput
                 value={name}
                 onChangeText={setName}
-                placeholder="Как к вам обращаться"
+                placeholder={t("Как к вам обращаться")}
                 placeholderTextColor={colors.outline}
                 style={styles.input}
               />
             </View>
             <View style={{ gap: 4 }}>
-              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Телефон</AppText>
+              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>{t("Телефон")}</AppText>
               <TextInput
                 value={phone}
                 onChangeText={setPhone}
@@ -143,11 +145,11 @@ export default function Confirm() {
           </View>
 
           <View style={{ gap: 4 }}>
-            <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Комментарий специалисту</AppText>
+            <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>{t("Комментарий специалисту")}</AppText>
             <TextInput
               value={comment}
               onChangeText={setComment}
-              placeholder="Комментарий специалисту (необязательно)"
+              placeholder={t("Комментарий специалисту (необязательно)")}
               placeholderTextColor={colors.outline}
               multiline
               style={styles.textarea}
@@ -157,15 +159,14 @@ export default function Confirm() {
           <View style={{ flexDirection: "row", gap: 8, opacity: 0.75 }}>
             <Sym name="info" size={18} color={colors.secondary} />
             <AppText variant="labelSm" color={colors.secondary} style={{ flex: 1 }}>
-              Подтверждая запись, вы соглашаетесь с правилами отмены. Бесплатная отмена — за 24 часа.
-              При неявке депозит не возвращается.
+              {t("Подтверждая запись, вы соглашаетесь с правилами отмены. Бесплатная отмена — за 24 часа. При неявке депозит не возвращается.")}
             </AppText>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Подтвердить запись" onPress={submit} loading={busy} />
+        <PrimaryButton label={t("Подтвердить запись")} onPress={submit} loading={busy} />
       </View>
     </SafeAreaView>
   );

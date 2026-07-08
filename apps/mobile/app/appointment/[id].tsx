@@ -6,6 +6,7 @@ import { AppText, Card, GhostBorderButton, Loading, PrimaryButton, Sym } from ".
 import { cancelBookingRpc, ClientBooking, getMyBookings } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { BookingStatus, useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
@@ -35,6 +36,7 @@ type ApptView = {
 
 export default function Appointment() {
   const router = useRouter();
+  const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bookings, cancelBooking } = useStore();
   const [remote, setRemote] = useState<ClientBooking | null | undefined>(undefined); // undefined = грузим
@@ -54,7 +56,7 @@ export default function Appointment() {
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
-          <AppText variant="headlineMd" color={colors.accent}>Запись</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
           <View style={{ width: 26 }} />
         </View>
         <Loading />
@@ -67,7 +69,7 @@ export default function Appointment() {
   const v: ApptView = remote
     ? {
         specialist: remote.master_name, initial: initialOf(remote.master_name), spec: "", slug: remote.master_slug,
-        date: new Date(remote.starts_at), service: remote.service_name ?? "Услуга", duration: null, price: null,
+        date: new Date(remote.starts_at), service: remote.service_name ?? t("Услуга"), duration: null, price: null,
         address: remote.master_address ?? "", status: remote.status, remote: true,
       }
     : {
@@ -82,17 +84,17 @@ export default function Appointment() {
   const canManage = !cancelled && v.status !== "done";
 
   function doCancel() {
-    Alert.alert("Отменить запись?", "Это действие нельзя отменить.", [
-      { text: "Назад", style: "cancel" },
+    Alert.alert(t("Отменить запись?"), t("Это действие нельзя отменить."), [
+      { text: t("Назад"), style: "cancel" },
       {
-        text: "Отменить запись", style: "destructive",
+        text: t("Отменить запись"), style: "destructive",
         onPress: async () => {
           if (v.remote && supabaseConfigured) {
             setBusy(true);
             try { await cancelBookingRpc(id); }
             catch (e) {
               setBusy(false);
-              Alert.alert("Ошибка", e instanceof Error ? e.message : "Не удалось отменить запись.");
+              Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось отменить запись."));
               return;
             }
             setBusy(false);
@@ -113,15 +115,15 @@ export default function Appointment() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accent}>Запись</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
         <View style={{ width: 26 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 24, gap: space.lg }} showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <AppText variant="headlineMd" color={colors.accent}>Детали записи</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Детали записи")}</AppText>
           <View style={[styles.badge, { backgroundColor: cancelled ? colors.surfaceHigh : colors.successBg }]}>
-            <AppText variant="labelSm" color={cancelled ? colors.secondary : colors.successText}>{STATUS_LABEL[v.status]}</AppText>
+            <AppText variant="labelSm" color={cancelled ? colors.secondary : colors.successText}>{t(STATUS_LABEL[v.status])}</AppText>
           </View>
         </View>
 
@@ -140,17 +142,17 @@ export default function Appointment() {
         {/* Услуга и время */}
         <Card padding={20}>
           <View style={{ paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant }}>
-            <DetailRow icon="content-paste" label="Услуга" value={v.service} sub={v.duration ? `${v.duration} минут` : undefined} />
+            <DetailRow icon="content-paste" label={t("Услуга")} value={v.service} sub={v.duration ? t("{count} минут", { count: v.duration }) : undefined} />
           </View>
           <View style={{ paddingTop: 16 }}>
-            <DetailRow icon="calendar-today" label="Дата и время" value={fmtDate(v.date)} sub={fmtTime(v.date)} />
+            <DetailRow icon="calendar-today" label={t("Дата и время")} value={fmtDate(v.date)} sub={fmtTime(v.date)} />
           </View>
         </Card>
 
         {/* Локация */}
         {v.address ? (
           <View>
-            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>Локация</AppText>
+            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, marginLeft: 4 }}>{t("Локация")}</AppText>
             <Card padding={16} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={styles.pin}><Sym name="location-on" size={18} color={colors.onAccent} /></View>
               <AppText variant="bodyMd" color={colors.ink} style={{ flex: 1 }}>{v.address}</AppText>
@@ -161,19 +163,19 @@ export default function Appointment() {
         {/* Оплата — только когда есть цена (демо/локальная запись) */}
         {v.price != null ? (
           <Card padding={20}>
-            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>Оплата</AppText>
+            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>{t("Оплата")}</AppText>
             <View style={styles.payRow}>
-              <AppText variant="labelMd" color={colors.ink}>Стоимость услуги</AppText>
+              <AppText variant="labelMd" color={colors.ink}>{t("Стоимость услуги")}</AppText>
               <AppText variant="labelMd" color={colors.accent}>{fmtMoney(v.price)}</AppText>
             </View>
-            <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: 8 }}>Оплата на месте у специалиста.</AppText>
+            <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: 8 }}>{t("Оплата на месте у специалиста.")}</AppText>
           </Card>
         ) : null}
 
         <View style={[styles.note, { backgroundColor: colors.infoBg }]}>
           <Sym name="info" size={20} color={colors.infoText} />
           <AppText variant="labelSm" color={colors.infoText} style={{ flex: 1 }}>
-            Отменить или перенести запись можно не позднее чем за 24 часа до визита.
+            {t("Отменить или перенести запись можно не позднее чем за 24 часа до визита.")}
           </AppText>
         </View>
       </ScrollView>
@@ -181,9 +183,9 @@ export default function Appointment() {
       {canManage && (
         <View style={styles.actions}>
           <View style={{ flexDirection: "row", gap: 12 }}>
-            <View style={{ flex: 1 }}><GhostBorderButton label="Перенести" onPress={() => router.push("/booking/datetime")} /></View>
+            <View style={{ flex: 1 }}><GhostBorderButton label={t("Перенести")} onPress={() => router.push("/booking/datetime")} /></View>
             <Pressable style={[styles.cancelBtn, busy && { opacity: 0.5 }]} onPress={busy ? undefined : doCancel}>
-              <AppText variant="labelMd" color={colors.error}>{busy ? "Отмена…" : "Отменить"}</AppText>
+              <AppText variant="labelMd" color={colors.error}>{busy ? t("Отмена…") : t("Отменить")}</AppText>
             </Pressable>
           </View>
         </View>

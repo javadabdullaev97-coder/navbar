@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, GhostBorderButton, PrimaryButton, Sym } from "../../components/ui";
 import { fmtDate, fmtTime } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
@@ -20,6 +21,7 @@ function Line({ icon, label, value }: { icon: any; label: string; value: string 
 
 export default function Success() {
   const router = useRouter();
+  const t = useT();
   const { draft } = useStore();
   const date = draft.date ?? new Date();
   return (
@@ -30,9 +32,9 @@ export default function Success() {
           <View style={styles.check}>
             <Sym name="check" size={44} color={colors.onAccent} />
           </View>
-          <AppText variant="displayLg" color={colors.accent}>Вы записаны!</AppText>
+          <AppText variant="displayLg" color={colors.accent}>{t("Вы записаны!")}</AppText>
           <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center", maxWidth: 280 }}>
-            Мы отправим напоминание перед визитом
+            {t("Мы отправим напоминание перед визитом")}
           </AppText>
         </View>
 
@@ -46,18 +48,18 @@ export default function Success() {
             </View>
           </View>
           <View style={{ gap: space.md }}>
-            <Line icon="content-paste" label="Услуга" value={draft.service} />
-            <Line icon="calendar-today" label="Дата и время" value={`${fmtDate(date)} · ${fmtTime(date)}`} />
-            <Line icon="location-on" label="Адрес" value={draft.address} />
+            <Line icon="content-paste" label={t("Услуга")} value={draft.service} />
+            <Line icon="calendar-today" label={t("Дата и время")} value={`${fmtDate(date)} · ${fmtTime(date)}`} />
+            <Line icon="location-on" label={t("Адрес")} value={draft.address} />
           </View>
         </Card>
 
         {/* Действия */}
         <View style={{ width: "100%", gap: 12 }}>
-          <PrimaryButton label="В мои записи" onPress={() => router.replace("/(tabs)/bookings")} />
-          <GhostBorderButton label="Добавить в календарь" icon="event-available" />
+          <PrimaryButton label={t("В мои записи")} onPress={() => router.replace("/(tabs)/bookings")} />
+          <GhostBorderButton label={t("Добавить в календарь")} icon="event-available" />
           <Pressable onPress={() => router.replace("/(tabs)/home")} style={({ pressed }) => [{ paddingVertical: 12, alignItems: "center" }, pressed && { opacity: 0.6 }]}>
-            <AppText variant="labelSm" color={colors.secondary}>Вернуться на главную</AppText>
+            <AppText variant="labelSm" color={colors.secondary}>{t("Вернуться на главную")}</AppText>
           </Pressable>
         </View>
       </View>

@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { getFavorites, toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
+import { useT } from "../../lib/i18n";
 import { colors, radius, space } from "../../theme";
 
 const CATS = ["Все", "Красота", "Терапия", "Здоровье"];
@@ -24,6 +25,7 @@ const DEMO: Item[] = [
 
 export default function Saved() {
   const router = useRouter();
+  const t = useT();
   const [cat, setCat] = useState(0);
   const [remote, setRemote] = useState<Item[] | null>(null);
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
@@ -66,31 +68,31 @@ export default function Saved() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои специалисты</AppText></View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>{t("Мои специалисты")}</AppText></View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.margin, gap: 8, marginBottom: space.md }}>
           {CATS.map((c, i) => (
             <Pressable key={c} onPress={() => setCat(i)} style={[styles.chip, i === cat ? styles.chipOn : styles.chipOff]}>
-              <AppText variant="labelSm" color={i === cat ? colors.onAccent : colors.secondary}>{c}</AppText>
+              <AppText variant="labelSm" color={i === cat ? colors.onAccent : colors.secondary}>{t(c)}</AppText>
             </Pressable>
           ))}
         </ScrollView>
 
         <View style={styles.countRow}>
-          <AppText variant="labelMd" color={colors.secondary}>Сохранено: {list.length}</AppText>
+          <AppText variant="labelMd" color={colors.secondary}>{t("Сохранено: {count}", { count: list.length })}</AppText>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Sym name="tune" size={18} color={colors.accent} />
-            <AppText variant="labelMd" color={colors.accent}>Сортировка</AppText>
+            <AppText variant="labelMd" color={colors.accent}>{t("Сортировка")}</AppText>
           </View>
         </View>
 
         {loading ? <Loading /> : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="bookmark-border" size={56} color={colors.surfaceHighest} />
-            <AppText variant="headlineMd" color={colors.ink}>Список пуст</AppText>
+            <AppText variant="headlineMd" color={colors.ink}>{t("Список пуст")}</AppText>
             <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center", maxWidth: 260 }}>
-              Добавляйте специалистов в свой список, чтобы записываться быстрее.
+              {t("Добавляйте специалистов в свой список, чтобы записываться быстрее.")}
             </AppText>
           </View>
         ) : (
@@ -117,7 +119,7 @@ export default function Saved() {
                     ) : null}
                     {(s.next || s.price) ? (
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                        <AppText variant="labelSm" color={colors.secondary}>{s.next ? `Ближайшее: ${s.next}` : ""}</AppText>
+                        <AppText variant="labelSm" color={colors.secondary}>{s.next ? t("Ближайшее: {next}", { next: s.next }) : ""}</AppText>
                         {s.price ? <AppText variant="labelMd" color={colors.accent}>{s.price}</AppText> : null}
                       </View>
                     ) : null}

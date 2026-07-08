@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { colors, radius, space } from "../../theme";
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; reviews: string; dist: string; price: string };
@@ -16,6 +17,7 @@ const DEMO: Item[] = [
 
 export default function Category() {
   const router = useRouter();
+  const t = useT();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const title = typeof slug === "string" ? slug : "Специалисты";
   const { data: remote, reload } = useCatalog(title);
@@ -44,8 +46,8 @@ export default function Category() {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
           <View>
-            <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 20 }}>{title}</AppText>
-            <AppText variant="labelSm" color={colors.secondary}>{loading ? "Загрузка…" : `${rows.length} специалистов`}</AppText>
+            <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 20 }}>{t(title)}</AppText>
+            <AppText variant="labelSm" color={colors.secondary}>{loading ? t("Загрузка…") : t("{count} специалистов", { count: rows.length })}</AppText>
           </View>
         </View>
         <Sym name="search" size={24} color={colors.secondary} />
@@ -54,20 +56,20 @@ export default function Category() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
         <Pressable onPress={() => setTopRated((v) => !v)} style={[styles.fchip, topRated ? styles.fOn : styles.fOff]}>
           <Sym name="star" size={16} color={topRated ? colors.onAccent : colors.gold} />
-          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>Рейтинг 4.5+</AppText>
+          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>{t("Рейтинг 4.5+")}</AppText>
         </Pressable>
         <Pressable onPress={() => setSort("rating")} style={[styles.fchip, sort === "rating" ? styles.fOn : styles.fOff]}>
-          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>Сначала рейтинг</AppText>
+          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>{t("Сначала рейтинг")}</AppText>
         </Pressable>
         <Pressable onPress={() => setSort("price")} style={[styles.fchip, sort === "price" ? styles.fOn : styles.fOff]}>
-          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>Сначала дешевле</AppText>
+          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>{t("Сначала дешевле")}</AppText>
         </Pressable>
       </ScrollView>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
         {!loading && rows.length === 0 && (
-          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>В этой категории пока пусто</AppText></View>
+          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>{t("В этой категории пока пусто")}</AppText></View>
         )}
         {!loading && rows.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>

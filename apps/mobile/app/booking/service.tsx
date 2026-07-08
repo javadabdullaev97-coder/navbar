@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { fmtMoney } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
@@ -16,6 +17,7 @@ const DEMO_SERVICES = [
 
 export default function ServiceSelect() {
   const router = useRouter();
+  const t = useT();
   const { draft, patchDraft } = useStore();
   const options = draft.serviceOptions && draft.serviceOptions.length ? draft.serviceOptions : DEMO_SERVICES;
 
@@ -50,7 +52,7 @@ export default function ServiceSelect() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accent}>Выбор услуг</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Выбор услуг")}</AppText>
         <View style={{ width: 26 }} />
       </View>
 
@@ -58,12 +60,12 @@ export default function ServiceSelect() {
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, marginBottom: space.lg }}>
           <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>{draft.initial}</AppText></View>
           <View>
-            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1 }}>Специалист</AppText>
+            <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1 }}>{t("Специалист")}</AppText>
             <AppText variant="headlineMd" color={colors.accent}>{draft.specialist}</AppText>
           </View>
         </View>
 
-        <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 8 }}>Выберите одну или несколько услуг</AppText>
+        <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 8 }}>{t("Выберите одну или несколько услуг")}</AppText>
 
         <View style={{ gap: space.md }}>
           {options.map((s) => {
@@ -76,7 +78,7 @@ export default function ServiceSelect() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
-                    <AppText variant="labelSm" color={colors.secondary}>{s.duration_min} мин</AppText>
+                    <AppText variant="labelSm" color={colors.secondary}>{t("{count} мин", { count: s.duration_min })}</AppText>
                   </View>
                   <AppText variant="labelMd" color={colors.accent}>{fmtMoney(s.price)}</AppText>
                 </View>
@@ -88,10 +90,10 @@ export default function ServiceSelect() {
 
       <View style={styles.footer}>
         <View>
-          <AppText variant="labelSm" color={colors.secondary}>Итого · {totalDuration} мин</AppText>
+          <AppText variant="labelSm" color={colors.secondary}>{t("Итого · {count} мин", { count: totalDuration })}</AppText>
           <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>{fmtMoney(totalPrice)}</AppText>
         </View>
-        <PrimaryButton label="Далее" icon="arrow-forward" style={{ width: 180 }} onPress={nextStep} />
+        <PrimaryButton label={t("Далее")} icon="arrow-forward" style={{ width: 180 }} onPress={nextStep} />
       </View>
     </SafeAreaView>
   );

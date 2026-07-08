@@ -6,6 +6,7 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { ClientBooking, getMyBookings } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtMoney, MONTHS_GEN } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { BookingStatus, useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
@@ -22,6 +23,7 @@ const when = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${p2(d.ge
 
 export default function Bookings() {
   const router = useRouter();
+  const t = useT();
   const { bookings } = useStore();
   const [tab, setTab] = useState(0);
   const [remote, setRemote] = useState<ClientBooking[] | null>(null);
@@ -44,7 +46,7 @@ export default function Bookings() {
 
   const loading = supabaseConfigured && remote === null;
   const items: Item[] = supabaseConfigured
-    ? (remote ?? []).map((b) => ({ id: b.id, initial: initialOf(b.master_name), name: b.master_name, service: b.service_name ?? "Услуга", date: new Date(b.starts_at), status: b.status, price: null }))
+    ? (remote ?? []).map((b) => ({ id: b.id, initial: initialOf(b.master_name), name: b.master_name, service: b.service_name ?? t("Услуга"), date: new Date(b.starts_at), status: b.status, price: null }))
     : bookings.map((b) => ({ id: b.id, initial: b.initial, name: b.specialist, service: b.service, date: b.date, status: b.status, price: b.price }));
 
   const now = Date.now();
@@ -54,13 +56,13 @@ export default function Bookings() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои записи</AppText></View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>{t("Мои записи")}</AppText></View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <View style={styles.segment}>
           {["Предстоящие", "История"].map((s, i) => (
             <Pressable key={s} onPress={() => setTab(i)} style={[styles.seg, i === tab && styles.segOn]}>
-              <AppText variant="labelMd" color={i === tab ? colors.onAccent : colors.secondary}>{s}</AppText>
+              <AppText variant="labelMd" color={i === tab ? colors.onAccent : colors.secondary}>{t(s)}</AppText>
             </Pressable>
           ))}
         </View>
@@ -69,11 +71,11 @@ export default function Bookings() {
           <View style={{ alignItems: "center", paddingVertical: 56, gap: 12 }}>
             <Sym name={tab === 0 ? "event-note" : "history"} size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>
-              {tab === 0 ? "Записей пока нет.\nВыберите специалиста и запишитесь." : "Прошлых записей пока нет"}
+              {tab === 0 ? t("Записей пока нет.\nВыберите специалиста и запишитесь.") : t("Прошлых записей пока нет")}
             </AppText>
             {tab === 0 && (
               <Pressable onPress={() => router.push("/(tabs)/search")} style={styles.findBtn}>
-                <AppText variant="labelMd" color={colors.onAccent}>Найти специалиста</AppText>
+                <AppText variant="labelMd" color={colors.onAccent}>{t("Найти специалиста")}</AppText>
               </Pressable>
             )}
           </View>
@@ -93,7 +95,7 @@ export default function Bookings() {
                         </View>
                       </View>
                       <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                        <AppText variant="labelSm" color={badge.fg} style={{ fontSize: 11 }}>{badge.label}</AppText>
+                        <AppText variant="labelSm" color={badge.fg} style={{ fontSize: 11 }}>{t(badge.label)}</AppText>
                       </View>
                     </View>
                     <View style={styles.divider} />
@@ -113,10 +115,10 @@ export default function Bookings() {
 
         {tab === 0 && (
           <View style={styles.promo}>
-            <AppText variant="headlineMd" color={colors.accentTint}>Уход за собой как ритуал</AppText>
-            <AppText variant="bodyMd" color={"#80bea6"} style={{ marginTop: 4 }}>Найдите специалиста для следующего визита в ORA.</AppText>
+            <AppText variant="headlineMd" color={colors.accentTint}>{t("Уход за собой как ритуал")}</AppText>
+            <AppText variant="bodyMd" color={"#80bea6"} style={{ marginTop: 4 }}>{t("Найдите специалиста для следующего визита в ORA.")}</AppText>
             <Pressable onPress={() => router.push("/(tabs)/search")} style={styles.promoBtn}>
-              <AppText variant="labelMd" color={colors.accentDeep}>Перейти к поиску</AppText>
+              <AppText variant="labelMd" color={colors.accentDeep}>{t("Перейти к поиску")}</AppText>
             </Pressable>
           </View>
         )}

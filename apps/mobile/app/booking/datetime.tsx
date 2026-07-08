@@ -6,6 +6,7 @@ import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { getDayBusy } from "../../lib/api";
 import { supabaseConfigured } from "../../lib/data";
 import { fmtDate, MONTHS_NOM, nextDays, WD_SHORT, withTime } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { Busy, freeSlots, minutesToTime, toOurDow } from "../../lib/slots";
 import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
@@ -19,6 +20,7 @@ function isoDate(d: Date) {
 
 export default function DateTime() {
   const router = useRouter();
+  const tr = useT();
   const { draft, patchDraft } = useStore();
   const days = useMemo(() => nextDays(14), []);
   const [day, setDay] = useState(0);
@@ -66,7 +68,7 @@ export default function DateTime() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Sym name="arrow-back" size={26} color={colors.accent} />
         </Pressable>
-        <AppText variant="headlineMd" color={colors.accent}>Дата и время</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{tr("Дата и время")}</AppText>
         <View style={{ width: 26 }} />
       </View>
 
@@ -85,10 +87,10 @@ export default function DateTime() {
           })}
         </ScrollView>
 
-        <AppText variant="labelMd" color={colors.ink} style={styles.slotTitle}>Доступное время</AppText>
+        <AppText variant="labelMd" color={colors.ink} style={styles.slotTitle}>{tr("Доступное время")}</AppText>
         {slots.length === 0 ? (
           <View style={{ paddingHorizontal: space.margin, paddingVertical: space.lg, alignItems: "center" }}>
-            <AppText variant="bodyMd" color={colors.secondary}>В этот день свободных слотов нет</AppText>
+            <AppText variant="bodyMd" color={colors.secondary}>{tr("В этот день свободных слотов нет")}</AppText>
           </View>
         ) : (
           <View style={styles.grid}>
@@ -107,15 +109,15 @@ export default function DateTime() {
           <View style={styles.summary}>
             <View style={styles.summaryIcon}><Sym name="event-available" size={22} color={colors.accent} /></View>
             <View>
-              <AppText variant="labelSm" color={colors.inkVariant} style={{ textTransform: "uppercase", letterSpacing: 1 }}>Ваш выбор</AppText>
-              <AppText variant="labelMd" color={colors.accent}>{fmtDate(days[day])} · {slots[slot]} · {draft.duration} мин</AppText>
+              <AppText variant="labelSm" color={colors.inkVariant} style={{ textTransform: "uppercase", letterSpacing: 1 }}>{tr("Ваш выбор")}</AppText>
+              <AppText variant="labelMd" color={colors.accent}>{fmtDate(days[day])} · {slots[slot]} · {tr("{count} мин", { count: draft.duration })}</AppText>
             </View>
           </View>
         )}
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Далее" icon="arrow-forward" onPress={next} style={!canNext ? { opacity: 0.4 } : undefined} />
+        <PrimaryButton label={tr("Далее")} icon="arrow-forward" onPress={next} style={!canNext ? { opacity: 0.4 } : undefined} />
       </View>
     </SafeAreaView>
   );

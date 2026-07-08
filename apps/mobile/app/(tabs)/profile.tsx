@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { initialOf } from "../../lib/data";
+import { useT } from "../../lib/i18n";
 import {
   Lang,
   LANG_LABEL,
@@ -43,17 +44,18 @@ function Picker({
 
 export default function Profile() {
   const router = useRouter();
+  const t = useT();
   const { role, setRole, lang, setLang, themeMode, setThemeMode, profile, setProfile } = useStore();
   const [picker, setPicker] = useState<null | "theme" | "lang">(null);
   const [editing, setEditing] = useState(false);
 
-  const displayName = profile.name || "Гость";
-  const displayPhone = profile.phone || "Добавьте телефон";
+  const displayName = profile.name || t("Гость");
+  const displayPhone = profile.phone || t("Добавьте телефон");
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <AppText variant="headlineMd" color={colors.accent}>Настройки</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Настройки")}</AppText>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
@@ -72,7 +74,7 @@ export default function Profile() {
           <View style={styles.roleWrap}>
             {(["client", "master"] as const).map((r) => (
               <Pressable key={r} onPress={() => setRole(r)} style={[styles.roleBtn, r === role && styles.roleOn]}>
-                <AppText variant="labelMd" color={r === role ? colors.onAccent : colors.secondary}>{r === "client" ? "Клиент" : "Мастер"}</AppText>
+                <AppText variant="labelMd" color={r === role ? colors.onAccent : colors.secondary}>{r === "client" ? t("Клиент") : t("Мастер")}</AppText>
               </Pressable>
             ))}
           </View>
@@ -80,15 +82,15 @@ export default function Profile() {
 
         {/* Настройки */}
         <View style={styles.group}>
-          <Row icon="contrast" label="Тема" value={THEME_LABEL[themeMode]} onPress={() => setPicker("theme")} />
-          <Row icon="language" label="Язык" value={LANG_LABEL[lang]} onPress={() => setPicker("lang")} />
-          <Row icon="notifications-none" label="Уведомления" onPress={() => router.push("/notifications")} />
-          <Row icon="help-outline" label="Помощь и поддержка" onPress={() => router.push("/help")} last />
+          <Row icon="contrast" label={t("Тема")} value={t(THEME_LABEL[themeMode])} onPress={() => setPicker("theme")} />
+          <Row icon="language" label={t("Язык")} value={t(LANG_LABEL[lang])} onPress={() => setPicker("lang")} />
+          <Row icon="notifications-none" label={t("Уведомления")} onPress={() => router.push("/notifications")} />
+          <Row icon="help-outline" label={t("Помощь и поддержка")} onPress={() => router.push("/help")} last />
         </View>
 
         <View style={{ alignItems: "center", marginTop: space.lg }}>
           <Pressable onPress={() => router.replace("/")} style={({ pressed }) => [{ paddingHorizontal: 32, paddingVertical: 12, borderRadius: radius.xl }, pressed && { opacity: 0.6 }]}>
-            <AppText variant="labelMd" color={colors.error}>Выйти</AppText>
+            <AppText variant="labelMd" color={colors.error}>{t("Выйти")}</AppText>
           </Pressable>
         </View>
       </ScrollView>
@@ -102,17 +104,17 @@ export default function Profile() {
 
       <Picker
         visible={picker === "theme"}
-        title="Тема"
+        title={t("Тема")}
         selected={themeMode}
-        options={(["light", "dark", "auto"] as ThemeMode[]).map((k) => ({ key: k, label: THEME_LABEL[k] }))}
+        options={(["light", "dark", "auto"] as ThemeMode[]).map((k) => ({ key: k, label: t(THEME_LABEL[k]) }))}
         onSelect={(k) => setThemeMode(k as ThemeMode)}
         onClose={() => setPicker(null)}
       />
       <Picker
         visible={picker === "lang"}
-        title="Язык"
+        title={t("Язык")}
         selected={lang}
-        options={(["ru", "uz", "en"] as Lang[]).map((k) => ({ key: k, label: LANG_LABEL[k] }))}
+        options={(["ru", "uz", "en"] as Lang[]).map((k) => ({ key: k, label: t(LANG_LABEL[k]) }))}
         onSelect={(k) => setLang(k as Lang)}
         onClose={() => setPicker(null)}
       />
@@ -126,6 +128,7 @@ function EditProfile({
   visible: boolean; initial: { name: string; phone: string };
   onSave: (p: { name: string; phone: string }) => void; onClose: () => void;
 }) {
+  const t = useT();
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone);
 
@@ -138,13 +141,13 @@ function EditProfile({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={[styles.sheet, cardShadow]} onPress={() => {}}>
-          <AppText variant="headlineMd" color={colors.accent} style={{ marginBottom: space.md }}>Профиль</AppText>
-          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, paddingHorizontal: 4 }}>Имя</AppText>
-          <TextInput value={name} onChangeText={setName} placeholder="Ваше имя" placeholderTextColor={colors.outline} style={styles.field} />
-          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, marginTop: space.md, paddingHorizontal: 4 }}>Телефон</AppText>
+          <AppText variant="headlineMd" color={colors.accent} style={{ marginBottom: space.md }}>{t("Профиль")}</AppText>
+          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, paddingHorizontal: 4 }}>{t("Имя")}</AppText>
+          <TextInput value={name} onChangeText={setName} placeholder={t("Ваше имя")} placeholderTextColor={colors.outline} style={styles.field} />
+          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, marginTop: space.md, paddingHorizontal: 4 }}>{t("Телефон")}</AppText>
           <TextInput value={phone} onChangeText={setPhone} placeholder="+998 90 123-45-67" placeholderTextColor={colors.outline} keyboardType="phone-pad" style={styles.field} />
           <View style={{ marginTop: space.lg }}>
-            <PrimaryButton label="Сохранить" onPress={() => onSave({ name: name.trim(), phone: phone.trim() })} />
+            <PrimaryButton label={t("Сохранить")} onPress={() => onSave({ name: name.trim(), phone: phone.trim() })} />
           </View>
         </Pressable>
       </Pressable>

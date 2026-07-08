@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { colors, radius, space } from "../../theme";
 
 type SortKey = "rating" | "price";
@@ -19,6 +20,7 @@ const DEMO: Item[] = [
 
 export default function Search() {
   const router = useRouter();
+  const t = useT();
   const [q, setQ] = useState("");
   const { data: remote, reload } = useSearchMasters(q);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,7 +46,7 @@ export default function Search() {
       <View style={styles.searchWrap}>
         <View style={styles.search}>
           <Sym name="search" size={20} color={colors.outline} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Найти специалиста или услугу" placeholderTextColor={colors.outline} style={styles.searchInput} />
+          <TextInput value={q} onChangeText={setQ} placeholder={t("Найти специалиста или услугу")} placeholderTextColor={colors.outline} style={styles.searchInput} />
           {q ? (
             <Pressable onPress={() => setQ("")} hitSlop={8}><Sym name="close" size={18} color={colors.secondary} /></Pressable>
           ) : null}
@@ -54,20 +56,20 @@ export default function Search() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
         <Pressable onPress={() => setTopRated((v) => !v)} style={[styles.fchip, topRated ? styles.fOn : styles.fOff]}>
           <Sym name="star" size={16} color={topRated ? colors.onAccent : colors.gold} />
-          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>Рейтинг 4.5+</AppText>
+          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>{t("Рейтинг 4.5+")}</AppText>
         </Pressable>
         <Pressable onPress={() => setSort("rating")} style={[styles.fchip, sort === "rating" ? styles.fOn : styles.fOff]}>
-          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>Сначала рейтинг</AppText>
+          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>{t("Сначала рейтинг")}</AppText>
         </Pressable>
         <Pressable onPress={() => setSort("price")} style={[styles.fchip, sort === "price" ? styles.fOn : styles.fOff]}>
-          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>Сначала дешевле</AppText>
+          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>{t("Сначала дешевле")}</AppText>
         </Pressable>
       </ScrollView>
 
       <View style={styles.head}>
-        <AppText variant="headlineMd" color={colors.ink}>Специалисты</AppText>
+        <AppText variant="headlineMd" color={colors.ink}>{t("Специалисты")}</AppText>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <AppText variant="labelMd" color={colors.secondary}>{SORT_LABEL[sort]}</AppText>
+          <AppText variant="labelMd" color={colors.secondary}>{t(SORT_LABEL[sort])}</AppText>
           <Sym name="swap-vert" size={16} color={colors.secondary} />
         </View>
       </View>
@@ -75,7 +77,7 @@ export default function Search() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
         {!loading && results.length === 0 && (
-          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>Ничего не найдено</AppText></View>
+          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Ничего не найдено")}</AppText></View>
         )}
         {!loading && results.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
@@ -100,7 +102,7 @@ export default function Search() {
                 </View>
                 {s.price ? (
                   <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "baseline", gap: 4 }}>
-                    <AppText variant="labelSm" color={colors.secondary}>от</AppText>
+                    <AppText variant="labelSm" color={colors.secondary}>{t("от")}</AppText>
                     <AppText variant="labelMd" color={colors.accent}>{s.price}</AppText>
                   </View>
                 ) : null}

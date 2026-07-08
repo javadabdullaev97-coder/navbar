@@ -6,6 +6,7 @@ import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../components/u
 import { toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured, useMaster, useReviews } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
 
@@ -35,6 +36,7 @@ const DEMO = {
 
 export default function Specialist() {
   const router = useRouter();
+  const tr = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { master, reload } = useMaster(id);
   const { data: reviewList, loading: reviewsLoading, reload: reloadReviews } = useReviews(master?.slug);
@@ -101,19 +103,19 @@ export default function Specialist() {
           <View style={styles.metaRow}>
             <Sym name="star" size={18} color={colors.gold} />
             <AppText variant="labelMd" color={colors.ink}>{rating ? rating.toFixed(1) : "—"}</AppText>
-            <AppText variant="labelSm" color={colors.secondary}>({reviews} отзывов)</AppText>
+            <AppText variant="labelSm" color={colors.secondary}>{tr("({count} отзывов)", { count: reviews })}</AppText>
           </View>
           <View style={styles.locRow}>
             <Sym name="location-on" size={16} color={colors.secondary} />
             <AppText variant="labelSm" color={colors.secondary}>{address} ·</AppText>
-            <AppText variant="labelSm" color={colors.accent} style={{ textDecorationLine: "underline" }}>на карте</AppText>
+            <AppText variant="labelSm" color={colors.accent} style={{ textDecorationLine: "underline" }}>{tr("на карте")}</AppText>
           </View>
         </View>
 
         <View style={styles.tabs}>
           {TABS.map((t, i) => (
             <Pressable key={t} onPress={() => setTab(i)} style={[styles.tab, i === tab && styles.tabOn]}>
-              <AppText variant="labelMd" color={i === tab ? colors.onAccent : colors.secondary}>{t}</AppText>
+              <AppText variant="labelMd" color={i === tab ? colors.onAccent : colors.secondary}>{tr(t)}</AppText>
             </Pressable>
           ))}
         </View>
@@ -127,7 +129,7 @@ export default function Specialist() {
                     <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                       <Sym name="schedule" size={14} color={colors.secondary} />
-                      <AppText variant="labelSm" color={colors.secondary}>{s.duration_min} мин</AppText>
+                      <AppText variant="labelSm" color={colors.secondary}>{tr("{count} мин", { count: s.duration_min })}</AppText>
                     </View>
                     <AppText variant="labelMd" color={colors.accent}>{fmtMoney(s.price)}</AppText>
                   </View>
@@ -136,23 +138,23 @@ export default function Specialist() {
               </Pressable>
             ))}
 
-            <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: space.lg }}>О себе</AppText>
+            <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: space.lg }}>{tr("О себе")}</AppText>
             <AppText variant="bodyMd" color={colors.secondary}>{bio}</AppText>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: space.sm }}>
               <View style={[styles.pill, { backgroundColor: colors.infoBg }]}>
                 <Sym name="verified" size={14} color={colors.infoText} />
-                <AppText variant="labelSm" color={colors.infoText}>Диплом проверен</AppText>
+                <AppText variant="labelSm" color={colors.infoText}>{tr("Диплом проверен")}</AppText>
               </View>
               <View style={[styles.pill, { backgroundColor: colors.successBg }]}>
                 <Sym name="check-circle" size={14} color={colors.successText} />
-                <AppText variant="labelSm" color={colors.successText}>Принимает очно</AppText>
+                <AppText variant="labelSm" color={colors.successText}>{tr("Принимает очно")}</AppText>
               </View>
             </View>
           </View>
         )}
         {tab === 1 && (
           (master?.portfolio?.length ?? 0) === 0 ? (
-            <Empty text="Портфолио пока пусто" />
+            <Empty text={tr("Портфолио пока пусто")} />
           ) : (
             <View style={styles.gallery}>
               {master!.portfolio.map((p, i) => (
@@ -173,7 +175,7 @@ export default function Specialist() {
               onPress={() => router.push({ pathname: "/review", params: { slug: master?.slug ?? "" } })}
             >
               <Sym name="rate-review" size={20} color={colors.accent} />
-              <AppText variant="labelMd" color={colors.accent}>Оставить отзыв</AppText>
+              <AppText variant="labelMd" color={colors.accent}>{tr("Оставить отзыв")}</AppText>
             </Pressable>
 
             {supabaseConfigured && reviewsLoading && reviewList == null ? (
@@ -181,7 +183,7 @@ export default function Specialist() {
             ) : (reviewList ?? []).length === 0 ? (
               <View style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>
                 <Sym name="reviews" size={40} color={colors.outlineVariant} />
-                <AppText variant="bodyMd" color={colors.secondary}>Отзывов пока нет. Будьте первым!</AppText>
+                <AppText variant="bodyMd" color={colors.secondary}>{tr("Отзывов пока нет. Будьте первым!")}</AppText>
               </View>
             ) : (
               (reviewList ?? []).map((r, i) => (
@@ -207,7 +209,7 @@ export default function Specialist() {
       </ScrollView>
 
       <SafeAreaView edges={["bottom"]} style={styles.footer}>
-        <PrimaryButton label="Записаться" icon="calendar-today" onPress={() => startBooking()} />
+        <PrimaryButton label={tr("Записаться")} icon="calendar-today" onPress={() => startBooking()} />
       </SafeAreaView>
     </View>
   );
