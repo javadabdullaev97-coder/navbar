@@ -1,3 +1,5 @@
 packages:
   - "packages/*"
-  - "apps/*"
+  - "apps/web"
+# apps/mobile — отдельный Expo-проект со своим npm install (не часть pnpm-воркспейса),
+# чтобы Metro/Expo Go работали без монорепо-нюансов.

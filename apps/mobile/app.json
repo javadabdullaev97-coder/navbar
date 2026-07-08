@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "ORA",
+    "slug": "ora-client",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "ora",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FCF9F8",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "uz.ora.client"
+    },
+    "android": {
+      "package": "uz.ora.client",
+      "adaptiveIcon": {
+        "backgroundColor": "#FCF9F8"
+      }
+    },
+    "plugins": ["expo-router", "expo-font"],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
