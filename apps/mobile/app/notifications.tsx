@@ -1,38 +1,71 @@
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Sym } from "../components/ui";
+import { AppText, Loading, Sym } from "../components/ui";
+import { ClientBooking, getMyBookings } from "../lib/api";
+import { supabaseConfigured } from "../lib/data";
+import { MONTHS_GEN } from "../lib/format";
 import { cardShadow, colors, radius, space } from "../theme";
 
 type Note = {
-  icon: any; tintBg: string; tintFg: string; title: string; body: string; time: string;
-  unread?: boolean; go?: string;
+  id: string; icon: any; tintBg: string; tintFg: string;
+  title: string; body: string; time: string; go?: string;
 };
 
-const TODAY: Note[] = [
-  { icon: "chat", tintBg: colors.accentTint, tintFg: colors.accent, title: "Новое сообщение", body: "Новое сообщение от Дилнозы", time: "14:20", unread: true, go: "/chat/1" },
-  { icon: "check-circle", tintBg: colors.successBg, tintFg: colors.successText, title: "Запись подтверждена", body: "Ваш визит забронирован", time: "10:45", go: "/appointment/1" },
-];
-const YESTERDAY: Note[] = [
-  { icon: "notifications-active", tintBg: colors.warningBg, tintFg: colors.warningText, title: "Напоминание о визите", body: "Напоминание о визите завтра в 11:00", time: "18:00", go: "/appointment/1" },
-  { icon: "star", tintBg: colors.infoBg, tintFg: colors.infoText, title: "Оставьте отзыв", body: "Оставьте отзыв о вчерашнем визите", time: "12:30", go: "/review" },
-];
+const p2 = (n: number) => String(n).padStart(2, "0");
+const clock = (d: Date) => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+const dayLabel = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+
+// Формируем уведомления из реальных записей клиента.
+function buildNotes(bookings: ClientBooking[], now: number): Note[] {
+  const notes: Note[] = [];
+  for (const b of bookings) {
+    const start = new Date(b.starts_at);
+    const t = start.getTime();
+    const hoursTo = (t - now) / 3600_000;
+
+    if (b.status === "cancelled") continue;
+
+    if (t < now) {
+      // Прошедший визит — предложить отзыв.
+      notes.push({
+        id: `rev-${b.id}`, icon: "star", tintBg: colors.infoBg, tintFg: colors.infoText,
+        title: "Оставьте отзыв", body: `Как прошёл визит к ${b.master_name}?`,
+        time: dayLabel(start), go: `/review?slug=${b.master_slug}`,
+      });
+    } else if (hoursTo <= 24) {
+      // Ближайший визит — напоминание.
+      notes.push({
+        id: `rem-${b.id}`, icon: "notifications-active", tintBg: colors.warningBg, tintFg: colors.warningText,
+        title: "Скоро визит", body: `${b.service_name ?? "Запись"} · ${b.master_name} в ${clock(start)}`,
+        time: dayLabel(start), go: `/appointment/${b.id}`,
+      });
+    } else {
+      // Предстоящий визит — подтверждение.
+      notes.push({
+        id: `cfm-${b.id}`, icon: "check-circle", tintBg: colors.successBg, tintFg: colors.successText,
+        title: b.status === "confirmed" ? "Запись подтверждена" : "Запись создана",
+        body: `${b.service_name ?? "Запись"} · ${dayLabel(start)}, ${clock(start)}`,
+        time: dayLabel(start), go: `/appointment/${b.id}`,
+      });
+    }
+  }
+  return notes;
+}
 
 function Item({ n, onPress }: { n: Note; onPress?: () => void }) {
   return (
     <Pressable onPress={onPress} style={[styles.item, cardShadow]}>
-      <View>
-        <View style={[styles.tint, { backgroundColor: n.tintBg }]}>
-          <Sym name={n.icon} size={22} color={n.tintFg} />
-        </View>
-        {n.unread ? <View style={styles.unread} /> : null}
+      <View style={[styles.tint, { backgroundColor: n.tintBg }]}>
+        <Sym name={n.icon} size={22} color={n.tintFg} />
       </View>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <AppText variant="labelMd" color={colors.ink} numberOfLines={1} style={{ flex: 1, marginRight: 8 }}>{n.title}</AppText>
           <AppText variant="labelSm" color={colors.secondary}>{n.time}</AppText>
         </View>
-        <AppText variant="labelMd" color={colors.secondary} numberOfLines={1} style={{ marginTop: 2 }}>{n.body}</AppText>
+        <AppText variant="labelMd" color={colors.secondary} numberOfLines={2} style={{ marginTop: 2 }}>{n.body}</AppText>
       </View>
     </Pressable>
   );
@@ -40,6 +73,20 @@ function Item({ n, onPress }: { n: Note; onPress?: () => void }) {
 
 export default function Notifications() {
   const router = useRouter();
+  const [notes, setNotes] = useState<Note[] | null>(supabaseConfigured ? null : []);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!supabaseConfigured) return;
+    try { setNotes(buildNotes(await getMyBookings(), Date.now())); }
+    catch { setNotes([]); }
+  }
+  useEffect(() => { load(); }, []);
+  const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+  const loading = supabaseConfigured && notes === null;
+  const list = notes ?? [];
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
@@ -49,26 +96,23 @@ export default function Notifications() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-        <AppText variant="labelSm" color={colors.secondary} style={styles.section}>СЕГОДНЯ</AppText>
-        <View style={{ gap: 8 }}>
-          {TODAY.map((n, i) => <Item key={i} n={n} onPress={() => n.go && router.push(n.go as any)} />)}
-        </View>
-
-        <AppText variant="labelSm" color={colors.secondary} style={[styles.section, { marginTop: space.lg }]}>ВЧЕРА</AppText>
-        <View style={{ gap: 8 }}>
-          {YESTERDAY.map((n, i) => <Item key={i} n={n} onPress={() => n.go && router.push(n.go as any)} />)}
-        </View>
-
-        {/* Промо */}
-        <View style={styles.promo}>
-          <View style={styles.promoOverlay} />
-          <View style={{ zIndex: 1 }}>
-            <AppText variant="labelSm" color={colors.onAccent} style={{ textTransform: "uppercase", letterSpacing: 2, opacity: 0.9 }}>Специальное предложение</AppText>
-            <AppText variant="displayLg" color={colors.onAccent} style={{ marginTop: 4 }}>−20% на первый визит</AppText>
-            <Pressable style={styles.promoBtn}><AppText variant="labelSm" color={colors.accent}>Подробнее</AppText></Pressable>
+      <ScrollView
+        contentContainerStyle={{ padding: space.margin, paddingBottom: 24, gap: 8, flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      >
+        {loading ? (
+          <Loading />
+        ) : list.length === 0 ? (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 80 }}>
+            <Sym name="notifications-none" size={48} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>
+              Уведомлений пока нет.{"\n"}Здесь появятся напоминания о визитах.
+            </AppText>
           </View>
-        </View>
+        ) : (
+          list.map((n) => <Item key={n.id} n={n} onPress={() => n.go && router.push(n.go as any)} />)
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -77,11 +121,6 @@ export default function Notifications() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, justifyContent: "center", paddingHorizontal: space.margin },
-  section: { textTransform: "uppercase", letterSpacing: 2, marginBottom: space.md },
   item: { flexDirection: "row", gap: 16, alignItems: "center", padding: 16, backgroundColor: colors.surface, borderRadius: radius.xl },
   tint: { width: 48, height: 48, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
-  unread: { position: "absolute", top: 0, right: 0, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.surface },
-  promo: { marginTop: space.lg, height: 160, borderRadius: radius.xl, overflow: "hidden", justifyContent: "center", paddingHorizontal: 24, backgroundColor: colors.accent },
-  promoOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.accentDeep, opacity: 0.5 },
-  promoBtn: { alignSelf: "flex-start", backgroundColor: colors.onAccent, paddingHorizontal: 16, paddingVertical: 6, borderRadius: radius.full, marginTop: 12 },
 });
