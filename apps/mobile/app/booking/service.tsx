@@ -18,21 +18,39 @@ export default function ServiceSelect() {
   const router = useRouter();
   const { draft, patchDraft } = useStore();
   const options = draft.serviceOptions && draft.serviceOptions.length ? draft.serviceOptions : DEMO_SERVICES;
-  const [sel, setSel] = useState(0);
 
-  function next() {
-    const s = options[sel];
-    patchDraft({ service: s.name, serviceId: s.id, price: s.price, duration: s.duration_min });
+  // Выбранные услуги (по умолчанию — то, что пришло из профиля).
+  const [selected, setSelected] = useState<Set<string>>(new Set(draft.serviceIds.length ? draft.serviceIds : [options[0]?.id]));
+
+  const chosen = options.filter((o) => selected.has(o.id));
+  const totalPrice = chosen.reduce((s, o) => s + o.price, 0);
+  const totalDuration = chosen.reduce((s, o) => s + o.duration_min, 0);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { if (next.size > 1) next.delete(id); } // хотя бы одна услуга
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function nextStep() {
+    if (chosen.length === 0) return;
+    patchDraft({
+      service: chosen.map((o) => o.name).join(", "),
+      serviceIds: chosen.map((o) => o.id),
+      price: totalPrice,
+      duration: totalDuration,
+    });
     router.push("/booking/datetime");
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={10}>
-          <Sym name="arrow-back" size={26} color={colors.accent} />
-        </Pressable>
-        <AppText variant="headlineMd" color={colors.accent}>Выбор услуги</AppText>
+        <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
+        <AppText variant="headlineMd" color={colors.accent}>Выбор услуг</AppText>
         <View style={{ width: 26 }} />
       </View>
 
@@ -45,20 +63,20 @@ export default function ServiceSelect() {
           </View>
         </View>
 
-        <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 8 }}>Выберите услугу</AppText>
+        <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 8 }}>Выберите одну или несколько услуг</AppText>
 
         <View style={{ gap: space.md }}>
-          {options.map((s, i) => {
-            const on = i === sel;
+          {options.map((s) => {
+            const on = selected.has(s.id);
             return (
-              <Pressable key={s.id} onPress={() => setSel(i)}>
+              <Pressable key={s.id} onPress={() => toggle(s.id)}>
                 <View style={[styles.card, on && { borderColor: colors.accent }]}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, flex: 1 }}>
-                    <View style={styles.iconBox}><Sym name="spa" size={22} color={colors.accent} /></View>
-                    <View style={{ flex: 1 }}>
-                      <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
-                      <AppText variant="labelSm" color={colors.secondary}>{s.duration_min} мин</AppText>
-                    </View>
+                  <View style={[styles.check, on ? { backgroundColor: colors.accent, borderColor: colors.accent } : { borderColor: colors.outlineVariant }]}>
+                    {on ? <Sym name="check" size={16} color={colors.onAccent} /> : null}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
+                    <AppText variant="labelSm" color={colors.secondary}>{s.duration_min} мин</AppText>
                   </View>
                   <AppText variant="labelMd" color={colors.accent}>{fmtMoney(s.price)}</AppText>
                 </View>
@@ -70,10 +88,10 @@ export default function ServiceSelect() {
 
       <View style={styles.footer}>
         <View>
-          <AppText variant="labelSm" color={colors.secondary}>Итого</AppText>
-          <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>{fmtMoney(options[sel].price)}</AppText>
+          <AppText variant="labelSm" color={colors.secondary}>Итого · {totalDuration} мин</AppText>
+          <AppText variant="bodyLg" color={colors.accent} style={{ fontFamily: "Manrope_700Bold" }}>{fmtMoney(totalPrice)}</AppText>
         </View>
-        <PrimaryButton label="Далее" icon="arrow-forward" style={{ width: 180 }} onPress={next} />
+        <PrimaryButton label="Далее" icon="arrow-forward" style={{ width: 180 }} onPress={nextStep} />
       </View>
     </SafeAreaView>
   );
@@ -84,7 +102,7 @@ const styles = StyleSheet.create({
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
   avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 28 },
-  card: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: colors.outlineVariant },
-  iconBox: { width: 48, height: 48, borderRadius: radius.lg, backgroundColor: colors.surfaceLow, alignItems: "center", justifyContent: "center" },
+  card: { flexDirection: "row", alignItems: "center", gap: space.md, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16, borderWidth: 1, borderColor: colors.outlineVariant },
+  check: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, paddingVertical: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

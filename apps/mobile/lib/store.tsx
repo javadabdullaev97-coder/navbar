@@ -28,10 +28,10 @@ export type Draft = {
   initial: string;
   spec: string;
   address: string;
-  service: string;
-  serviceId: string | null; // uuid услуги из БД
-  price: number;
-  duration: number;
+  service: string;          // название(я) выбранных услуг (через запятую)
+  serviceIds: string[];     // uuid выбранных услуг из БД
+  price: number;            // суммарная цена
+  duration: number;         // суммарная длительность (для расчёта слотов)
   date: Date | null;
   availability: Avail[] | null; // график из БД для расчёта слотов
   serviceOptions: { id: string; name: string; duration_min: number; price: number }[] | null;
@@ -44,7 +44,7 @@ const DEFAULT_DRAFT: Draft = {
   spec: "Клинический психолог",
   address: "Ташкент, Мирабад",
   service: "Индивидуальная консультация",
-  serviceId: null,
+  serviceIds: [],
   price: 180000,
   duration: 50,
   date: null,

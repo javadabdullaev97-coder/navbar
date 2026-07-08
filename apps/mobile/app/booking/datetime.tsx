@@ -46,6 +46,7 @@ export default function DateTime() {
       totalDuration: draft.duration,
       dow: toOurDow(days[day]),
       nowMin,
+      step: draft.duration, // шаг = длительность записи (60 мин → слоты по часу)
     }).map(minutesToTime);
   }, [real, busy, day, draft.duration, draft.availability]);
 

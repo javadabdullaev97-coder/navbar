@@ -44,8 +44,8 @@ export default function Specialist() {
   const services = master?.services ?? DEMO.services;
   const initial = initialOf(name);
 
-  function startBooking() {
-    const first = services[0];
+  function startBooking(pre?: { id: string; name: string; duration_min: number; price: number }) {
+    const chosen = pre ?? services[0];
     patchDraft({
       slug: master?.slug ?? "",
       specialist: name,
@@ -54,10 +54,10 @@ export default function Specialist() {
       address,
       availability: master?.availability ?? null,
       serviceOptions: services,
-      service: first?.name ?? "",
-      serviceId: first?.id ?? null,
-      price: first?.price ?? 0,
-      duration: first?.duration_min ?? 50,
+      service: chosen?.name ?? "",
+      serviceIds: chosen ? [chosen.id] : [],
+      price: chosen?.price ?? 0,
+      duration: chosen?.duration_min ?? 50,
     });
     router.push("/booking/service");
   }
@@ -104,7 +104,7 @@ export default function Specialist() {
         {tab === 0 && (
           <View style={{ paddingHorizontal: space.margin, gap: space.md, marginTop: space.md }}>
             {services.map((s) => (
-              <Pressable key={s.id} onPress={startBooking}>
+              <Pressable key={s.id} onPress={() => startBooking(s)}>
                 <View style={[styles.service, cardShadow]}>
                   <View style={{ gap: 4 }}>
                     <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
@@ -142,7 +142,7 @@ export default function Specialist() {
       </ScrollView>
 
       <SafeAreaView edges={["bottom"]} style={styles.footer}>
-        <PrimaryButton label="Записаться" icon="calendar-today" onPress={startBooking} />
+        <PrimaryButton label="Записаться" icon="calendar-today" onPress={() => startBooking()} />
       </SafeAreaView>
     </View>
   );

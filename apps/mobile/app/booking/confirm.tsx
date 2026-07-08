@@ -36,13 +36,13 @@ export default function Confirm() {
 
   async function submit() {
     if (busy) return;
-    const real = supabaseConfigured && draft.slug && draft.serviceId && draft.date;
+    const real = supabaseConfigured && draft.slug && draft.serviceIds.length > 0 && draft.date;
     if (real) {
       setBusy(true);
       try {
         await createBooking({
           slug: draft.slug,
-          serviceIds: [draft.serviceId!],
+          serviceIds: draft.serviceIds,
           startsAt: date.toISOString(),
           name: "Азиз Рахимов",
           phone: "+998900000000",

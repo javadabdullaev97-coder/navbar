@@ -38,7 +38,7 @@ export default function Category() {
         <Sym name="search" size={24} color={colors.secondary} />
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
         <View style={[styles.fchip, styles.fOff]}><Sym name="tune" size={18} color={colors.inkVariant} /><AppText variant="labelMd" color={colors.inkVariant}>Фильтры</AppText></View>
         <View style={[styles.fchip, styles.fOff]}><AppText variant="labelMd" color={colors.inkVariant}>Рядом</AppText></View>
         <View style={[styles.fchip, styles.fOn]}><AppText variant="labelMd" color={colors.onAccent}>Рейтинг 4.5+</AppText></View>
@@ -79,8 +79,9 @@ export default function Category() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, height: 56 },
-  filters: { paddingHorizontal: space.margin, gap: 12, paddingVertical: space.md },
-  fchip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.full },
+  filterBar: { flexGrow: 0, maxHeight: 60 },
+  filters: { paddingHorizontal: space.margin, gap: 12, alignItems: "center", paddingVertical: space.sm },
+  fchip: { flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.full },
   fOn: { backgroundColor: colors.accent },
   fOff: { backgroundColor: colors.surfaceLow },
   distPill: { backgroundColor: colors.surfaceMid, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.lg },

@@ -42,7 +42,7 @@ export default function Search() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
         {FILTERS.map((f) => (
           <View key={f.label} style={[styles.fchip, f.on ? styles.fOn : styles.fOff]}>
             {f.icon ? <Sym name={f.icon} size={16} color={f.on ? colors.onAccent : colors.inkVariant} /> : null}
@@ -101,8 +101,9 @@ const styles = StyleSheet.create({
   searchWrap: { paddingHorizontal: space.margin, paddingTop: space.sm, paddingBottom: space.sm },
   search: { flexDirection: "row", alignItems: "center", gap: 8, height: 48, paddingHorizontal: 16, backgroundColor: colors.surfaceLow, borderRadius: radius.xl },
   searchInput: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
-  filters: { paddingHorizontal: space.margin, gap: 8, paddingVertical: 4 },
-  fchip: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.full },
+  filterBar: { flexGrow: 0, maxHeight: 52 },
+  filters: { paddingHorizontal: space.margin, gap: 8, alignItems: "center" },
+  fchip: { flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 16, borderRadius: radius.full },
   fOn: { backgroundColor: colors.accent },
   fOff: { backgroundColor: colors.surfaceLow, borderWidth: 1, borderColor: colors.outlineVariant },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: space.margin, paddingTop: space.md, paddingBottom: space.md },
