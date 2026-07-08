@@ -1,6 +1,6 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../components/ui";
 import { toggleFavorite } from "../../lib/api";
@@ -150,7 +150,22 @@ export default function Specialist() {
             </View>
           </View>
         )}
-        {tab === 1 && <Empty text="Портфолио появится здесь" />}
+        {tab === 1 && (
+          (master?.portfolio?.length ?? 0) === 0 ? (
+            <Empty text="Портфолио пока пусто" />
+          ) : (
+            <View style={styles.gallery}>
+              {master!.portfolio.map((p, i) => (
+                <View key={i} style={styles.galleryItem}>
+                  <Image source={{ uri: p.url }} style={styles.galleryImg} resizeMode="cover" />
+                  {p.caption ? (
+                    <AppText variant="labelSm" color={colors.secondary} numberOfLines={1} style={{ marginTop: 4 }}>{p.caption}</AppText>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )
+        )}
         {tab === 2 && (
           <View style={{ paddingHorizontal: space.margin, marginTop: space.md, gap: space.md }}>
             <Pressable
@@ -224,5 +239,8 @@ const styles = StyleSheet.create({
   pill: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.full },
   leaveReview: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, backgroundColor: colors.surfaceLow, borderRadius: radius.xl },
   reviewCard: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16 },
+  gallery: { flexDirection: "row", flexWrap: "wrap", gap: space.md, paddingHorizontal: space.margin, marginTop: space.md },
+  galleryItem: { width: "47%" },
+  galleryImg: { width: "100%", aspectRatio: 1, borderRadius: radius.xl, backgroundColor: colors.surfaceMid },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, paddingHorizontal: space.margin, paddingTop: space.md, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

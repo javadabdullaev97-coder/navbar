@@ -21,11 +21,21 @@ export default function Category() {
   const { data: remote, reload } = useCatalog(title);
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [refreshing, setRefreshing] = useState(false);
+  const [topRated, setTopRated] = useState(false);
+  const [sort, setSort] = useState<"rating" | "price">("rating");
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
   const rows: Item[] = supabaseConfigured
-    ? (remote ?? []).map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }))
+    ? (remote ?? [])
+        .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
+        .slice()
+        .sort((a, b) =>
+          sort === "rating"
+            ? (b.rating ?? 0) - (a.rating ?? 0)
+            : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
+        )
+        .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }))
     : DEMO;
 
   return (
@@ -42,9 +52,16 @@ export default function Category() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
-        <View style={[styles.fchip, styles.fOff]}><Sym name="tune" size={18} color={colors.inkVariant} /><AppText variant="labelMd" color={colors.inkVariant}>Фильтры</AppText></View>
-        <View style={[styles.fchip, styles.fOff]}><AppText variant="labelMd" color={colors.inkVariant}>Рядом</AppText></View>
-        <View style={[styles.fchip, styles.fOn]}><AppText variant="labelMd" color={colors.onAccent}>Рейтинг 4.5+</AppText></View>
+        <Pressable onPress={() => setTopRated((v) => !v)} style={[styles.fchip, topRated ? styles.fOn : styles.fOff]}>
+          <Sym name="star" size={16} color={topRated ? colors.onAccent : colors.gold} />
+          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>Рейтинг 4.5+</AppText>
+        </Pressable>
+        <Pressable onPress={() => setSort("rating")} style={[styles.fchip, sort === "rating" ? styles.fOn : styles.fOff]}>
+          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>Сначала рейтинг</AppText>
+        </Pressable>
+        <Pressable onPress={() => setSort("price")} style={[styles.fchip, sort === "price" ? styles.fOn : styles.fOff]}>
+          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>Сначала дешевле</AppText>
+        </Pressable>
       </ScrollView>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>

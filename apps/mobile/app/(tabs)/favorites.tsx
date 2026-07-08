@@ -8,6 +8,12 @@ import { initialOf, supabaseConfigured } from "../../lib/data";
 import { colors, radius, space } from "../../theme";
 
 const CATS = ["Все", "Красота", "Терапия", "Здоровье"];
+// Грубое сопоставление категории по тексту специализации.
+const CAT_KEYWORDS: Record<string, RegExp> = {
+  Красота: /барбер|ногт|маник|педикюр|стил|макияж|бров|ресниц|космет|причес|волос|визаж|beauty|nail|hair/i,
+  Терапия: /психолог|психотерап|терап|коуч|гештальт|консультант/i,
+  Здоровье: /врач|доктор|дерматолог|массаж|медиц|стомат|нутрициолог|health/i,
+};
 
 type Item = { key: string; initial: string; name: string; spec: string; rating?: string; next?: string; price?: string };
 const DEMO: Item[] = [
@@ -46,7 +52,10 @@ export default function Saved() {
 
   const loading = supabaseConfigured && remote === null;
   const source = supabaseConfigured ? (remote ?? []) : DEMO;
-  const list = source.filter((s) => !removed[s.key]);
+  const catName = CATS[cat];
+  const list = source
+    .filter((s) => !removed[s.key])
+    .filter((s) => (catName === "Все" ? true : CAT_KEYWORDS[catName]?.test(s.spec ?? "")));
 
   async function remove(key: string) {
     setRemoved((r) => ({ ...r, [key]: true }));

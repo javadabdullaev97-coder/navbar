@@ -7,12 +7,8 @@ import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data"
 import { fmtMoney } from "../../lib/format";
 import { colors, radius, space } from "../../theme";
 
-const FILTERS = [
-  { label: "Фильтры", icon: "tune" as const },
-  { label: "Рядом" },
-  { label: "Рейтинг 4.5+", on: true },
-  { label: "Свободно сегодня", on: true },
-];
+type SortKey = "rating" | "price";
+const SORT_LABEL: Record<SortKey, string> = { rating: "По рейтингу", price: "По цене" };
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; dist: string; price: string };
 const DEMO: Item[] = [
@@ -26,11 +22,21 @@ export default function Search() {
   const [q, setQ] = useState("");
   const { data: remote, reload } = useSearchMasters(q);
   const [refreshing, setRefreshing] = useState(false);
+  const [sort, setSort] = useState<SortKey>("rating");
+  const [topRated, setTopRated] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
   const results: Item[] = supabaseConfigured
-    ? (remote ?? []).map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }))
+    ? (remote ?? [])
+        .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
+        .slice()
+        .sort((a, b) =>
+          sort === "rating"
+            ? (b.rating ?? 0) - (a.rating ?? 0)
+            : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
+        )
+        .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }))
     : DEMO;
 
   return (
@@ -46,19 +52,23 @@ export default function Search() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={styles.filters}>
-        {FILTERS.map((f) => (
-          <View key={f.label} style={[styles.fchip, f.on ? styles.fOn : styles.fOff]}>
-            {f.icon ? <Sym name={f.icon} size={16} color={f.on ? colors.onAccent : colors.inkVariant} /> : null}
-            <AppText variant="labelMd" color={f.on ? colors.onAccent : colors.inkVariant}>{f.label}</AppText>
-          </View>
-        ))}
+        <Pressable onPress={() => setTopRated((v) => !v)} style={[styles.fchip, topRated ? styles.fOn : styles.fOff]}>
+          <Sym name="star" size={16} color={topRated ? colors.onAccent : colors.gold} />
+          <AppText variant="labelMd" color={topRated ? colors.onAccent : colors.inkVariant}>Рейтинг 4.5+</AppText>
+        </Pressable>
+        <Pressable onPress={() => setSort("rating")} style={[styles.fchip, sort === "rating" ? styles.fOn : styles.fOff]}>
+          <AppText variant="labelMd" color={sort === "rating" ? colors.onAccent : colors.inkVariant}>Сначала рейтинг</AppText>
+        </Pressable>
+        <Pressable onPress={() => setSort("price")} style={[styles.fchip, sort === "price" ? styles.fOn : styles.fOff]}>
+          <AppText variant="labelMd" color={sort === "price" ? colors.onAccent : colors.inkVariant}>Сначала дешевле</AppText>
+        </Pressable>
       </ScrollView>
 
       <View style={styles.head}>
         <AppText variant="headlineMd" color={colors.ink}>Специалисты</AppText>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <AppText variant="labelMd" color={colors.secondary}>Сортировка</AppText>
-          <Sym name="expand-more" size={16} color={colors.secondary} />
+          <AppText variant="labelMd" color={colors.secondary}>{SORT_LABEL[sort]}</AppText>
+          <Sym name="swap-vert" size={16} color={colors.secondary} />
         </View>
       </View>
 
