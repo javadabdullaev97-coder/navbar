@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { ClientBooking, getMyBookings } from "../../lib/api";
@@ -25,6 +25,7 @@ export default function Bookings() {
   const { bookings } = useStore();
   const [tab, setTab] = useState(0);
   const [remote, setRemote] = useState<ClientBooking[] | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,6 +35,12 @@ export default function Bookings() {
       return () => { alive = false; };
     }, [])
   );
+
+  const onRefresh = async () => {
+    if (!supabaseConfigured) return;
+    setRefreshing(true);
+    try { setRemote(await getMyBookings()); } catch { setRemote([]); } finally { setRefreshing(false); }
+  };
 
   const loading = supabaseConfigured && remote === null;
   const items: Item[] = supabaseConfigured
@@ -49,7 +56,7 @@ export default function Bookings() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои записи</AppText></View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <View style={styles.segment}>
           {["Предстоящие", "История"].map((s, i) => (
             <Pressable key={s} onPress={() => setTab(i)} style={[styles.seg, i === tab && styles.segOn]}>

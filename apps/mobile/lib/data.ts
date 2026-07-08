@@ -1,6 +1,5 @@
-// Хуки данных с откатом на демо: пока Supabase не подключён (нет env) или
-// пришла ошибка — возвращаем null, и экран показывает демо-данные.
-import { useEffect, useState } from "react";
+// Хуки данных с откатом на демо и функцией reload (для pull-to-refresh).
+import { useCallback, useEffect, useState } from "react";
 import {
   CatalogMaster,
   getMaster,
@@ -14,56 +13,40 @@ import { supabaseConfigured } from "./supabase";
 
 export { supabaseConfigured };
 
-export function useCatalog(category?: string): CatalogMaster[] | null {
-  const [data, setData] = useState<CatalogMaster[] | null>(null);
-  useEffect(() => {
-    if (!supabaseConfigured) return;
-    let alive = true;
-    listMasters(category)
-      .then((d) => alive && setData(d))
-      .catch(() => alive && setData([]));
-    return () => { alive = false; };
-  }, [category]);
-  return data;
-}
+type Resource<T> = { data: T | null; loading: boolean; reload: () => Promise<void> };
 
-export function useSearchMasters(q: string): CatalogMaster[] | null {
-  const [data, setData] = useState<CatalogMaster[] | null>(null);
-  useEffect(() => {
-    if (!supabaseConfigured) return;
-    let alive = true;
-    const run = q.trim() ? searchMasters(q.trim()) : listMasters();
-    run.then((d) => alive && setData(d)).catch(() => alive && setData([]));
-    return () => { alive = false; };
-  }, [q]);
-  return data;
-}
-
-export function useMaster(slug?: string): { master: PublicMaster | null; loading: boolean } {
-  const [master, setMaster] = useState<PublicMaster | null>(null);
+function useResource<T>(enabled: boolean, fetcher: () => Promise<T>, deps: unknown[]): Resource<T> {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    if (!supabaseConfigured || !slug) return;
-    let alive = true;
+
+  const reload = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
-    getMaster(slug)
-      .then((m) => alive && setMaster(m))
-      .catch(() => alive && setMaster(null))
-      .finally(() => alive && setLoading(false));
-    return () => { alive = false; };
-  }, [slug]);
-  return { master, loading };
+    try { setData(await fetcher()); }
+    catch { setData(null); }
+    finally { setLoading(false); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  useEffect(() => { reload(); }, [reload]);
+  return { data, loading, reload };
 }
 
-export function useReviews(slug?: string): Review[] | null {
-  const [data, setData] = useState<Review[] | null>(null);
-  useEffect(() => {
-    if (!supabaseConfigured || !slug) return;
-    let alive = true;
-    getReviews(slug).then((d) => alive && setData(d)).catch(() => alive && setData([]));
-    return () => { alive = false; };
-  }, [slug]);
-  return data;
+export function useCatalog(category?: string) {
+  return useResource<CatalogMaster[]>(supabaseConfigured, () => listMasters(category), [category]);
+}
+
+export function useSearchMasters(q: string) {
+  return useResource<CatalogMaster[]>(supabaseConfigured, () => (q.trim() ? searchMasters(q.trim()) : listMasters()), [q]);
+}
+
+export function useReviews(slug?: string) {
+  return useResource<Review[]>(Boolean(supabaseConfigured && slug), () => getReviews(slug as string), [slug]);
+}
+
+export function useMaster(slug?: string) {
+  const r = useResource<PublicMaster | null>(Boolean(supabaseConfigured && slug), () => getMaster(slug as string), [slug]);
+  return { master: r.data, loading: r.loading, reload: r.reload };
 }
 
 /** Инициал из имени для аватар-плейсхолдера. */

@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -26,13 +27,23 @@ export default function Review() {
 
   async function submit() {
     if (busy) return;
-    if (supabaseConfigured && slug) {
-      setBusy(true);
-      try { await addReview(slug, rating, text, anon ? "Аноним" : "Азиз Рахимов"); }
-      catch { /* игнор */ }
-      finally { setBusy(false); }
+
+    // Без Supabase (демо-режим) просто закрываем экран.
+    if (!supabaseConfigured || !slug) {
+      Alert.alert("Спасибо!", "Ваш отзыв сохранён.", [{ text: "ОК", onPress: () => router.back() }]);
+      return;
     }
-    router.back();
+
+    setBusy(true);
+    try {
+      await addReview(slug, rating, text, anon ? "Аноним" : "Азиз Рахимов");
+      Alert.alert("Спасибо!", "Ваш отзыв опубликован.", [{ text: "ОК", onPress: () => router.back() }]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Не удалось отправить отзыв. Попробуйте ещё раз.";
+      Alert.alert("Ошибка", msg);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

@@ -1,13 +1,19 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../components/ui";
 import { toggleFavorite } from "../../lib/api";
-import { initialOf, supabaseConfigured, useMaster } from "../../lib/data";
+import { initialOf, supabaseConfigured, useMaster, useReviews } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
+
+function reviewDate(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+}
 
 const TABS = ["Услуги", "Портфолио", "Отзывы"] as const;
 
@@ -30,10 +36,21 @@ const DEMO = {
 export default function Specialist() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { master } = useMaster(id);
+  const { master, reload } = useMaster(id);
+  const { data: reviewList, loading: reviewsLoading, reload: reloadReviews } = useReviews(master?.slug);
   const { patchDraft } = useStore();
   const [tab, setTab] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([reload(), reloadReviews()]);
+    setRefreshing(false);
+  };
+
+  // Обновляем отзывы при каждом возврате на экран (после отправки нового).
+  useFocusEffect(useCallback(() => { reloadReviews(); }, [reloadReviews]));
 
   const name = master?.name ?? DEMO.name;
   const spec = master ? (master.specialization ?? master.category ?? "") : DEMO.spec;
@@ -64,7 +81,7 @@ export default function Specialist() {
 
   return (
     <View style={styles.root}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} progressViewOffset={80} />}>
         <View style={styles.cover} />
         <SafeAreaView edges={["top"]} style={styles.floatBar} pointerEvents="box-none">
           <Pressable style={styles.circleBtn} onPress={() => router.back()}>
@@ -135,9 +152,42 @@ export default function Specialist() {
         )}
         {tab === 1 && <Empty text="Портфолио появится здесь" />}
         {tab === 2 && (
-          <Pressable style={{ padding: space.lg, alignItems: "center" }} onPress={() => router.push({ pathname: "/review", params: { slug: master?.slug ?? "" } })}>
-            <AppText variant="bodyMd" color={colors.accent}>Оставить отзыв →</AppText>
-          </Pressable>
+          <View style={{ paddingHorizontal: space.margin, marginTop: space.md, gap: space.md }}>
+            <Pressable
+              style={styles.leaveReview}
+              onPress={() => router.push({ pathname: "/review", params: { slug: master?.slug ?? "" } })}
+            >
+              <Sym name="rate-review" size={20} color={colors.accent} />
+              <AppText variant="labelMd" color={colors.accent}>Оставить отзыв</AppText>
+            </Pressable>
+
+            {supabaseConfigured && reviewsLoading && reviewList == null ? (
+              <Loading />
+            ) : (reviewList ?? []).length === 0 ? (
+              <View style={{ alignItems: "center", paddingVertical: 32, gap: 8 }}>
+                <Sym name="reviews" size={40} color={colors.outlineVariant} />
+                <AppText variant="bodyMd" color={colors.secondary}>Отзывов пока нет. Будьте первым!</AppText>
+              </View>
+            ) : (
+              (reviewList ?? []).map((r, i) => (
+                <View key={i} style={[styles.reviewCard, cardShadow]}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                    <Avatar initial={initialOf(r.author_name)} size={44} tint={colors.surfaceMid} fg={colors.inkVariant} />
+                    <View style={{ flex: 1 }}>
+                      <AppText variant="labelMd" color={colors.ink}>{r.author_name}</AppText>
+                      <AppText variant="labelSm" color={colors.outline}>{reviewDate(r.created_at)}</AppText>
+                    </View>
+                    <View style={{ flexDirection: "row", gap: 2 }}>
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Sym key={n} name="star" size={14} color={n <= r.stars ? colors.gold : colors.surfaceHighest} />
+                      ))}
+                    </View>
+                  </View>
+                  {r.text ? <AppText variant="bodyMd" color={colors.secondary} style={{ marginTop: 10 }}>{r.text}</AppText> : null}
+                </View>
+              ))
+            )}
+          </View>
         )}
       </ScrollView>
 
@@ -172,5 +222,7 @@ const styles = StyleSheet.create({
   service: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16 },
   serviceBtn: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surfaceLow, alignItems: "center", justifyContent: "center" },
   pill: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.full },
+  leaveReview: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, backgroundColor: colors.surfaceLow, borderRadius: radius.xl },
+  reviewCard: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: 16 },
   footer: { position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, paddingHorizontal: space.margin, paddingTop: space.md, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

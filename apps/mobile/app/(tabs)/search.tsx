@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data";
@@ -24,7 +24,9 @@ const DEMO: Item[] = [
 export default function Search() {
   const router = useRouter();
   const [q, setQ] = useState("");
-  const remote = useSearchMasters(q);
+  const { data: remote, reload } = useSearchMasters(q);
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
   const results: Item[] = supabaseConfigured
@@ -60,7 +62,7 @@ export default function Search() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
         {!loading && results.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>Ничего не найдено</AppText></View>

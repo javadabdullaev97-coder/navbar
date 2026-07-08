@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
@@ -18,8 +18,10 @@ export default function Category() {
   const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const title = typeof slug === "string" ? slug : "Специалисты";
-  const remote = useCatalog(title);
+  const { data: remote, reload } = useCatalog(title);
   const [saved, setSaved] = useState<Record<string, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
   const rows: Item[] = supabaseConfigured
@@ -45,7 +47,7 @@ export default function Category() {
         <View style={[styles.fchip, styles.fOn]}><AppText variant="labelMd" color={colors.onAccent}>Рейтинг 4.5+</AppText></View>
       </ScrollView>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
         {!loading && rows.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>В этой категории пока пусто</AppText></View>

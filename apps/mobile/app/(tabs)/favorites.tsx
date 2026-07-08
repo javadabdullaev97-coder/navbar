@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { getFavorites, toggleFavorite } from "../../lib/api";
@@ -21,6 +21,7 @@ export default function Saved() {
   const [cat, setCat] = useState(0);
   const [remote, setRemote] = useState<Item[] | null>(null);
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -32,6 +33,16 @@ export default function Saved() {
       return () => { alive = false; };
     }, [])
   );
+
+  const onRefresh = async () => {
+    if (!supabaseConfigured) return;
+    setRefreshing(true);
+    try {
+      const f = await getFavorites();
+      setRemote(f.map((x) => ({ key: x.slug, initial: initialOf(x.name), name: x.name, spec: x.specialization ?? "" })));
+      setRemoved({});
+    } catch { setRemote([]); } finally { setRefreshing(false); }
+  };
 
   const loading = supabaseConfigured && remote === null;
   const source = supabaseConfigured ? (remote ?? []) : DEMO;
@@ -48,7 +59,7 @@ export default function Saved() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои специалисты</AppText></View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.margin, gap: 8, marginBottom: space.md }}>
           {CATS.map((c, i) => (
             <Pressable key={c} onPress={() => setCat(i)} style={[styles.chip, i === cat ? styles.chipOn : styles.chipOff]}>

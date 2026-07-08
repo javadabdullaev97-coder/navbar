@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import type { CatalogMaster } from "../../lib/api";
@@ -43,7 +44,9 @@ function Stars({ value }: { value: string }) {
 
 export default function Home() {
   const router = useRouter();
-  const catalog = useCatalog();
+  const { data: catalog, reload } = useCatalog();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
   const go = (key: string) => router.push(`/specialist/${key}`);
 
   const loading = supabaseConfigured && catalog === null;
@@ -53,7 +56,7 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {/* Шапка */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
