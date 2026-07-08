@@ -48,7 +48,13 @@ export default function Home() {
                 <AppText variant="labelSm" color={colors.inkVariant}>Ташкент</AppText>
               </View>
             </View>
-            <Avatar initial="А" size={40} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Pressable onPress={() => router.push("/notifications")} hitSlop={8} style={styles.bell}>
+                <Sym name="notifications-none" size={22} color={colors.accent} />
+                <View style={styles.bellDot} />
+              </Pressable>
+              <Avatar initial="А" size={40} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+            </View>
           </View>
 
           {/* Поиск */}
@@ -69,9 +75,13 @@ export default function Home() {
           contentContainerStyle={{ paddingHorizontal: space.margin, gap: 12, paddingTop: space.md }}
         >
           {CATS.map((c, i) => (
-            <View key={c} style={[styles.cat, i === 0 ? styles.catOn : styles.catOff]}>
+            <Pressable
+              key={c}
+              onPress={() => (c === "Ещё" ? router.push("/(tabs)/search") : router.push(`/category/${c}`))}
+              style={[styles.cat, i === 0 ? styles.catOn : styles.catOff]}
+            >
               <AppText variant="labelMd" color={i === 0 ? colors.onAccent : colors.inkVariant}>{c}</AppText>
-            </View>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -140,6 +150,8 @@ export default function Home() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: space.margin, paddingTop: space.sm, gap: space.md },
+  bell: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surfaceLow, alignItems: "center", justifyContent: "center" },
+  bellDot: { position: "absolute", top: 9, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
   locChip: {
     flexDirection: "row",
     alignItems: "center",

@@ -43,7 +43,8 @@ export default function Bookings() {
             {UPCOMING.map((b) => {
               const badge = BADGE[b.status];
               return (
-                <Card key={b.id} padding={16}>
+                <Pressable key={b.id} onPress={() => router.push(`/appointment/${b.id}`)}>
+                <Card padding={16}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <View style={{ flexDirection: "row", gap: space.md, alignItems: "center", flex: 1 }}>
                       <Avatar initial={b.initial} size={48} tint={colors.surfaceMid} fg={colors.inkVariant} />
@@ -65,6 +66,7 @@ export default function Bookings() {
                     <AppText variant="labelMd" color={colors.accent}>{b.price}</AppText>
                   </View>
                 </Card>
+                </Pressable>
               );
             })}
 
