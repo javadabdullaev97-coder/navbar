@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import type { Avail } from "./slots";
 
 export type Role = "client" | "master";
 export type Lang = "ru" | "uz" | "en";
@@ -22,25 +23,33 @@ export type Booking = {
 };
 
 export type Draft = {
+  slug: string;            // slug специалиста из БД ("" = демо-режим)
   specialist: string;
   initial: string;
   spec: string;
   address: string;
   service: string;
+  serviceId: string | null; // uuid услуги из БД
   price: number;
   duration: number;
   date: Date | null;
+  availability: Avail[] | null; // график из БД для расчёта слотов
+  serviceOptions: { id: string; name: string; duration_min: number; price: number }[] | null;
 };
 
 const DEFAULT_DRAFT: Draft = {
+  slug: "",
   specialist: "Дилноза Каримова",
   initial: "Д",
   spec: "Клинический психолог",
   address: "Ташкент, Мирабад",
   service: "Индивидуальная консультация",
+  serviceId: null,
   price: 180000,
   duration: 50,
   date: null,
+  availability: null,
+  serviceOptions: null,
 };
 
 type StoreValue = {

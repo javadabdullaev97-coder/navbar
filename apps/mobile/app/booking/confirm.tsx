@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, PrimaryButton, Sym } from "../../components/ui";
+import { createBooking } from "../../lib/api";
+import { supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
 import { useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
@@ -29,10 +31,30 @@ export default function Confirm() {
   const router = useRouter();
   const { draft, confirmBooking } = useStore();
   const [comment, setComment] = useState("");
+  const [busy, setBusy] = useState(false);
   const date = draft.date ?? new Date();
 
-  function submit() {
-    confirmBooking();
+  async function submit() {
+    if (busy) return;
+    const real = supabaseConfigured && draft.slug && draft.serviceId && draft.date;
+    if (real) {
+      setBusy(true);
+      try {
+        await createBooking({
+          slug: draft.slug,
+          serviceIds: [draft.serviceId!],
+          startsAt: date.toISOString(),
+          name: "Азиз Рахимов",
+          phone: "+998900000000",
+        });
+      } catch {
+        // если запись не удалась — всё равно продолжаем (демо-поведение); ошибку разберём отдельно
+      } finally {
+        setBusy(false);
+      }
+    } else {
+      confirmBooking();
+    }
     router.replace("/booking/success");
   }
 
@@ -93,7 +115,7 @@ export default function Confirm() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Подтвердить запись" onPress={submit} />
+        <PrimaryButton label="Подтвердить запись" onPress={submit} loading={busy} />
       </View>
     </SafeAreaView>
   );

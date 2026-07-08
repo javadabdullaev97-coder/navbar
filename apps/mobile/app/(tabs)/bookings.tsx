@@ -1,10 +1,12 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Sym } from "../../components/ui";
+import { ClientBooking, getMyBookings } from "../../lib/api";
+import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtMoney, MONTHS_GEN } from "../../lib/format";
-import { Booking, BookingStatus, useStore } from "../../lib/store";
+import { BookingStatus, useStore } from "../../lib/store";
 import { colors, radius, space } from "../../theme";
 
 const BADGE: Record<BookingStatus, { bg: string; fg: string; label: string }> = {
@@ -14,6 +16,7 @@ const BADGE: Record<BookingStatus, { bg: string; fg: string; label: string }> = 
   cancelled: { bg: colors.surfaceHigh, fg: colors.secondary, label: "Отменена" },
 };
 
+type Item = { id: string; initial: string; name: string; service: string; date: Date; status: BookingStatus; price: number | null };
 const p2 = (n: number) => String(n).padStart(2, "0");
 const when = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 
@@ -21,17 +24,29 @@ export default function Bookings() {
   const router = useRouter();
   const { bookings } = useStore();
   const [tab, setTab] = useState(0);
+  const [remote, setRemote] = useState<ClientBooking[] | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!supabaseConfigured) return;
+      let alive = true;
+      getMyBookings().then((b) => alive && setRemote(b)).catch(() => alive && setRemote([]));
+      return () => { alive = false; };
+    }, [])
+  );
+
+  const items: Item[] = remote
+    ? remote.map((b) => ({ id: b.id, initial: initialOf(b.master_name), name: b.master_name, service: b.service_name ?? "Услуга", date: new Date(b.starts_at), status: b.status, price: null }))
+    : bookings.map((b) => ({ id: b.id, initial: b.initial, name: b.specialist, service: b.service, date: b.date, status: b.status, price: b.price }));
 
   const now = Date.now();
-  const upcoming = bookings.filter((b) => b.status !== "cancelled" && b.date.getTime() >= now - 60 * 60 * 1000);
-  const history = bookings.filter((b) => !(b.status !== "cancelled" && b.date.getTime() >= now - 60 * 60 * 1000));
+  const upcoming = items.filter((b) => b.status !== "cancelled" && b.date.getTime() >= now - 3600_000);
+  const history = items.filter((b) => !(b.status !== "cancelled" && b.date.getTime() >= now - 3600_000));
   const list = tab === 0 ? upcoming : history;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <AppText variant="headlineMd" color={colors.accent}>Мои записи</AppText>
-      </View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои записи</AppText></View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
         <View style={styles.segment}>
@@ -56,7 +71,7 @@ export default function Bookings() {
           </View>
         ) : (
           <View style={{ gap: space.md }}>
-            {list.map((b: Booking) => {
+            {list.map((b) => {
               const badge = BADGE[b.status];
               return (
                 <Pressable key={b.id} onPress={() => router.push(`/appointment/${b.id}`)}>
@@ -65,7 +80,7 @@ export default function Bookings() {
                       <View style={{ flexDirection: "row", gap: space.md, alignItems: "center", flex: 1 }}>
                         <Avatar initial={b.initial} size={48} tint={colors.surfaceMid} fg={colors.inkVariant} />
                         <View style={{ flex: 1 }}>
-                          <AppText variant="labelMd" color={colors.ink}>{b.specialist}</AppText>
+                          <AppText variant="labelMd" color={colors.ink}>{b.name}</AppText>
                           <AppText variant="labelSm" color={colors.secondary}>{b.service}</AppText>
                         </View>
                       </View>
@@ -79,7 +94,7 @@ export default function Bookings() {
                         <Sym name="calendar-today" size={18} color={colors.inkVariant} />
                         <AppText variant="labelSm" color={colors.inkVariant}>{when(b.date)}</AppText>
                       </View>
-                      <AppText variant="labelMd" color={colors.accent}>{fmtMoney(b.price)}</AppText>
+                      {b.price ? <AppText variant="labelMd" color={colors.accent}>{fmtMoney(b.price)}</AppText> : null}
                     </View>
                   </Card>
                 </Pressable>
