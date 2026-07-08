@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
 import { colors, radius, space, type as T } from "../theme";
@@ -10,7 +10,7 @@ const LEN = 6;
 export default function Otp() {
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
-  const [code, setCode] = useState("42");
+  const [code, setCode] = useState("");
   const [left, setLeft] = useState(42);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Otp() {
         </Pressable>
       </View>
 
-      <View style={styles.body}>
+      <Pressable style={styles.body} onPress={() => Keyboard.dismiss()}>
         {/* Заголовок */}
         <View style={{ gap: 12, marginBottom: 48 }}>
           <AppText variant="displayLg" color={colors.accent}>
@@ -51,7 +51,7 @@ export default function Otp() {
               key={i}
               style={[styles.cell, i === focusIdx && { borderBottomWidth: 2, borderBottomColor: colors.accent }]}
             >
-              <AppText variant="displayLg" color={c ? colors.accent : colors.outlineVariant}>
+              <AppText variant="displayLg" color={c ? colors.ink : colors.outlineVariant}>
                 {c}
               </AppText>
             </View>
@@ -98,7 +98,7 @@ export default function Otp() {
             <Sym name="edit" size={16} color={colors.inkVariant} />
           </Pressable>
         </View>
-      </View>
+      </Pressable>
     </SafeAreaView>
   );
 }

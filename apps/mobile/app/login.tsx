@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -41,7 +42,7 @@ export default function Login() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.body}>
+        <Pressable style={styles.body} onPress={() => Keyboard.dismiss()}>
           {/* Заголовок */}
           <View>
             <AppText variant="displayLg" color={colors.accent} style={{ marginBottom: space.sm }}>
@@ -93,7 +94,7 @@ export default function Login() {
           <AppText variant="labelSm" color={colors.inkVariant} style={styles.terms}>
             Продолжая, вы принимаете условия и политику конфиденциальности
           </AppText>
-        </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
