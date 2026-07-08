@@ -12,11 +12,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
 import { useT } from "../lib/i18n";
-import { colors, radius, space } from "../theme";
+import { useColors, useThemedStyles } from "../lib/theme-context";
+import { radius, space, ThemeColors } from "../theme";
 
 export default function Login() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [phone, setPhone] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -102,7 +105,7 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, justifyContent: "center", paddingHorizontal: space.margin },
   body: {

@@ -6,7 +6,8 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; reviews: string; dist: string; price: string };
 const DEMO: Item[] = [
@@ -18,6 +19,8 @@ const DEMO: Item[] = [
 export default function Category() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const title = typeof slug === "string" ? slug : "Специалисты";
   const { data: remote, reload } = useCatalog(title);
@@ -102,7 +105,7 @@ export default function Category() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, height: 56 },
   filterBar: { flexGrow: 0, maxHeight: 60 },

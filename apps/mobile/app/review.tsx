@@ -16,11 +16,14 @@ import { AppText, Card, PrimaryButton, Sym } from "../components/ui";
 import { addReview } from "../lib/api";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
-import { colors, radius, space } from "../theme";
+import { useColors, useThemedStyles } from "../lib/theme-context";
+import { radius, space, ThemeColors } from "../theme";
 
 export default function Review() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const [rating, setRating] = useState(4);
   const [text, setText] = useState("");
@@ -128,7 +131,7 @@ export default function Review() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },

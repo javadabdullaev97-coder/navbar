@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
-import { cardShadow, colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 type Msg = { id: string; me: boolean; text: string; time: string };
 const SEED: Msg[] = [
@@ -24,6 +25,8 @@ const SEED: Msg[] = [
 export default function Chat() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [msgs, setMsgs] = useState<Msg[]>(SEED);
   const [text, setText] = useState("");
   const scroll = useRef<ScrollView>(null);
@@ -101,7 +104,7 @@ export default function Chat() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
   av: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },

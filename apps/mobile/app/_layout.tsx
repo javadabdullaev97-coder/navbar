@@ -14,7 +14,29 @@ import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StoreProvider } from "../lib/store";
-import { colors } from "../theme";
+import { ThemeProvider, useColors, useIsDark } from "../lib/theme-context";
+import { lightColors } from "../theme";
+
+// Внутри провайдера темы: реагирует на светлую/тёмную тему.
+function Root() {
+  const colors = useColors();
+  const isDark = useIsDark();
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+          animation: "slide_from_right",
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </>
+  );
+}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -27,23 +49,15 @@ export default function RootLayout() {
   });
 
   if (!loaded) {
-    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+    return <View style={{ flex: 1, backgroundColor: lightColors.bg }} />;
   }
 
   return (
     <SafeAreaProvider>
       <StoreProvider>
-        <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.bg },
-            animation: "slide_from_right",
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <ThemeProvider>
+          <Root />
+        </ThemeProvider>
       </StoreProvider>
     </SafeAreaProvider>
   );

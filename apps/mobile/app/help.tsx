@@ -3,7 +3,8 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, Sym } from "../components/ui";
 import { useT } from "../lib/i18n";
-import { colors, radius, space } from "../theme";
+import { useColors, useThemedStyles } from "../lib/theme-context";
+import { radius, space, ThemeColors } from "../theme";
 
 const FAQ = [
   { q: "Как записаться к специалисту?", a: "Откройте профиль специалиста, выберите одну или несколько услуг, затем удобные дату и время и подтвердите запись." },
@@ -20,6 +21,8 @@ const CONTACTS = [
 export default function Help() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
@@ -57,7 +60,7 @@ export default function Help() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   section: { textTransform: "uppercase", letterSpacing: 2 },

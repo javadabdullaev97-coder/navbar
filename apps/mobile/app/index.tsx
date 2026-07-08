@@ -3,7 +3,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Sym } from "../components/ui";
 import { useT } from "../lib/i18n";
-import { cardShadow, colors, radius, space } from "../theme";
+import { useColors, useThemedStyles } from "../lib/theme-context";
+import { cardShadow, radius, space, ThemeColors } from "../theme";
 
 type Role = {
   icon: React.ComponentProps<typeof Sym>["name"];
@@ -34,6 +35,8 @@ const ROLES: Role[] = [
 export default function Welcome() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
 
   function pick(role: Role) {
     // Пока во всех продуктах клиентский флоу: ведём на вход.
@@ -105,7 +108,7 @@ export default function Welcome() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   wrap: { flex: 1, paddingHorizontal: space.margin },
   brand: { flex: 1, alignItems: "center", justifyContent: "center" },

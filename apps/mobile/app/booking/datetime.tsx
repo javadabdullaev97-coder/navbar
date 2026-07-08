@@ -9,7 +9,8 @@ import { fmtDate, MONTHS_NOM, nextDays, WD_SHORT, withTime } from "../../lib/for
 import { useT } from "../../lib/i18n";
 import { Busy, freeSlots, minutesToTime, toOurDow } from "../../lib/slots";
 import { useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 // Демо-слоты, когда специалист без графика из БД.
 const DEMO_SLOTS = ["10:00", "10:30", "11:00", "12:00", "14:00", "15:00", "16:00"];
@@ -21,6 +22,8 @@ function isoDate(d: Date) {
 export default function DateTime() {
   const router = useRouter();
   const tr = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { draft, patchDraft } = useStore();
   const days = useMemo(() => nextDays(14), []);
   const [day, setDay] = useState(0);
@@ -123,7 +126,7 @@ export default function DateTime() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   month: { textTransform: "uppercase", letterSpacing: 2, paddingHorizontal: space.margin, paddingTop: space.md },

@@ -2,7 +2,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { ComponentProps } from "react";
 import { useT } from "../../lib/i18n";
-import { colors, fonts } from "../../theme";
+import { useColors } from "../../lib/theme-context";
+import { fonts } from "../../theme";
 
 type IconName = ComponentProps<typeof MaterialIcons>["name"];
 
@@ -16,6 +17,7 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 
 export default function TabsLayout() {
   const tr = useT();
+  const colors = useColors();
   return (
     <Tabs
       screenOptions={{

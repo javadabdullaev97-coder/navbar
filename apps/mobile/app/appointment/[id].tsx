@@ -8,13 +8,16 @@ import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { BookingStatus, useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed: "Подтверждена", pending: "Ожидает", done: "Выполнена", cancelled: "Отменена",
 };
 
 function DetailRow({ icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={{ flexDirection: "row", gap: 16, alignItems: "flex-start" }}>
       <View style={styles.iconCircle}><Sym name={icon} size={20} color={colors.accent} /></View>
@@ -37,6 +40,8 @@ type ApptView = {
 export default function Appointment() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bookings, cancelBooking } = useStore();
   const [remote, setRemote] = useState<ClientBooking | null | undefined>(undefined); // undefined = грузим
@@ -194,7 +199,7 @@ export default function Appointment() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.full },

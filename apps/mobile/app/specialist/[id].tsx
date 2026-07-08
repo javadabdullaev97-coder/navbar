@@ -8,7 +8,8 @@ import { initialOf, supabaseConfigured, useMaster, useReviews } from "../../lib/
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
-import { cardShadow, colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 function reviewDate(iso: string): string {
   const d = new Date(iso);
@@ -37,6 +38,8 @@ const DEMO = {
 export default function Specialist() {
   const router = useRouter();
   const tr = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { master, reload } = useMaster(id);
   const { data: reviewList, loading: reviewsLoading, reload: reloadReviews } = useReviews(master?.slug);
@@ -216,6 +219,7 @@ export default function Specialist() {
 }
 
 function Empty({ text }: { text: string }) {
+  const colors = useColors();
   return (
     <View style={{ padding: space.lg, alignItems: "center" }}>
       <AppText variant="bodyMd" color={colors.secondary}>{text}</AppText>
@@ -223,7 +227,7 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   cover: { height: 192, backgroundColor: colors.surfaceMid },
   floatBar: { position: "absolute", top: 0, left: 0, right: 0, paddingHorizontal: space.margin, flexDirection: "row", justifyContent: "space-between" },

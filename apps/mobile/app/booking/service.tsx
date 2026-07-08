@@ -6,7 +6,8 @@ import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 const DEMO_SERVICES = [
   { id: "d1", name: "Индивидуальная консультация", duration_min: 50, price: 180000 },
@@ -18,6 +19,8 @@ const DEMO_SERVICES = [
 export default function ServiceSelect() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { draft, patchDraft } = useStore();
   const options = draft.serviceOptions && draft.serviceOptions.length ? draft.serviceOptions : DEMO_SERVICES;
 
@@ -99,7 +102,7 @@ export default function ServiceSelect() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },

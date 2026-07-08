@@ -6,8 +6,9 @@ import { AppText, Loading, Sym } from "../components/ui";
 import { ClientBooking, getMyBookings } from "../lib/api";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
+import { useColors, useThemedStyles } from "../lib/theme-context";
 import { MONTHS_GEN } from "../lib/format";
-import { cardShadow, colors, radius, space } from "../theme";
+import { cardShadow, radius, space, ThemeColors } from "../theme";
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -21,7 +22,7 @@ const clock = (d: Date) => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
 const dayLabel = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
 
 // Формируем уведомления из реальных записей клиента.
-function buildNotes(bookings: ClientBooking[], now: number, t: TFn): Note[] {
+function buildNotes(bookings: ClientBooking[], now: number, t: TFn, colors: ThemeColors): Note[] {
   const notes: Note[] = [];
   for (const b of bookings) {
     const start = new Date(b.starts_at);
@@ -59,6 +60,8 @@ function buildNotes(bookings: ClientBooking[], now: number, t: TFn): Note[] {
 }
 
 function Item({ n, onPress }: { n: Note; onPress?: () => void }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable onPress={onPress} style={[styles.item, cardShadow]}>
       <View style={[styles.tint, { backgroundColor: n.tintBg }]}>
@@ -78,12 +81,14 @@ function Item({ n, onPress }: { n: Note; onPress?: () => void }) {
 export default function Notifications() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [notes, setNotes] = useState<Note[] | null>(supabaseConfigured ? null : []);
   const [refreshing, setRefreshing] = useState(false);
 
   async function load() {
     if (!supabaseConfigured) return;
-    try { setNotes(buildNotes(await getMyBookings(), Date.now(), t)); }
+    try { setNotes(buildNotes(await getMyBookings(), Date.now(), t, colors)); }
     catch { setNotes([]); }
   }
   useEffect(() => { load(); }, []);
@@ -123,7 +128,7 @@ export default function Notifications() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, justifyContent: "center", paddingHorizontal: space.margin },
   item: { flexDirection: "row", gap: 16, alignItems: "center", padding: 16, backgroundColor: colors.surface, borderRadius: radius.xl },

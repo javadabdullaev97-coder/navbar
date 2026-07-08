@@ -8,14 +8,15 @@ import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtMoney, MONTHS_GEN } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { BookingStatus, useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
-const BADGE: Record<BookingStatus, { bg: string; fg: string; label: string }> = {
+const makeBadge = (colors: ThemeColors): Record<BookingStatus, { bg: string; fg: string; label: string }> => ({
   confirmed: { bg: colors.successBg, fg: colors.successText, label: "Подтверждена" },
   pending: { bg: colors.warningBg, fg: colors.warningText, label: "Ожидает" },
   done: { bg: colors.infoBg, fg: colors.infoText, label: "Выполнена" },
   cancelled: { bg: colors.surfaceHigh, fg: colors.secondary, label: "Отменена" },
-};
+});
 
 type Item = { id: string; initial: string; name: string; service: string; date: Date; status: BookingStatus; price: number | null };
 const p2 = (n: number) => String(n).padStart(2, "0");
@@ -24,6 +25,9 @@ const when = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${p2(d.ge
 export default function Bookings() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const BADGE = makeBadge(colors);
   const { bookings } = useStore();
   const [tab, setTab] = useState(0);
   const [remote, setRemote] = useState<ClientBooking[] | null>(null);
@@ -127,7 +131,7 @@ export default function Bookings() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: space.margin, height: 56, justifyContent: "center" },
   segment: { flexDirection: "row", backgroundColor: colors.surfaceLow, borderRadius: radius.full, padding: 4, marginBottom: space.lg },

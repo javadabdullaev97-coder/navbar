@@ -6,7 +6,8 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { getFavorites, toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { useT } from "../../lib/i18n";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 const CATS = ["Все", "Красота", "Терапия", "Здоровье"];
 // Грубое сопоставление категории по тексту специализации.
@@ -26,6 +27,8 @@ const DEMO: Item[] = [
 export default function Saved() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [cat, setCat] = useState(0);
   const [remote, setRemote] = useState<Item[] | null>(null);
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
@@ -134,7 +137,7 @@ export default function Saved() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: space.margin, height: 56, justifyContent: "center" },
   chip: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: radius.full },

@@ -17,9 +17,11 @@ import { supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 function Field({ label, value }: { label: string; value: string }) {
+  const colors = useColors();
   return (
     <View style={{ gap: 4 }}>
       <AppText variant="labelSm" color={colors.secondary} style={{ textTransform: "uppercase", letterSpacing: 1 }}>{label}</AppText>
@@ -39,6 +41,8 @@ function toE164(raw: string): string {
 export default function Confirm() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { draft, confirmBooking, profile, setProfile } = useStore();
   const [comment, setComment] = useState("");
   const [name, setName] = useState(profile.name);
@@ -172,7 +176,7 @@ export default function Confirm() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },

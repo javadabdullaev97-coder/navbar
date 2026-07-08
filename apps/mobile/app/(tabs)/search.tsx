@@ -6,7 +6,8 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 type SortKey = "rating" | "price";
 const SORT_LABEL: Record<SortKey, string> = { rating: "По рейтингу", price: "По цене" };
@@ -21,6 +22,8 @@ const DEMO: Item[] = [
 export default function Search() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [q, setQ] = useState("");
   const { data: remote, reload } = useSearchMasters(q);
   const [refreshing, setRefreshing] = useState(false);
@@ -115,7 +118,7 @@ export default function Search() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   searchWrap: { paddingHorizontal: space.margin, paddingTop: space.sm, paddingBottom: space.sm },
   search: { flexDirection: "row", alignItems: "center", gap: 8, height: 48, paddingHorizontal: 16, backgroundColor: colors.surfaceLow, borderRadius: radius.xl },

@@ -8,7 +8,8 @@ import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
-import { cardShadow, colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 const CATS = ["Барберы", "Ногти", "Психологи", "Массаж", "Репетиторы", "Врачи", "Ещё"];
 
@@ -36,6 +37,7 @@ function mapMaster(m: CatalogMaster): Item {
 }
 
 function Stars({ value }: { value: string }) {
+  const colors = useColors();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
       <Sym name="star" size={14} color={colors.gold} />
@@ -47,6 +49,8 @@ function Stars({ value }: { value: string }) {
 export default function Home() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { data: catalog, reload } = useCatalog();
   const { profile } = useStore();
   const [refreshing, setRefreshing] = useState(false);
@@ -162,7 +166,7 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: space.margin, paddingTop: space.sm, gap: space.md },
   bell: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surfaceLow, alignItems: "center", justifyContent: "center" },

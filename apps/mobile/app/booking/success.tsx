@@ -5,9 +5,11 @@ import { AppText, Card, GhostBorderButton, PrimaryButton, Sym } from "../../comp
 import { fmtDate, fmtTime } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
-import { colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { radius, space, ThemeColors } from "../../theme";
 
 function Line({ icon, label, value }: { icon: any; label: string; value: string }) {
+  const colors = useColors();
   return (
     <View style={{ flexDirection: "row", gap: 12 }}>
       <Sym name={icon} size={20} color={"rgba(6,78,59,0.6)"} />
@@ -22,6 +24,8 @@ function Line({ icon, label, value }: { icon: any; label: string; value: string 
 export default function Success() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { draft } = useStore();
   const date = draft.date ?? new Date();
   return (
@@ -67,7 +71,7 @@ export default function Success() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   body: { flex: 1, paddingHorizontal: space.margin, paddingTop: 40, paddingBottom: space.margin, justifyContent: "space-between", alignItems: "center" },
   check: { width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", marginBottom: 4 },

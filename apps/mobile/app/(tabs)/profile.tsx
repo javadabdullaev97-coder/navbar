@@ -12,7 +12,8 @@ import {
   THEME_LABEL,
   useStore,
 } from "../../lib/store";
-import { cardShadow, colors, radius, space } from "../../theme";
+import { useColors, useThemedStyles } from "../../lib/theme-context";
+import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 type Option = { key: string; label: string };
 
@@ -22,6 +23,8 @@ function Picker({
   visible: boolean; title: string; options: Option[]; selected: string;
   onSelect: (k: string) => void; onClose: () => void;
 }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
@@ -45,6 +48,8 @@ function Picker({
 export default function Profile() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const { role, setRole, lang, setLang, themeMode, setThemeMode, profile, setProfile } = useStore();
   const [picker, setPicker] = useState<null | "theme" | "lang">(null);
   const [editing, setEditing] = useState(false);
@@ -129,6 +134,8 @@ function EditProfile({
   onSave: (p: { name: string; phone: string }) => void; onClose: () => void;
 }) {
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone);
 
@@ -156,6 +163,8 @@ function EditProfile({
 }
 
 function Row({ icon, label, value, onPress, last }: { icon: any; label: string; value?: string; onPress: () => void; last?: boolean }) {
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && { backgroundColor: colors.surfaceMid }]}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -170,7 +179,7 @@ function Row({ icon, label, value, onPress, last }: { icon: any; label: string; 
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { paddingHorizontal: space.margin, height: 56, justifyContent: "center" },
   avatar: { width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.accentTint },

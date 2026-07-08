@@ -4,13 +4,16 @@ import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
 import { useT } from "../lib/i18n";
-import { colors, radius, space, type as T } from "../theme";
+import { useColors, useThemedStyles } from "../lib/theme-context";
+import { radius, space, ThemeColors, type as T } from "../theme";
 
 const LEN = 6;
 
 export default function Otp() {
   const router = useRouter();
   const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState("");
   const [left, setLeft] = useState(42);
@@ -105,7 +108,7 @@ export default function Otp() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, justifyContent: "center", paddingHorizontal: space.margin },
   body: { flex: 1, paddingHorizontal: space.margin, paddingTop: 20, paddingBottom: 24 },
