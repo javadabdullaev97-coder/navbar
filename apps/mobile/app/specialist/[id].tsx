@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   circleBtn: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: "rgba(255,255,255,0.9)", alignItems: "center", justifyContent: "center", ...cardShadow },
   head: { paddingHorizontal: space.margin, marginTop: -64 },
   avatar: { width: 128, height: 128, borderRadius: radius.x2l, backgroundColor: colors.surfaceMid, borderWidth: 4, borderColor: colors.bg, alignItems: "center", justifyContent: "center" },
-  avatarInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 52 },
+  avatarInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 52, lineHeight: 58 },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
   locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
   tabs: { flexDirection: "row", gap: 8, marginHorizontal: space.margin, marginTop: space.lg, padding: 4, backgroundColor: colors.surfaceLow, borderRadius: radius.full },

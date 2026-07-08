@@ -2,8 +2,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Sym } from "../../components/ui";
-import { initialOf, useCatalog } from "../../lib/data";
+import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { colors, radius, space } from "../../theme";
 
@@ -21,8 +21,9 @@ export default function Category() {
   const remote = useCatalog(title);
   const [saved, setSaved] = useState<Record<string, boolean>>({});
 
-  const rows: Item[] = remote && remote.length
-    ? remote.map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }))
+  const loading = supabaseConfigured && remote === null;
+  const rows: Item[] = supabaseConfigured
+    ? (remote ?? []).map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }))
     : DEMO;
 
   return (
@@ -32,7 +33,7 @@ export default function Category() {
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
           <View>
             <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 20 }}>{title}</AppText>
-            <AppText variant="labelSm" color={colors.secondary}>{rows.length} специалистов</AppText>
+            <AppText variant="labelSm" color={colors.secondary}>{loading ? "Загрузка…" : `${rows.length} специалистов`}</AppText>
           </View>
         </View>
         <Sym name="search" size={24} color={colors.secondary} />
@@ -45,7 +46,11 @@ export default function Category() {
       </ScrollView>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false}>
-        {rows.map((s) => (
+        {loading && <Loading />}
+        {!loading && rows.length === 0 && (
+          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>В этой категории пока пусто</AppText></View>
+        )}
+        {!loading && rows.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
             <Card padding={16} style={{ flexDirection: "row", gap: space.md }}>
               <Avatar initial={s.initial} size={96} tint={colors.surfaceMid} fg={colors.inkVariant} />

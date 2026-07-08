@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { ClientBooking, getMyBookings } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtMoney, MONTHS_GEN } from "../../lib/format";
@@ -35,8 +35,9 @@ export default function Bookings() {
     }, [])
   );
 
-  const items: Item[] = remote
-    ? remote.map((b) => ({ id: b.id, initial: initialOf(b.master_name), name: b.master_name, service: b.service_name ?? "Услуга", date: new Date(b.starts_at), status: b.status, price: null }))
+  const loading = supabaseConfigured && remote === null;
+  const items: Item[] = supabaseConfigured
+    ? (remote ?? []).map((b) => ({ id: b.id, initial: initialOf(b.master_name), name: b.master_name, service: b.service_name ?? "Услуга", date: new Date(b.starts_at), status: b.status, price: null }))
     : bookings.map((b) => ({ id: b.id, initial: b.initial, name: b.specialist, service: b.service, date: b.date, status: b.status, price: b.price }));
 
   const now = Date.now();
@@ -57,7 +58,7 @@ export default function Bookings() {
           ))}
         </View>
 
-        {list.length === 0 ? (
+        {loading ? <Loading /> : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 56, gap: 12 }}>
             <Sym name={tab === 0 ? "event-note" : "history"} size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>

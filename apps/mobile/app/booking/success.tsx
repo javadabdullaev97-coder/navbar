@@ -70,5 +70,5 @@ const styles = StyleSheet.create({
   body: { flex: 1, paddingHorizontal: space.margin, paddingTop: 40, paddingBottom: space.margin, justifyContent: "space-between", alignItems: "center" },
   check: { width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26 },
+  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26, lineHeight: 30 },
 });

@@ -2,8 +2,8 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Sym } from "../../components/ui";
-import { initialOf, useSearchMasters } from "../../lib/data";
+import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { colors, radius, space } from "../../theme";
 
@@ -26,8 +26,9 @@ export default function Search() {
   const [q, setQ] = useState("");
   const remote = useSearchMasters(q);
 
-  const results: Item[] = remote && remote.length
-    ? remote.map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }))
+  const loading = supabaseConfigured && remote === null;
+  const results: Item[] = supabaseConfigured
+    ? (remote ?? []).map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }))
     : DEMO;
 
   return (
@@ -60,7 +61,11 @@ export default function Search() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md }} showsVerticalScrollIndicator={false}>
-        {results.map((s) => (
+        {loading && <Loading />}
+        {!loading && results.length === 0 && (
+          <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>Ничего не найдено</AppText></View>
+        )}
+        {!loading && results.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
             <Card padding={12} style={{ flexDirection: "row", gap: space.md }}>
               <Avatar initial={s.initial} size={96} tint={colors.surfaceMid} fg={colors.inkVariant} />

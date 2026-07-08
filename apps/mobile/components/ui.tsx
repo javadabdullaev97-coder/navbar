@@ -87,11 +87,21 @@ export function Avatar({
         style={{
           fontFamily: T.headlineMd.fontFamily,
           fontSize: size * 0.42,
+          lineHeight: size * 0.5,
           color: fg,
         }}
       >
         {initial}
       </Text>
+    </View>
+  );
+}
+
+/** Индикатор загрузки (пока данные грузятся из базы). */
+export function Loading() {
+  return (
+    <View style={{ paddingVertical: 48, alignItems: "center" }}>
+      <ActivityIndicator color={colors.accent} />
     </View>
   );
 }

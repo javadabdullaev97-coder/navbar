@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26 },
+  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26, lineHeight: 30 },
   rows: { gap: space.md, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: space.lg },
   total: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1, borderTopColor: colors.outlineVariant, borderStyle: "dashed", paddingTop: space.md, marginTop: 4 },
   textarea: { minHeight: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, padding: space.md, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink, textAlignVertical: "top" },

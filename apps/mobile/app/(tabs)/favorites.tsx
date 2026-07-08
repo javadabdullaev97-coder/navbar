@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { getFavorites, toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { colors, radius, space } from "../../theme";
@@ -33,7 +33,8 @@ export default function Saved() {
     }, [])
   );
 
-  const source = remote ?? DEMO;
+  const loading = supabaseConfigured && remote === null;
+  const source = supabaseConfigured ? (remote ?? []) : DEMO;
   const list = source.filter((s) => !removed[s.key]);
 
   async function remove(key: string) {
@@ -64,7 +65,7 @@ export default function Saved() {
           </View>
         </View>
 
-        {list.length === 0 ? (
+        {loading ? <Loading /> : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="bookmark-border" size={56} color={colors.surfaceHighest} />
             <AppText variant="headlineMd" color={colors.ink}>Список пуст</AppText>

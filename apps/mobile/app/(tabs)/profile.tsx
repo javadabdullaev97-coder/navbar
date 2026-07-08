@@ -55,7 +55,7 @@ export default function Profile() {
         {/* Профиль */}
         <View style={{ alignItems: "center", paddingTop: 8, paddingBottom: space.lg }}>
           <View style={styles.avatar}>
-            <AppText style={{ fontFamily: "LibreCaslonText_400Regular", fontSize: 40 }} color={colors.inkVariant}>А</AppText>
+            <AppText style={{ fontFamily: "LibreCaslonText_400Regular", fontSize: 40, lineHeight: 46 }} color={colors.inkVariant}>А</AppText>
             <View style={styles.editBadge}><Sym name="edit" size={14} color={colors.onAccent} /></View>
           </View>
           <AppText variant="headlineMd" color={colors.ink} style={{ marginTop: 12 }}>Азиз Рахимов</AppText>

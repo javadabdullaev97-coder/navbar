@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26 },
+  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26, lineHeight: 30 },
   textarea: {
     minHeight: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant,
     borderRadius: radius.xl, padding: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink, textAlignVertical: "top",

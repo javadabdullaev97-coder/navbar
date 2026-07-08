@@ -1,9 +1,9 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import type { CatalogMaster } from "../../lib/api";
-import { initialOf, useCatalog } from "../../lib/data";
+import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { cardShadow, colors, radius, space } from "../../theme";
 
@@ -46,8 +46,10 @@ export default function Home() {
   const catalog = useCatalog();
   const go = (key: string) => router.push(`/specialist/${key}`);
 
-  const near = catalog && catalog.length ? catalog.slice(0, 6).map(mapMaster) : DEMO_NEAR;
-  const popular = catalog && catalog.length ? catalog.map(mapMaster) : DEMO_POPULAR;
+  const loading = supabaseConfigured && catalog === null;
+  const real = supabaseConfigured ? (catalog ?? []) : null; // null => показать демо
+  const near = real ? real.slice(0, 6).map(mapMaster) : DEMO_NEAR;
+  const popular = real ? real.map(mapMaster) : DEMO_POPULAR;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -86,6 +88,13 @@ export default function Home() {
           ))}
         </ScrollView>
 
+        {loading ? <Loading /> : real && real.length === 0 ? (
+          <View style={{ alignItems: "center", paddingVertical: 48, gap: 8 }}>
+            <Sym name="search-off" size={40} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary}>Специалистов пока нет</AppText>
+          </View>
+        ) : (
+        <>
         {/* Рядом с вами */}
         <View style={styles.sectionHead}>
           <AppText variant="headlineMd" color={colors.accent}>Рядом с вами</AppText>
@@ -136,6 +145,8 @@ export default function Home() {
             </Pressable>
           ))}
         </View>
+        </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -154,7 +165,7 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingHorizontal: space.margin, marginTop: space.lg, marginBottom: space.md },
   nearCard: { width: 256, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 12 },
   nearPhoto: { position: "relative", width: "100%", aspectRatio: 1, borderRadius: radius.xl, overflow: "hidden", marginBottom: 12, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  nearInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 64 },
+  nearInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 64, lineHeight: 70 },
   ratingBadge: { position: "absolute", top: 8, left: 8, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.9)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
   distBadge: { position: "absolute", bottom: 8, left: 8, backgroundColor: "rgba(6,78,59,0.85)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
 });

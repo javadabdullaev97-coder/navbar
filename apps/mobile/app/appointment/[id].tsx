@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.full },
   av: { width: 64, height: 64, borderRadius: radius.xl, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26 },
+  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26, lineHeight: 30 },
   iconCircle: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center" },
   map: { height: 160, backgroundColor: colors.surfaceHighest, alignItems: "center", justifyContent: "center" },
   pin: { width: 32, height: 32, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface },
