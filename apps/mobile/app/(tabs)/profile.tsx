@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Sym } from "../../components/ui";
+import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { initialOf } from "../../lib/data";
 import {
   Lang,
   LANG_LABEL,
@@ -42,8 +43,12 @@ function Picker({
 
 export default function Profile() {
   const router = useRouter();
-  const { role, setRole, lang, setLang, themeMode, setThemeMode } = useStore();
+  const { role, setRole, lang, setLang, themeMode, setThemeMode, profile, setProfile } = useStore();
   const [picker, setPicker] = useState<null | "theme" | "lang">(null);
+  const [editing, setEditing] = useState(false);
+
+  const displayName = profile.name || "Гость";
+  const displayPhone = profile.phone || "Добавьте телефон";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -53,14 +58,14 @@ export default function Profile() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         {/* Профиль */}
-        <View style={{ alignItems: "center", paddingTop: 8, paddingBottom: space.lg }}>
+        <Pressable onPress={() => setEditing(true)} style={{ alignItems: "center", paddingTop: 8, paddingBottom: space.lg }}>
           <View style={styles.avatar}>
-            <AppText style={{ fontFamily: "LibreCaslonText_400Regular", fontSize: 40, lineHeight: 46 }} color={colors.inkVariant}>А</AppText>
+            <AppText style={{ fontFamily: "LibreCaslonText_400Regular", fontSize: 40, lineHeight: 46 }} color={colors.inkVariant}>{profile.name ? initialOf(profile.name) : "•"}</AppText>
             <View style={styles.editBadge}><Sym name="edit" size={14} color={colors.onAccent} /></View>
           </View>
-          <AppText variant="headlineMd" color={colors.ink} style={{ marginTop: 12 }}>Азиз Рахимов</AppText>
-          <AppText variant="bodyMd" color={colors.secondary}>+998 90 123-45-67</AppText>
-        </View>
+          <AppText variant="headlineMd" color={colors.ink} style={{ marginTop: 12 }}>{displayName}</AppText>
+          <AppText variant="bodyMd" color={profile.phone ? colors.secondary : colors.accent}>{displayPhone}</AppText>
+        </Pressable>
 
         {/* Роль */}
         <View style={{ paddingHorizontal: space.margin, marginBottom: space.lg }}>
@@ -78,8 +83,7 @@ export default function Profile() {
           <Row icon="contrast" label="Тема" value={THEME_LABEL[themeMode]} onPress={() => setPicker("theme")} />
           <Row icon="language" label="Язык" value={LANG_LABEL[lang]} onPress={() => setPicker("lang")} />
           <Row icon="notifications-none" label="Уведомления" onPress={() => router.push("/notifications")} />
-          <Row icon="payments" label="Способы оплаты" onPress={() => {}} />
-          <Row icon="help-outline" label="Помощь" onPress={() => {}} last />
+          <Row icon="help-outline" label="Помощь и поддержка" onPress={() => router.push("/help")} last />
         </View>
 
         <View style={{ alignItems: "center", marginTop: space.lg }}>
@@ -88,6 +92,13 @@ export default function Profile() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <EditProfile
+        visible={editing}
+        initial={profile}
+        onSave={(p) => { setProfile(p); setEditing(false); }}
+        onClose={() => setEditing(false)}
+      />
 
       <Picker
         visible={picker === "theme"}
@@ -106,6 +117,38 @@ export default function Profile() {
         onClose={() => setPicker(null)}
       />
     </SafeAreaView>
+  );
+}
+
+function EditProfile({
+  visible, initial, onSave, onClose,
+}: {
+  visible: boolean; initial: { name: string; phone: string };
+  onSave: (p: { name: string; phone: string }) => void; onClose: () => void;
+}) {
+  const [name, setName] = useState(initial.name);
+  const [phone, setPhone] = useState(initial.phone);
+
+  // Синхронизируем поля при повторном открытии.
+  const [seen, setSeen] = useState(false);
+  if (visible && !seen) { setSeen(true); setName(initial.name); setPhone(initial.phone); }
+  if (!visible && seen) setSeen(false);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={[styles.sheet, cardShadow]} onPress={() => {}}>
+          <AppText variant="headlineMd" color={colors.accent} style={{ marginBottom: space.md }}>Профиль</AppText>
+          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, paddingHorizontal: 4 }}>Имя</AppText>
+          <TextInput value={name} onChangeText={setName} placeholder="Ваше имя" placeholderTextColor={colors.outline} style={styles.field} />
+          <AppText variant="labelSm" color={colors.inkVariant} style={{ marginBottom: 4, marginTop: space.md, paddingHorizontal: 4 }}>Телефон</AppText>
+          <TextInput value={phone} onChangeText={setPhone} placeholder="+998 90 123-45-67" placeholderTextColor={colors.outline} keyboardType="phone-pad" style={styles.field} />
+          <View style={{ marginTop: space.lg }}>
+            <PrimaryButton label="Сохранить" onPress={() => onSave({ name: name.trim(), phone: phone.trim() })} />
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -138,4 +181,5 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: radius.x2l, borderTopRightRadius: radius.x2l, padding: space.margin, paddingBottom: 40 },
   opt: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14 },
+  field: { height: 52, backgroundColor: colors.surfaceLow, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
 });

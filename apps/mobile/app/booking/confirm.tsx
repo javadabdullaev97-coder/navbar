@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Keyboard,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -27,15 +27,36 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Телефон в формат E.164 (+998…) из того, что ввёл пользователь.
+function toE164(raw: string): string {
+  const digits = raw.replace(/[^\d]/g, "");
+  if (raw.trim().startsWith("+")) return "+" + digits;
+  if (digits.length === 9) return "+998" + digits; // локальный узбекский номер
+  return "+" + digits;
+}
+
 export default function Confirm() {
   const router = useRouter();
-  const { draft, confirmBooking } = useStore();
+  const { draft, confirmBooking, profile, setProfile } = useStore();
   const [comment, setComment] = useState("");
+  const [name, setName] = useState(profile.name);
+  const [phone, setPhone] = useState(profile.phone);
   const [busy, setBusy] = useState(false);
   const date = draft.date ?? new Date();
 
   async function submit() {
     if (busy) return;
+
+    const nameOk = name.trim().length >= 2;
+    const phoneOk = phone.replace(/[^\d]/g, "").length >= 9;
+    if (!nameOk || !phoneOk) {
+      Alert.alert("Заполните контакты", "Укажите имя и телефон — мастер свяжется с вами по ним.");
+      return;
+    }
+
+    // Сохраняем контакты в профиль устройства, чтобы не вводить каждый раз.
+    setProfile({ name: name.trim(), phone: phone.trim() });
+
     const real = supabaseConfigured && draft.slug && draft.serviceIds.length > 0 && draft.date;
     if (real) {
       setBusy(true);
@@ -44,11 +65,14 @@ export default function Confirm() {
           slug: draft.slug,
           serviceIds: draft.serviceIds,
           startsAt: date.toISOString(),
-          name: "Азиз Рахимов",
-          phone: "+998900000000",
+          name: name.trim(),
+          phone: toE164(phone),
         });
-      } catch {
-        // если запись не удалась — всё равно продолжаем (демо-поведение); ошибку разберём отдельно
+      } catch (e) {
+        setBusy(false);
+        const msg = e instanceof Error ? e.message : "Не удалось создать запись. Попробуйте ещё раз.";
+        Alert.alert("Ошибка", msg);
+        return;
       } finally {
         setBusy(false);
       }
@@ -92,6 +116,32 @@ export default function Confirm() {
             </View>
           </Card>
 
+          {/* Контакты клиента */}
+          <View style={{ gap: space.md }}>
+            <AppText variant="labelMd" color={colors.ink} style={{ paddingHorizontal: 4 }}>Ваши контакты</AppText>
+            <View style={{ gap: 4 }}>
+              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Имя</AppText>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="Как к вам обращаться"
+                placeholderTextColor={colors.outline}
+                style={styles.input}
+              />
+            </View>
+            <View style={{ gap: 4 }}>
+              <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Телефон</AppText>
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="+998 90 123-45-67"
+                placeholderTextColor={colors.outline}
+                keyboardType="phone-pad"
+                style={styles.input}
+              />
+            </View>
+          </View>
+
           <View style={{ gap: 4 }}>
             <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>Комментарий специалисту</AppText>
             <TextInput
@@ -128,6 +178,7 @@ const styles = StyleSheet.create({
   avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 26, lineHeight: 30 },
   rows: { gap: space.md, borderTopWidth: 1, borderTopColor: colors.outlineVariant, paddingTop: space.lg },
   total: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1, borderTopColor: colors.outlineVariant, borderStyle: "dashed", paddingTop: space.md, marginTop: 4 },
+  input: { height: 52, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   textarea: { minHeight: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, padding: space.md, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink, textAlignVertical: "top" },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.bg },
 });

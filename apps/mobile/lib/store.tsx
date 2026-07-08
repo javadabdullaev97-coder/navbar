@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import type { Avail } from "./slots";
 
 export type Role = "client" | "master";
@@ -8,6 +9,11 @@ export type BookingStatus = "confirmed" | "pending" | "done" | "cancelled";
 
 export const LANG_LABEL: Record<Lang, string> = { ru: "Русский", uz: "Oʻzbekcha", en: "English" };
 export const THEME_LABEL: Record<ThemeMode, string> = { light: "Светлая", dark: "Тёмная", auto: "Авто" };
+
+/** Профиль клиента на устройстве (без OTP). Имя/телефон для записей. */
+export type ClientProfile = { name: string; phone: string };
+const PROFILE_KEY = "ora.client.profile";
+const DEFAULT_PROFILE: ClientProfile = { name: "", phone: "" };
 
 export type Booking = {
   id: string;
@@ -56,6 +62,7 @@ type StoreValue = {
   role: Role; setRole: (r: Role) => void;
   lang: Lang; setLang: (l: Lang) => void;
   themeMode: ThemeMode; setThemeMode: (t: ThemeMode) => void;
+  profile: ClientProfile; setProfile: (p: ClientProfile) => void;
   bookings: Booking[];
   draft: Draft; patchDraft: (d: Partial<Draft>) => void;
   confirmBooking: () => Booking;
@@ -68,13 +75,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>("client");
   const [lang, setLang] = useState<Lang>("ru");
   const [themeMode, setThemeMode] = useState<ThemeMode>("auto");
+  const [profile, setProfileState] = useState<ClientProfile>(DEFAULT_PROFILE);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [draft, setDraft] = useState<Draft>(DEFAULT_DRAFT);
+
+  // Загружаем профиль клиента из хранилища при старте.
+  useEffect(() => {
+    AsyncStorage.getItem(PROFILE_KEY)
+      .then((raw) => { if (raw) setProfileState(JSON.parse(raw)); })
+      .catch(() => {});
+  }, []);
+
+  const setProfile = (p: ClientProfile) => {
+    setProfileState(p);
+    AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(p)).catch(() => {});
+  };
 
   const value = useMemo<StoreValue>(() => ({
     role, setRole,
     lang, setLang,
     themeMode, setThemeMode,
+    profile, setProfile,
     bookings,
     draft,
     patchDraft: (d) => setDraft((prev) => ({ ...prev, ...d })),
@@ -96,7 +117,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     cancelBooking: (id) =>
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" } : b))),
-  }), [role, lang, themeMode, bookings, draft]);
+  }), [role, lang, themeMode, profile, bookings, draft]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

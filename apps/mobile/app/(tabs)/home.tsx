@@ -6,6 +6,7 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import type { CatalogMaster } from "../../lib/api";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
+import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
 
 const CATS = ["Барберы", "Ногти", "Психологи", "Массаж", "Репетиторы", "Врачи", "Ещё"];
@@ -45,9 +46,11 @@ function Stars({ value }: { value: string }) {
 export default function Home() {
   const router = useRouter();
   const { data: catalog, reload } = useCatalog();
+  const { profile } = useStore();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
   const go = (key: string) => router.push(`/specialist/${key}`);
+  const firstName = profile.name ? profile.name.split(" ")[0] : null;
 
   const loading = supabaseConfigured && catalog === null;
   const real = supabaseConfigured ? (catalog ?? []) : null; // null => показать демо
@@ -61,7 +64,7 @@ export default function Home() {
         <View style={styles.header}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View>
-              <AppText variant="headlineMd" color={colors.accent}>Привет, Азиз</AppText>
+              <AppText variant="headlineMd" color={colors.accent}>{firstName ? `Привет, ${firstName}` : "Привет"}</AppText>
               <View style={styles.locChip}>
                 <Sym name="location-on" size={14} color={colors.outline} />
                 <AppText variant="labelSm" color={colors.inkVariant}>Ташкент</AppText>
@@ -72,7 +75,9 @@ export default function Home() {
                 <Sym name="notifications-none" size={22} color={colors.accent} />
                 <View style={styles.bellDot} />
               </Pressable>
-              <Avatar initial="А" size={40} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+              <Pressable onPress={() => router.push("/(tabs)/profile")} hitSlop={6}>
+                <Avatar initial={firstName ? initialOf(profile.name) : "•"} size={40} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+              </Pressable>
             </View>
           </View>
 
