@@ -5,3 +5,7 @@ web-build/
 *.log
 .DS_Store
 package-lock.json
+# Секреты — только локально, не в репозиторий
+.env
+.env.local
+.env*.local

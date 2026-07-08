@@ -1,33 +1,53 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Sym } from "../../components/ui";
+import { getFavorites, toggleFavorite } from "../../lib/api";
+import { initialOf, supabaseConfigured } from "../../lib/data";
 import { colors, radius, space } from "../../theme";
 
 const CATS = ["Все", "Красота", "Терапия", "Здоровье"];
 
-const SAVED = [
-  { id: "1", initial: "Е", name: "Елена Белова", spec: "Стилист · салон Mood", rating: "4.9", next: "Сегодня, 15:30", price: "от 250 000 сум" },
-  { id: "2", initial: "А", name: "Азиз Рахимов", spec: "Барбер · Chop Shop", rating: "5.0", next: "Завтра", price: "от 180 000 сум" },
-  { id: "3", initial: "М", name: "Д-р Марина Ким", spec: "Дерматолог · Clear Skin", rating: "4.8", next: "12 июля", price: "от 400 000 сум" },
+type Item = { key: string; initial: string; name: string; spec: string; rating?: string; next?: string; price?: string };
+const DEMO: Item[] = [
+  { key: "1", initial: "Е", name: "Елена Белова", spec: "Стилист · салон Mood", rating: "4.9", next: "Сегодня, 15:30", price: "от 250 000 сум" },
+  { key: "2", initial: "А", name: "Азиз Рахимов", spec: "Барбер · Chop Shop", rating: "5.0", next: "Завтра", price: "от 180 000 сум" },
+  { key: "3", initial: "М", name: "Д-р Марина Ким", spec: "Дерматолог · Clear Skin", rating: "4.8", next: "12 июля", price: "от 400 000 сум" },
 ];
 
 export default function Saved() {
   const router = useRouter();
   const [cat, setCat] = useState(0);
+  const [remote, setRemote] = useState<Item[] | null>(null);
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
 
-  const list = SAVED.filter((s) => !removed[s.id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!supabaseConfigured) return;
+      let alive = true;
+      getFavorites()
+        .then((f) => alive && setRemote(f.map((x) => ({ key: x.slug, initial: initialOf(x.name), name: x.name, spec: x.specialization ?? "" }))))
+        .catch(() => alive && setRemote([]));
+      return () => { alive = false; };
+    }, [])
+  );
+
+  const source = remote ?? DEMO;
+  const list = source.filter((s) => !removed[s.key]);
+
+  async function remove(key: string) {
+    setRemoved((r) => ({ ...r, [key]: true }));
+    if (supabaseConfigured && remote) {
+      try { await toggleFavorite(key); } catch { /* игнор */ }
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <AppText variant="headlineMd" color={colors.accent}>Мои специалисты</AppText>
-      </View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>Мои специалисты</AppText></View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
-        {/* Категории */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.margin, gap: 8, marginBottom: space.md }}>
           {CATS.map((c, i) => (
             <Pressable key={c} onPress={() => setCat(i)} style={[styles.chip, i === cat ? styles.chipOn : styles.chipOff]}>
@@ -55,7 +75,7 @@ export default function Saved() {
         ) : (
           <View style={{ paddingHorizontal: space.margin, gap: space.md }}>
             {list.map((s) => (
-              <Pressable key={s.id} onPress={() => router.push(`/specialist/${s.id}`)}>
+              <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
                 <Card padding={12} style={{ flexDirection: "row", gap: space.md }}>
                   <Avatar initial={s.initial} size={96} tint={colors.surfaceMid} fg={colors.inkVariant} />
                   <View style={{ flex: 1, justifyContent: "space-between", paddingVertical: 4 }}>
@@ -64,18 +84,22 @@ export default function Saved() {
                         <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
                         <AppText variant="labelSm" color={colors.secondary}>{s.spec}</AppText>
                       </View>
-                      <Pressable hitSlop={8} onPress={() => setRemoved((r) => ({ ...r, [s.id]: true }))}>
+                      <Pressable hitSlop={8} onPress={() => remove(s.key)}>
                         <Sym name="bookmark" size={22} color={colors.accent} />
                       </Pressable>
                     </View>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                      <Sym name="star" size={14} color={colors.gold} />
-                      <AppText variant="labelSm" color={colors.ink}>{s.rating}</AppText>
-                    </View>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                      <AppText variant="labelSm" color={colors.secondary}>Ближайшее: {s.next}</AppText>
-                      <AppText variant="labelMd" color={colors.accent}>{s.price}</AppText>
-                    </View>
+                    {s.rating ? (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                        <Sym name="star" size={14} color={colors.gold} />
+                        <AppText variant="labelSm" color={colors.ink}>{s.rating}</AppText>
+                      </View>
+                    ) : null}
+                    {(s.next || s.price) ? (
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                        <AppText variant="labelSm" color={colors.secondary}>{s.next ? `Ближайшее: ${s.next}` : ""}</AppText>
+                        {s.price ? <AppText variant="labelMd" color={colors.accent}>{s.price}</AppText> : null}
+                      </View>
+                    ) : null}
                   </View>
                 </Card>
               </Pressable>

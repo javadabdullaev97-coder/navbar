@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
-import { initialOf, useMaster } from "../../lib/data";
+import { toggleFavorite } from "../../lib/api";
+import { initialOf, supabaseConfigured, useMaster } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
@@ -69,7 +70,7 @@ export default function Specialist() {
           <Pressable style={styles.circleBtn} onPress={() => router.back()}>
             <Sym name="arrow-back" size={22} color={colors.accent} />
           </Pressable>
-          <Pressable style={styles.circleBtn} onPress={() => setSaved((s) => !s)}>
+          <Pressable style={styles.circleBtn} onPress={() => { setSaved((s) => !s); if (supabaseConfigured && master?.slug) toggleFavorite(master.slug).catch(() => {}); }}>
             <Sym name={saved ? "bookmark" : "bookmark-border"} size={22} color={colors.accent} />
           </Pressable>
         </SafeAreaView>
@@ -134,7 +135,7 @@ export default function Specialist() {
         )}
         {tab === 1 && <Empty text="Портфолио появится здесь" />}
         {tab === 2 && (
-          <Pressable style={{ padding: space.lg, alignItems: "center" }} onPress={() => router.push("/review")}>
+          <Pressable style={{ padding: space.lg, alignItems: "center" }} onPress={() => router.push({ pathname: "/review", params: { slug: master?.slug ?? "" } })}>
             <AppText variant="bodyMd" color={colors.accent}>Оставить отзыв →</AppText>
           </Pressable>
         )}

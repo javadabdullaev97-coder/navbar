@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -12,13 +12,28 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, PrimaryButton, Sym } from "../components/ui";
+import { addReview } from "../lib/api";
+import { supabaseConfigured } from "../lib/data";
 import { colors, radius, space } from "../theme";
 
 export default function Review() {
   const router = useRouter();
+  const { slug } = useLocalSearchParams<{ slug?: string }>();
   const [rating, setRating] = useState(4);
   const [text, setText] = useState("");
   const [anon, setAnon] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (busy) return;
+    if (supabaseConfigured && slug) {
+      setBusy(true);
+      try { await addReview(slug, rating, text, anon ? "Аноним" : "Азиз Рахимов"); }
+      catch { /* игнор */ }
+      finally { setBusy(false); }
+    }
+    router.back();
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -94,7 +109,7 @@ export default function Review() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Отправить отзыв" icon="send" onPress={() => router.back()} />
+        <PrimaryButton label="Отправить отзыв" icon="send" onPress={submit} loading={busy} />
       </View>
     </SafeAreaView>
   );
