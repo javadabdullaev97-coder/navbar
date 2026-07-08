@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, Sym } from "../components/ui";
+import { useT } from "../lib/i18n";
 import { colors, radius, space } from "../theme";
 
 const FAQ = [
@@ -18,29 +19,30 @@ const CONTACTS = [
 
 export default function Help() {
   const router = useRouter();
+  const t = useT();
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accent}>Помощь</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Помощь")}</AppText>
         <View style={{ width: 26 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 32, gap: space.md }} showsVerticalScrollIndicator={false}>
-        <AppText variant="labelSm" color={colors.secondary} style={styles.section}>ЧАСТЫЕ ВОПРОСЫ</AppText>
+        <AppText variant="labelSm" color={colors.secondary} style={styles.section}>{t("ЧАСТЫЕ ВОПРОСЫ")}</AppText>
         {FAQ.map((f) => (
           <Card key={f.q} padding={16}>
             <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
               <Sym name="help-outline" size={20} color={colors.accent} />
               <View style={{ flex: 1 }}>
-                <AppText variant="labelMd" color={colors.ink}>{f.q}</AppText>
-                <AppText variant="bodyMd" color={colors.secondary} style={{ marginTop: 6 }}>{f.a}</AppText>
+                <AppText variant="labelMd" color={colors.ink}>{t(f.q)}</AppText>
+                <AppText variant="bodyMd" color={colors.secondary} style={{ marginTop: 6 }}>{t(f.a)}</AppText>
               </View>
             </View>
           </Card>
         ))}
 
-        <AppText variant="labelSm" color={colors.secondary} style={[styles.section, { marginTop: space.md }]}>СВЯЗАТЬСЯ С НАМИ</AppText>
+        <AppText variant="labelSm" color={colors.secondary} style={[styles.section, { marginTop: space.md }]}>{t("СВЯЗАТЬСЯ С НАМИ")}</AppText>
         {CONTACTS.map((c) => (
           <Pressable key={c.label} onPress={() => Linking.openURL(c.url).catch(() => {})}>
             <Card padding={16} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>

@@ -15,10 +15,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, PrimaryButton, Sym } from "../components/ui";
 import { addReview } from "../lib/api";
 import { supabaseConfigured } from "../lib/data";
+import { useT } from "../lib/i18n";
 import { colors, radius, space } from "../theme";
 
 export default function Review() {
   const router = useRouter();
+  const t = useT();
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const [rating, setRating] = useState(4);
   const [text, setText] = useState("");
@@ -30,17 +32,17 @@ export default function Review() {
 
     // Без Supabase (демо-режим) просто закрываем экран.
     if (!supabaseConfigured || !slug) {
-      Alert.alert("Спасибо!", "Ваш отзыв сохранён.", [{ text: "ОК", onPress: () => router.back() }]);
+      Alert.alert(t("Спасибо!"), t("Ваш отзыв сохранён."), [{ text: t("ОК"), onPress: () => router.back() }]);
       return;
     }
 
     setBusy(true);
     try {
-      await addReview(slug, rating, text, anon ? "Аноним" : "Азиз Рахимов");
-      Alert.alert("Спасибо!", "Ваш отзыв опубликован.", [{ text: "ОК", onPress: () => router.back() }]);
+      await addReview(slug, rating, text, anon ? t("Аноним") : "Азиз Рахимов");
+      Alert.alert(t("Спасибо!"), t("Ваш отзыв опубликован."), [{ text: t("ОК"), onPress: () => router.back() }]);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Не удалось отправить отзыв. Попробуйте ещё раз.";
-      Alert.alert("Ошибка", msg);
+      const msg = e instanceof Error ? e.message : t("Не удалось отправить отзыв. Попробуйте ещё раз.");
+      Alert.alert(t("Ошибка"), msg);
     } finally {
       setBusy(false);
     }
@@ -57,7 +59,7 @@ export default function Review() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 24 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <AppText variant="displayLg" color={colors.accent} style={{ marginBottom: space.md }}>
-            Поделитесь опытом
+            {t("Поделитесь опытом")}
           </AppText>
 
           {/* Специалист */}
@@ -65,14 +67,14 @@ export default function Review() {
             <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>Д</AppText></View>
             <View>
               <AppText variant="labelMd" color={colors.ink}>Дилноза Ахмедова</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>Индивидуальная терапия</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{t("Индивидуальная терапия")}</AppText>
               <AppText variant="labelSm" color={colors.outline} style={{ marginTop: 2 }}>24 июля 2024</AppText>
             </View>
           </Card>
 
           {/* Рейтинг */}
           <AppText variant="labelMd" color={colors.inkVariant} style={{ textAlign: "center", marginTop: space.lg, marginBottom: space.md }}>
-            Оцените качество услуги
+            {t("Оцените качество услуги")}
           </AppText>
           <View style={{ flexDirection: "row", justifyContent: "center", gap: 12 }}>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -84,13 +86,13 @@ export default function Review() {
 
           {/* Текст */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: space.lg, marginBottom: 8 }}>
-            <AppText variant="labelMd" color={colors.ink}>Ваш отзыв</AppText>
-            <AppText variant="labelSm" color={colors.outline}>Необязательно</AppText>
+            <AppText variant="labelMd" color={colors.ink}>{t("Ваш отзыв")}</AppText>
+            <AppText variant="labelSm" color={colors.outline}>{t("Необязательно")}</AppText>
           </View>
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="Что понравилось больше всего? Оправдались ли ожидания?"
+            placeholder={t("Что понравилось больше всего? Оправдались ли ожидания?")}
             placeholderTextColor={colors.outline}
             multiline
             style={styles.textarea}
@@ -98,21 +100,21 @@ export default function Review() {
 
           {/* Фото */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: space.lg, marginBottom: 8 }}>
-            <AppText variant="labelMd" color={colors.ink}>Фотографии</AppText>
-            <AppText variant="labelSm" color={colors.outline}>Максимум 4</AppText>
+            <AppText variant="labelMd" color={colors.ink}>{t("Фотографии")}</AppText>
+            <AppText variant="labelSm" color={colors.outline}>{t("Максимум 4")}</AppText>
           </View>
           <View style={{ flexDirection: "row", gap: 16 }}>
             <View style={styles.addPhoto}>
               <Sym name="add-a-photo" size={24} color={colors.outline} />
-              <AppText variant="labelSm" color={colors.outline} style={{ marginTop: 4, fontSize: 10 }}>Добавить</AppText>
+              <AppText variant="labelSm" color={colors.outline} style={{ marginTop: 4, fontSize: 10 }}>{t("Добавить")}</AppText>
             </View>
           </View>
 
           {/* Анонимно */}
           <View style={styles.anon}>
             <View style={{ flex: 1 }}>
-              <AppText variant="labelMd" color={colors.ink}>Оставить отзыв анонимно</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>Ваше имя не будет видно другим</AppText>
+              <AppText variant="labelMd" color={colors.ink}>{t("Оставить отзыв анонимно")}</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{t("Ваше имя не будет видно другим")}</AppText>
             </View>
             <Switch value={anon} onValueChange={setAnon} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
           </View>
@@ -120,7 +122,7 @@ export default function Review() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label="Отправить отзыв" icon="send" onPress={submit} loading={busy} />
+        <PrimaryButton label={t("Отправить отзыв")} icon="send" onPress={submit} loading={busy} />
       </View>
     </SafeAreaView>
   );

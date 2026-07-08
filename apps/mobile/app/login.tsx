@@ -11,10 +11,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
+import { useT } from "../lib/i18n";
 import { colors, radius, space } from "../theme";
 
 export default function Login() {
   const router = useRouter();
+  const t = useT();
   const [phone, setPhone] = useState("");
   const [focused, setFocused] = useState(false);
 
@@ -46,10 +48,10 @@ export default function Login() {
           {/* Заголовок */}
           <View>
             <AppText variant="displayLg" color={colors.accent} style={{ marginBottom: space.sm }}>
-              Вход
+              {t("Вход")}
             </AppText>
             <AppText variant="bodyMd" color={colors.inkVariant} style={{ maxWidth: 280 }}>
-              Введите номер телефона — пришлём код
+              {t("Введите номер телефона — пришлём код")}
             </AppText>
           </View>
 
@@ -73,26 +75,26 @@ export default function Login() {
               />
             </View>
             <AppText variant="labelSm" color={colors.inkVariant} style={{ marginTop: space.sm, paddingHorizontal: 4, opacity: 0.7 }}>
-              Мы отправим SMS с кодом подтверждения
+              {t("Мы отправим SMS с кодом подтверждения")}
             </AppText>
           </View>
 
           {/* Действия */}
           <View style={{ gap: space.md }}>
-            <PrimaryButton label="Получить код" onPress={() => router.push("/otp")} />
+            <PrimaryButton label={t("Получить код")} onPress={() => router.push("/otp")} />
             <Pressable
               onPress={() => router.replace("/(tabs)/home")}
               style={({ pressed }) => [{ paddingVertical: 8, alignItems: "center" }, pressed && { opacity: 0.6 }]}
             >
               <AppText variant="labelMd" color={colors.inkVariant}>
-                Продолжить как гость
+                {t("Продолжить как гость")}
               </AppText>
             </Pressable>
           </View>
 
           {/* Футер */}
           <AppText variant="labelSm" color={colors.inkVariant} style={styles.terms}>
-            Продолжая, вы принимаете условия и политику конфиденциальности
+            {t("Продолжая, вы принимаете условия и политику конфиденциальности")}
           </AppText>
         </Pressable>
       </KeyboardAvoidingView>

@@ -6,6 +6,7 @@ import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import type { CatalogMaster } from "../../lib/api";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
+import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { cardShadow, colors, radius, space } from "../../theme";
 
@@ -45,6 +46,7 @@ function Stars({ value }: { value: string }) {
 
 export default function Home() {
   const router = useRouter();
+  const t = useT();
   const { data: catalog, reload } = useCatalog();
   const { profile } = useStore();
   const [refreshing, setRefreshing] = useState(false);
@@ -64,10 +66,10 @@ export default function Home() {
         <View style={styles.header}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <View>
-              <AppText variant="headlineMd" color={colors.accent}>{firstName ? `Привет, ${firstName}` : "Привет"}</AppText>
+              <AppText variant="headlineMd" color={colors.accent}>{firstName ? t("Привет, {name}", { name: firstName }) : t("Привет")}</AppText>
               <View style={styles.locChip}>
                 <Sym name="location-on" size={14} color={colors.outline} />
-                <AppText variant="labelSm" color={colors.inkVariant}>Ташкент</AppText>
+                <AppText variant="labelSm" color={colors.inkVariant}>{t("Ташкент")}</AppText>
               </View>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -83,7 +85,7 @@ export default function Home() {
 
           <Pressable style={styles.search} onPress={() => router.push("/(tabs)/search")}>
             <Sym name="search" size={22} color={colors.outline} />
-            <AppText variant="bodyMd" color={colors.outline}>Найти специалиста или услугу</AppText>
+            <AppText variant="bodyMd" color={colors.outline}>{t("Найти специалиста или услугу")}</AppText>
           </Pressable>
         </View>
 
@@ -91,7 +93,7 @@ export default function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.margin, gap: 12, paddingTop: space.md }}>
           {CATS.map((c, i) => (
             <Pressable key={c} onPress={() => (c === "Ещё" ? router.push("/(tabs)/search") : router.push(`/category/${c}`))} style={[styles.cat, i === 0 ? styles.catOn : styles.catOff]}>
-              <AppText variant="labelMd" color={i === 0 ? colors.onAccent : colors.inkVariant}>{c}</AppText>
+              <AppText variant="labelMd" color={i === 0 ? colors.onAccent : colors.inkVariant}>{t(c)}</AppText>
             </Pressable>
           ))}
         </ScrollView>
@@ -99,14 +101,14 @@ export default function Home() {
         {loading ? <Loading /> : real && real.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 48, gap: 8 }}>
             <Sym name="search-off" size={40} color={colors.outlineVariant} />
-            <AppText variant="bodyMd" color={colors.secondary}>Специалистов пока нет</AppText>
+            <AppText variant="bodyMd" color={colors.secondary}>{t("Специалистов пока нет")}</AppText>
           </View>
         ) : (
         <>
         {/* Рядом с вами */}
         <View style={styles.sectionHead}>
-          <AppText variant="headlineMd" color={colors.accent}>Рядом с вами</AppText>
-          <AppText variant="labelMd" color={colors.accent}>Все</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Рядом с вами")}</AppText>
+          <AppText variant="labelMd" color={colors.accent}>{t("Все")}</AppText>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: space.margin, gap: space.md }}>
           {near.map((s) => (
@@ -130,7 +132,7 @@ export default function Home() {
 
         {/* Популярные */}
         <View style={[styles.sectionHead, { marginTop: space.lg }]}>
-          <AppText variant="headlineMd" color={colors.accent}>Популярные</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Популярные")}</AppText>
         </View>
         <View style={{ paddingHorizontal: space.margin, gap: space.md }}>
           {popular.map((s) => (

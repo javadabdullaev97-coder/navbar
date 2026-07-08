@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
+import { useT } from "../lib/i18n";
 import { colors, radius, space, type as T } from "../theme";
 
 const LEN = 6;
 
 export default function Otp() {
   const router = useRouter();
+  const t = useT();
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState("");
   const [left, setLeft] = useState(42);
@@ -34,10 +36,10 @@ export default function Otp() {
         {/* Заголовок */}
         <View style={{ gap: 12, marginBottom: 48 }}>
           <AppText variant="displayLg" color={colors.accent}>
-            Введите код
+            {t("Введите код")}
           </AppText>
           <AppText variant="bodyMd" color={colors.inkVariant}>
-            Код отправлен на{" "}
+            {t("Код отправлен на")}{" "}
             <AppText variant="bodyMd" color={colors.ink} style={{ fontFamily: "Manrope_500Medium" }}>
               +998 90 123-45-67
             </AppText>
@@ -71,7 +73,7 @@ export default function Otp() {
         <View style={{ alignItems: "center", marginBottom: 48 }}>
           {left > 0 ? (
             <AppText variant="labelMd" color={colors.inkVariant}>
-              Отправить код повторно через{" "}
+              {t("Отправить код повторно через")}{" "}
               <AppText variant="labelMd" color={colors.accent} style={{ fontFamily: "Manrope_600SemiBold" }}>
                 {mmss}
               </AppText>
@@ -79,7 +81,7 @@ export default function Otp() {
           ) : (
             <Pressable onPress={() => setLeft(42)}>
               <AppText variant="labelMd" color={colors.accent} style={{ fontFamily: "Manrope_600SemiBold" }}>
-                Отправить код снова
+                {t("Отправить код снова")}
               </AppText>
             </Pressable>
           )}
@@ -87,13 +89,13 @@ export default function Otp() {
 
         {/* Действия */}
         <View style={{ marginTop: "auto", gap: space.lg }}>
-          <PrimaryButton label="Подтвердить" onPress={() => router.replace("/(tabs)/home")} />
+          <PrimaryButton label={t("Подтвердить")} onPress={() => router.replace("/(tabs)/home")} />
           <Pressable
             onPress={() => router.back()}
             style={({ pressed }) => [styles.changeNum, pressed && { opacity: 0.6 }]}
           >
             <AppText variant="labelMd" color={colors.inkVariant}>
-              Изменить номер
+              {t("Изменить номер")}
             </AppText>
             <Sym name="edit" size={16} color={colors.inkVariant} />
           </Pressable>

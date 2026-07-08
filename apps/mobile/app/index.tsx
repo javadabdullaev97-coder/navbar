@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Sym } from "../components/ui";
+import { useT } from "../lib/i18n";
 import { cardShadow, colors, radius, space } from "../theme";
 
 type Role = {
@@ -32,6 +33,7 @@ const ROLES: Role[] = [
 
 export default function Welcome() {
   const router = useRouter();
+  const t = useT();
 
   function pick(role: Role) {
     // Пока во всех продуктах клиентский флоу: ведём на вход.
@@ -51,7 +53,7 @@ export default function Welcome() {
             color={colors.inkVariant}
             style={{ opacity: 0.8, textAlign: "center" }}
           >
-            Запись к специалистам — за пару касаний
+            {t("Запись к специалистам — за пару касаний")}
           </AppText>
         </View>
 
@@ -76,10 +78,10 @@ export default function Welcome() {
               />
               <View style={{ flex: 1 }}>
                 <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 4 }}>
-                  {r.title}
+                  {t(r.title)}
                 </AppText>
                 <AppText variant="labelSm" color={colors.inkVariant}>
-                  {r.subtitle}
+                  {t(r.subtitle)}
                 </AppText>
               </View>
               <Sym name="chevron-right" size={22} color={colors.outlineVariant} />
@@ -94,7 +96,7 @@ export default function Welcome() {
             style={({ pressed }) => [styles.loginLink, pressed && { opacity: 0.6 }]}
           >
             <AppText variant="labelMd" color={colors.accent}>
-              Уже есть аккаунт? Войти
+              {t("Уже есть аккаунт? Войти")}
             </AppText>
           </Pressable>
         </View>

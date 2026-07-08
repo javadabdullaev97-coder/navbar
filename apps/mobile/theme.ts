@@ -2,7 +2,8 @@
 // Акцент — deep-forest #064E3B. Меняется только он; остальное общее.
 import { Platform, TextStyle, ViewStyle } from "react-native";
 
-export const colors = {
+// Светлая палитра (значения 1:1 из макетов Stitch).
+export const lightColors = {
   // Фон / поверхности
   bg: "#FCF9F8", // warm-white / surface
   surface: "#FFFFFF", // surface-elevated (карточки)
@@ -32,6 +33,40 @@ export const colors = {
   infoText: "#1E40AF",
   error: "#BA1A1A",
 } as const;
+
+export type ThemeColors = Record<keyof typeof lightColors, string>;
+
+// Тёмная палитра: те же токены, инвертированные под тёмный фон.
+// Акцент осветляем (deep-forest нечитаем на тёмном), onAccent делаем тёмным.
+export const darkColors: ThemeColors = {
+  bg: "#101311",
+  surface: "#191D1A",
+  surfaceLow: "#1E221F",
+  surfaceMid: "#242824",
+  surfaceHigh: "#2C302B",
+  surfaceHighest: "#353A34",
+  ink: "#E7EAE6",
+  inkVariant: "#C2CBC4",
+  secondary: "#9BA39C",
+  outline: "#8A928C",
+  outlineVariant: "#3C443E",
+  accent: "#77D9AE", // осветлённый forest
+  accentTint: "#0C3F30", // тёмная подложка акцента
+  accentDeep: "#052A20",
+  onAccent: "#00382A", // тёмный текст на светлом акценте
+  gold: "#E3C158",
+  successBg: "#0C2A1E",
+  successText: "#6EE7B7",
+  warningBg: "#2A2410",
+  warningText: "#F5C451",
+  infoBg: "#121D34",
+  infoText: "#9DB8FF",
+  error: "#FFB4AB",
+};
+
+// Обратная совместимость: пока экраны не переведены на useColors(),
+// они импортируют статичную светлую палитру.
+export const colors = lightColors;
 
 export const radius = {
   sm: 4,
