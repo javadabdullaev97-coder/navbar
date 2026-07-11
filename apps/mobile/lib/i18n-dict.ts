@@ -9,12 +9,12 @@ export const DICT: Translations = {
   // --- Онбординг / выбор роли (index) ---
   "Запись к специалистам — за пару касаний": { uz: "Mutaxassislarga yozilish — bir necha teginishda", en: "Book a specialist in a couple of taps" },
   "Я клиент": { uz: "Men mijozman", en: "I'm a client" },
-  "Найти мастера, врача, психолога и записаться": { uz: "Usta, shifokor, psixologni topib yozilish", en: "Find a master, doctor or psychologist and book" },
+  "Найти мастера, врача, психолога и записаться": { uz: "Usta, shifokor yoki psixolog topib, yoziling", en: "Find a master, doctor or psychologist and book" },
   "Я мастер": { uz: "Men ustaman", en: "I'm a master" },
   "Принимать записи и вести расписание": { uz: "Yozuvlarni qabul qilish va jadvalni yuritish", en: "Accept bookings and manage your schedule" },
   "Салон": { uz: "Salon", en: "Salon" },
   "Управлять командой специалистов": { uz: "Mutaxassislar jamoasini boshqarish", en: "Manage a team of specialists" },
-  "Уже есть аккаунт? Войти": { uz: "Akkaunt bormi? Kirish", en: "Already have an account? Log in" },
+  "Уже есть аккаунт? Войти": { uz: "Akkauntingiz bormi? Kiring", en: "Already have an account? Log in" },
 
   // --- Вход / OTP ---
   "Вход": { uz: "Kirish", en: "Log in" },
@@ -22,7 +22,7 @@ export const DICT: Translations = {
   "Мы отправим SMS с кодом подтверждения": { uz: "Tasdiqlash kodi bilan SMS yuboramiz", en: "We'll send an SMS with a confirmation code" },
   "Получить код": { uz: "Kod olish", en: "Get code" },
   "Продолжить как гость": { uz: "Mehmon sifatida davom etish", en: "Continue as guest" },
-  "Продолжая, вы принимаете условия и политику конфиденциальности": { uz: "Davom etar ekansiz, shartlar va maxfiylik siyosatini qabul qilasiz", en: "By continuing, you accept the terms and privacy policy" },
+  "Продолжая, вы принимаете условия и политику конфиденциальности": { uz: "Davom etish orqali shartlar va maxfiylik siyosatiga rozilik bildirasiz", en: "By continuing, you accept the terms and privacy policy" },
   "Введите код": { uz: "Kodni kiriting", en: "Enter the code" },
   "Код отправлен на": { uz: "Kod yuborildi", en: "Code sent to" },
   "Отправить код повторно через": { uz: "Kodni qayta yuborish", en: "Resend the code in" },
@@ -122,7 +122,7 @@ export const DICT: Translations = {
   "Ожидает": { uz: "Kutilmoqda", en: "Pending" },
   "Выполнена": { uz: "Bajarilgan", en: "Completed" },
   "Отменена": { uz: "Bekor qilingan", en: "Cancelled" },
-  "Уход за собой как ритуал": { uz: "O'ziga g'amxo'rlik marosim sifatida", en: "Self-care as a ritual" },
+  "Уход за собой как ритуал": { uz: "O'zingizga g'amxo'rlik — bu marosim", en: "Self-care as a ritual" },
   "Найдите специалиста для следующего визита в ORA.": { uz: "ORA'da keyingi tashrif uchun mutaxassis toping.", en: "Find a specialist for your next visit in ORA." },
   "Перейти к поиску": { uz: "Qidiruvga o'tish", en: "Go to search" },
 
@@ -193,7 +193,7 @@ export const DICT: Translations = {
 
   // --- Бронирование: подтверждение ---
   "Заполните контакты": { uz: "Kontaktlarni to'ldiring", en: "Fill in your contacts" },
-  "Укажите имя и телефон — мастер свяжется с вами по ним.": { uz: "Ism va telefonni kiriting — usta shular orqali siz bilan bog'lanadi.", en: "Provide your name and phone — the master will contact you using them." },
+  "Укажите имя и телефон — мастер свяжется с вами по ним.": { uz: "Ism va telefoningizni kiriting — mutaxassis shu orqali bog'lanadi.", en: "Enter your name and phone so the specialist can reach you." },
   "Не удалось создать запись. Попробуйте ещё раз.": { uz: "Yozuvni yaratib bo'lmadi. Qayta urinib ko'ring.", en: "Couldn't create the booking. Please try again." },
   "Подтверждение": { uz: "Tasdiqlash", en: "Confirmation" },
   "Дата": { uz: "Sana", en: "Date" },
@@ -225,7 +225,7 @@ export const DICT: Translations = {
   "Локация": { uz: "Manzil", en: "Location" },
   "Оплата": { uz: "To'lov", en: "Payment" },
   "Стоимость услуги": { uz: "Xizmat narxi", en: "Service cost" },
-  "Оплата на месте у специалиста.": { uz: "To'lov mutaxassis oldida joyida.", en: "Payment in person at the specialist." },
+  "Оплата на месте у специалиста.": { uz: "To'lov joyida — mutaxassis oldida.", en: "You'll pay in person at your visit." },
   "Отменить или перенести запись можно не позднее чем за 24 часа до визита.": { uz: "Yozuvni tashrifdan 24 soat oldin bekor qilish yoki ko'chirish mumkin.", en: "You can cancel or reschedule the booking no later than 24 hours before the visit." },
   "Перенести": { uz: "Ko'chirish", en: "Reschedule" },
   "Отмена…": { uz: "Bekor qilinmoqda…", en: "Cancelling…" },

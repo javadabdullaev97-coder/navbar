@@ -50,7 +50,7 @@ export default function Profile() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const { role, setRole, lang, setLang, themeMode, setThemeMode, profile, setProfile } = useStore();
+  const { lang, setLang, themeMode, setThemeMode, profile, setProfile } = useStore();
   const [picker, setPicker] = useState<null | "theme" | "lang">(null);
   const [editing, setEditing] = useState(false);
 
@@ -73,17 +73,6 @@ export default function Profile() {
           <AppText variant="headlineMd" color={colors.ink} style={{ marginTop: 12 }}>{displayName}</AppText>
           <AppText variant="bodyMd" color={profile.phone ? colors.secondary : colors.accent}>{displayPhone}</AppText>
         </Pressable>
-
-        {/* Роль */}
-        <View style={{ paddingHorizontal: space.margin, marginBottom: space.lg }}>
-          <View style={styles.roleWrap}>
-            {(["client", "master"] as const).map((r) => (
-              <Pressable key={r} onPress={() => setRole(r)} style={[styles.roleBtn, r === role && styles.roleOn]}>
-                <AppText variant="labelMd" color={r === role ? colors.onAccent : colors.secondary}>{r === "client" ? t("Клиент") : t("Мастер")}</AppText>
-              </Pressable>
-            ))}
-          </View>
-        </View>
 
         {/* Настройки */}
         <View style={styles.group}>
@@ -184,9 +173,6 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   header: { paddingHorizontal: space.margin, height: 56, justifyContent: "center" },
   avatar: { width: 96, height: 96, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.accentTint },
   editBadge: { position: "absolute", bottom: 0, right: 0, width: 28, height: 28, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
-  roleWrap: { flexDirection: "row", backgroundColor: colors.surfaceLow, borderRadius: radius.full, padding: 4, height: 48 },
-  roleBtn: { flex: 1, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
-  roleOn: { backgroundColor: colors.accent },
   group: { marginHorizontal: space.margin, backgroundColor: colors.surfaceLow, borderRadius: radius.xl, overflow: "hidden" },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
