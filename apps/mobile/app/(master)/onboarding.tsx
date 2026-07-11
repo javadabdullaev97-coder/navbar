@@ -4,7 +4,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DurationSheet, HoursSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
-import { fmtDur, minToHHMM } from "../../lib/format";
+import { fmtDur, fmtMoney, minToHHMM } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { becomeSoloMaster, masterConfigured, setAvailability, upsertService } from "../../lib/master-api";
 import { useStore } from "../../lib/store";
@@ -16,8 +16,9 @@ const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"
 const DAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 type DayState = { on: boolean; start: number; end: number };
 const DAYS_DEFAULT: DayState[] = DAY_LABELS.map((_, i) => ({ on: i < 5, start: 540, end: i === 4 ? 1020 : 1080 }));
-const STEP_TITLE = ["Расскажите о себе", "Добавьте первую услугу", "Настройте график", "Загрузите портфолио"];
+const STEP_TITLE = ["Расскажите о себе", "Добавьте услуги", "Настройте график", "Загрузите портфолио"];
 const STEPS = 4;
+type Svc = { name: string; duration: number; price: number };
 
 export default function MasterOnboarding() {
   const router = useRouter();
@@ -32,11 +33,21 @@ export default function MasterOnboarding() {
   const [spec, setSpec] = useState("");
   const [city, setCity] = useState(0);
   const [cover, setCover] = useState(0);
-  // Шаг 2
+  // Шаг 2 — черновик услуги + список добавленных
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(50);
   const [svcPrice, setSvcPrice] = useState("");
   const [durOpen, setDurOpen] = useState(false);
+  const [services, setServices] = useState<Svc[]>([]);
+
+  function addService() {
+    if (!svcName.trim() || svcDuration <= 0 || (Number(svcPrice) || 0) <= 0) {
+      Alert.alert(t("Заполните поля"), t("Укажите название, длительность и цену услуги."));
+      return;
+    }
+    setServices((s) => [...s, { name: svcName.trim(), duration: svcDuration, price: Number(svcPrice) || 0 }]);
+    setSvcName(""); setSvcPrice(""); setSvcDuration(50);
+  }
   // Шаг 3
   const [days, setDays] = useState<DayState[]>(DAYS_DEFAULT);
   const [editDay, setEditDay] = useState<number | null>(null);
@@ -45,13 +56,13 @@ export default function MasterOnboarding() {
 
   const valid =
     step === 1 ? name.trim().length > 0 && spec.trim().length > 0 :
-    step === 2 ? svcName.trim().length > 0 && svcDuration > 0 && (Number(svcPrice) || 0) > 0 :
+    step === 2 ? services.length > 0 :
     step === 3 ? days.some((d) => d.on) :
     true; // шаг 4 — необязательный
 
   const hint =
     step === 1 ? t("Заполните имя и специализацию.") :
-    step === 2 ? t("Укажите название, длительность и цену услуги.") :
+    step === 2 ? t("Добавьте хотя бы одну услугу.") :
     step === 3 ? t("Оставьте включённым хотя бы один рабочий день.") : "";
 
   async function next() {
@@ -65,7 +76,7 @@ export default function MasterOnboarding() {
       setBusy(true);
       try {
         await becomeSoloMaster(name.trim(), spec.trim(), CITIES[city]);
-        await upsertService({ name: svcName.trim(), duration: svcDuration, price: Number(svcPrice) || 0 });
+        for (const s of services) await upsertService(s);
         for (let i = 0; i < days.length; i++) {
           await setAvailability(i, days[i].start, days[i].end, !days[i].on);
         }
@@ -137,18 +148,45 @@ export default function MasterOnboarding() {
 
           {step === 2 && (
             <View style={{ gap: space.md, marginTop: space.lg }}>
+              {/* Добавленные услуги */}
+              {services.length > 0 && (
+                <View style={{ gap: space.sm }}>
+                  {services.map((s, i) => (
+                    <View key={i} style={[styles.svcRow, cardShadow]}>
+                      <View style={{ flex: 1 }}>
+                        <AppText variant="labelMd" color={colors.ink}>{s.name}</AppText>
+                        <AppText variant="labelSm" color={colors.secondary}>{fmtDur(s.duration)} · {fmtMoney(s.price)}</AppText>
+                      </View>
+                      <Pressable hitSlop={8} onPress={() => setServices((arr) => arr.filter((_, idx) => idx !== i))}>
+                        <Sym name="close" size={20} color={colors.secondary} />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Форма добавления */}
               <Field label={t("Название")}>
                 <TextInput value={svcName} onChangeText={setSvcName} placeholder={t("Например, Консультация")} placeholderTextColor={colors.outline} style={styles.input} />
               </Field>
-              <Field label={t("Длительность")}>
-                <Pressable style={styles.pickerRow} onPress={() => setDurOpen(true)}>
-                  <AppText variant="bodyMd" color={colors.ink}>{fmtDur(svcDuration)}</AppText>
-                  <Sym name="expand-more" size={22} color={colors.secondary} />
-                </Pressable>
-              </Field>
-              <Field label={t("Цена, сум")}>
-                <TextInput value={svcPrice} onChangeText={(v) => setSvcPrice(v.replace(/[^\d]/g, ""))} keyboardType="number-pad" placeholder="250000" placeholderTextColor={colors.outline} style={styles.input} />
-              </Field>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flex: 1, gap: 8 }}>
+                  <AppText variant="labelMd" color={colors.secondary}>{t("Длительность")}</AppText>
+                  <Pressable style={styles.pickerRow} onPress={() => setDurOpen(true)}>
+                    <AppText variant="bodyMd" color={colors.ink}>{fmtDur(svcDuration)}</AppText>
+                    <Sym name="expand-more" size={22} color={colors.secondary} />
+                  </Pressable>
+                </View>
+                <View style={{ flex: 1, gap: 8 }}>
+                  <AppText variant="labelMd" color={colors.secondary}>{t("Цена, сум")}</AppText>
+                  <TextInput value={svcPrice} onChangeText={(v) => setSvcPrice(v.replace(/[^\d]/g, ""))} keyboardType="number-pad" placeholder="250000" placeholderTextColor={colors.outline} style={styles.input} />
+                </View>
+              </View>
+              <Pressable style={styles.addSvcBtn} onPress={addService}>
+                <Sym name="add" size={20} color={colors.accent} />
+                <AppText variant="labelMd" color={colors.accent}>{t("Добавить услугу")}</AppText>
+              </Pressable>
+              <AppText variant="labelSm" color={colors.secondary}>{t("Можно добавить несколько услуг с разной длительностью и ценой.")}</AppText>
             </View>
           )}
 
@@ -177,14 +215,14 @@ export default function MasterOnboarding() {
 
           {step === 4 && (
             <View style={{ marginTop: space.lg, gap: space.md }}>
-              <AppText variant="bodyMd" color={colors.secondary}>{t("Покажите свои работы — это повышает доверие. Шаг необязательный.")}</AppText>
+              <AppText variant="bodyMd" color={colors.secondary}>{t("Добавьте минимум 4 фото — это заметно повышает доверие клиентов. Шаг необязательный, можно пропустить.")}</AppText>
               <Pressable
                 onPress={() => Alert.alert(t("Скоро"), t("Загрузка фото появится в следующем обновлении."))}
                 style={styles.dropzone}
               >
                 <View style={styles.dropIcon}><Sym name="add-a-photo" size={30} color={colors.accent} /></View>
                 <AppText variant="labelMd" color={colors.accent}>{t("Загрузить фото")}</AppText>
-                <AppText variant="labelSm" color={colors.secondary}>{t("JPG или PNG, до 4 фото")}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{t("JPG или PNG, до 10 фото")}</AppText>
               </Pressable>
             </View>
           )}
@@ -244,9 +282,11 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   swatch: { width: 44, height: 44, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
   swatchOn: { borderWidth: 2, borderColor: colors.accent },
   card: { backgroundColor: colors.surface, borderRadius: radius.xl, overflow: "hidden" },
-  dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
+  dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 60, paddingHorizontal: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
-  hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.lg },
+  hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, height: 36, justifyContent: "center", borderRadius: radius.lg },
+  svcRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 14 },
+  addSvcBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.accent, borderStyle: "dashed" },
   dropzone: { alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 36, borderRadius: radius.x2l, borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
   dropIcon: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },

@@ -4,9 +4,9 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-na
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HoursSheet } from "../../components/pickers";
 import { AppText, Loading, PrimaryButton, Sym } from "../../components/ui";
+import { minToHHMM } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { masterConfigured, setAvailability, useMyMaster } from "../../lib/master-api";
-import { minutesToTime } from "../../lib/slots";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
@@ -84,7 +84,7 @@ export default function Schedule() {
                       <AppText variant="labelMd" color={colors.ink}>{t(LABELS[i])}</AppText>
                     </View>
                     {d.on ? (
-                      <Pressable style={styles.hoursBtn} onPress={() => setEditDay(i)}><AppText variant="bodyMd" color={colors.accent}>{minutesToTime(d.start)} – {minutesToTime(d.end)}</AppText></Pressable>
+                      <Pressable style={styles.hoursBtn} onPress={() => setEditDay(i)}><AppText variant="bodyMd" color={colors.accent}>{minToHHMM(d.start)} – {minToHHMM(d.end)}</AppText></Pressable>
                     ) : (
                       <AppText variant="bodyMd" color={colors.secondary} style={{ fontStyle: "italic" }}>{t("Выходной")}</AppText>
                     )}
@@ -135,9 +135,9 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   sectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 4 },
   upper: { textTransform: "uppercase", letterSpacing: 1.5 },
   card: { backgroundColor: colors.surface, borderRadius: radius.xl, overflow: "hidden" },
-  dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
+  dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 60, paddingHorizontal: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
-  hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.lg },
+  hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, height: 36, justifyContent: "center", borderRadius: radius.lg },
   breakRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
   coffee: { backgroundColor: colors.successBg, padding: 8, borderRadius: radius.full },
   hero: { backgroundColor: colors.accentDeep, borderRadius: radius.xl, padding: 24, overflow: "hidden" },

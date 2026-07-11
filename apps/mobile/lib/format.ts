@@ -46,9 +46,9 @@ export function fmtDur(total: number): string {
   return `${m} мин`;
 }
 
-/** Минуты от полуночи → «HH:MM» (1440 → «24:00»). */
+/** Минуты от полуночи → «HH:MM». 1440 (полночь) → «00:00», т.е. 24 = 0. */
 export function minToHHMM(total: number): string {
-  const h = Math.floor(total / 60);
+  const h = Math.floor(total / 60) % 24;
   const m = total % 60;
   return `${p2(h)}:${p2(m)}`;
 }

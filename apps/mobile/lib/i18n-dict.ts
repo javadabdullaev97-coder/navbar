@@ -404,4 +404,9 @@ export const DICT: Translations = {
   "На эту неделю записей нет": { uz: "Bu haftaga yozuvlar yo'q", en: "No bookings for this week" },
   "Загрузить фото": { uz: "Rasm yuklash", en: "Upload photo" },
   "JPG или PNG, до 4 фото": { uz: "JPG yoki PNG, 4 tagacha rasm", en: "JPG or PNG, up to 4 photos" },
+  "Добавьте услуги": { uz: "Xizmatlar qo'shing", en: "Add services" },
+  "Добавьте хотя бы одну услугу.": { uz: "Kamida bitta xizmat qo'shing.", en: "Add at least one service." },
+  "Можно добавить несколько услуг с разной длительностью и ценой.": { uz: "Turli davomiylik va narxdagi bir nechta xizmat qo'shsangiz bo'ladi.", en: "You can add several services with different durations and prices." },
+  "Добавьте минимум 4 фото — это заметно повышает доверие клиентов. Шаг необязательный, можно пропустить.": { uz: "Kamida 4 ta rasm qo'shing — bu mijozlar ishonchini sezilarli oshiradi. Bu qadam ixtiyoriy, o'tkazib yuborsangiz bo'ladi.", en: "Add at least 4 photos — it noticeably boosts client trust. This step is optional and can be skipped." },
+  "JPG или PNG, до 10 фото": { uz: "JPG yoki PNG, 10 tagacha rasm", en: "JPG or PNG, up to 10 photos" },
 };

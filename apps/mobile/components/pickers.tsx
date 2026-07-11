@@ -17,7 +17,7 @@ const range = (from: number, to: number, step: number): WheelItem[] => {
   return out;
 };
 
-const DURATIONS: WheelItem[] = range(5, 1440, 5).map((i) => ({ ...i, label: fmtDur(i.value) }));
+const DURATIONS: WheelItem[] = range(5, 720, 5).map((i) => ({ ...i, label: fmtDur(i.value) })); // до 12 часов
 const STARTS: WheelItem[] = range(0, 1410, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
 const ENDS: WheelItem[] = range(30, 1440, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
 
@@ -49,7 +49,7 @@ export function DurationSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Sheet onClose={onClose}>
         <AppText variant="labelMd" color={colors.secondary} style={styles.title}>{t("Длительность услуги")}</AppText>
-        <WheelPicker items={DURATIONS} value={v} onChange={setV} />
+        <WheelPicker key={visible ? "open" : "closed"} items={DURATIONS} value={v} onChange={setV} />
         <PrimaryButton label={t("Готово")} onPress={() => { onSelect(v); onClose(); }} />
       </Sheet>
     </Modal>
@@ -77,12 +77,12 @@ export function HoursSheet({
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View style={{ alignItems: "center", flex: 1 }}>
             <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Начало")}</AppText>
-            <WheelPicker items={STARTS} value={s} onChange={setS} width="100%" />
+            <WheelPicker key={visible ? "so" : "sc"} items={STARTS} value={s} onChange={setS} width="100%" />
           </View>
           <AppText variant="headlineMd" color={colors.outline}>–</AppText>
           <View style={{ alignItems: "center", flex: 1 }}>
             <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Конец")}</AppText>
-            <WheelPicker items={ENDS} value={endVal} onChange={setE} width="100%" />
+            <WheelPicker key={visible ? "eo" : "ec"} items={ENDS} value={endVal} onChange={setE} width="100%" />
           </View>
         </View>
         <PrimaryButton label={t("Готово")} onPress={() => { onSelect(s, endVal); onClose(); }} />

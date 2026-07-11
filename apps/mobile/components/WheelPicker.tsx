@@ -1,6 +1,6 @@
-// iOS-подобное колесо выбора на чистом JS (ScrollView со snap) —
+// iOS-подобное колесо выбора на чистом JS (ScrollView со snap + инерция) —
 // работает в Expo Go без нативных модулей.
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from "react-native";
 import { useColors } from "../lib/theme-context";
 import { radius } from "../theme";
@@ -25,22 +25,13 @@ export function WheelPicker({
   const initial = Math.max(0, items.findIndex((i) => i.value === value));
   const [active, setActive] = useState(initial);
 
-  // Реакция на внешнюю смену value (например, кнопкой-пресетом).
-  useEffect(() => {
-    const i = items.findIndex((it) => it.value === value);
-    if (i >= 0 && i !== active) {
-      setActive(i);
-      ref.current?.scrollTo({ y: i * ITEM_H, animated: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
     if (i >= 0 && i < items.length && i !== active) setActive(i);
   };
-  const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const commit = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.min(items.length - 1, Math.max(0, Math.round(e.nativeEvent.contentOffset.y / ITEM_H)));
+    setActive(i);
     onChange(items[i].value);
   };
 
@@ -52,11 +43,12 @@ export function WheelPicker({
         nestedScrollEnabled
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
-        disableIntervalMomentum
-        decelerationRate="fast"
+        snapToAlignment="start"
+        decelerationRate="normal"
         scrollEventThrottle={16}
         onScroll={onScroll}
-        onMomentumScrollEnd={onEnd}
+        onMomentumScrollEnd={commit}
+        onScrollEndDrag={commit}
         contentOffset={{ x: 0, y: initial * ITEM_H }}
         contentContainerStyle={{ paddingVertical: PAD }}
       >
