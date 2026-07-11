@@ -10,7 +10,15 @@ import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 const CITIES = ["Ташкент", "Самарканд", "Бухара", "Наманган", "Андижан"];
 const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"];
-const PRESETS = [30, 45, 60, 90];
+const PRESETS = [30, 45, 60, 90, 120];
+
+function fmtDur(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h && m) return `${h} ч ${m} мин`;
+  if (h) return `${h} ч`;
+  return `${m} мин`;
+}
 const DAYS = [
   { key: "mon", label: "Пн" }, { key: "tue", label: "Вт" }, { key: "wed", label: "Ср" },
   { key: "thu", label: "Чт" }, { key: "fri", label: "Пт" }, { key: "sat", label: "Сб" }, { key: "sun", label: "Вс" },
@@ -32,7 +40,10 @@ export default function MasterOnboarding() {
   const [cover, setCover] = useState(0);
   // Шаг 2
   const [svcName, setSvcName] = useState("");
-  const [svcDuration, setSvcDuration] = useState("50");
+  const [svcHours, setSvcHours] = useState("0");
+  const [svcMins, setSvcMins] = useState("50");
+  const svcTotal = (Number(svcHours) || 0) * 60 + (Number(svcMins) || 0);
+  const setSvcPreset = (d: number) => { setSvcHours(String(Math.floor(d / 60))); setSvcMins(String(d % 60)); };
   const [svcPrice, setSvcPrice] = useState("");
   // Шаг 3
   const [days, setDays] = useState<Record<string, boolean>>({ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false });
@@ -110,19 +121,25 @@ export default function MasterOnboarding() {
                 <TextInput value={svcName} onChangeText={setSvcName} placeholder={t("Например, Консультация")} placeholderTextColor={colors.outline} style={styles.input} />
               </Field>
               <View style={{ gap: 8 }}>
-                <AppText variant="labelMd" color={colors.secondary}>{t("Длительность, мин")}</AppText>
-                <View style={{ position: "relative", justifyContent: "center" }}>
-                  <TextInput value={svcDuration} onChangeText={(v) => setSvcDuration(v.replace(/[^\d]/g, ""))} keyboardType="number-pad" placeholder="50" placeholderTextColor={colors.outline} style={[styles.input, { paddingRight: 56 }]} />
-                  <AppText variant="labelMd" color={colors.inkVariant} style={styles.suffix}>{t("мин")}</AppText>
+                <AppText variant="labelMd" color={colors.secondary}>{t("Длительность")}</AppText>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={styles.durField}>
+                    <TextInput value={svcHours} onChangeText={(v) => setSvcHours(v.replace(/[^\d]/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
+                    <AppText variant="labelMd" color={colors.inkVariant}>{t("ч")}</AppText>
+                  </View>
+                  <View style={styles.durField}>
+                    <TextInput value={svcMins} onChangeText={(v) => { const n = Number(v.replace(/[^\d]/g, "")) || 0; setSvcMins(String(Math.min(n, 59))); }} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
+                    <AppText variant="labelMd" color={colors.inkVariant}>{t("мин")}</AppText>
+                  </View>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                   {PRESETS.map((d) => (
-                    <Pressable key={d} onPress={() => setSvcDuration(String(d))} style={[styles.chip, String(d) === svcDuration ? styles.chipOn : styles.chipOff]}>
-                      <AppText variant="labelMd" color={String(d) === svcDuration ? colors.onAccent : colors.accent}>{d}</AppText>
+                    <Pressable key={d} onPress={() => setSvcPreset(d)} style={[styles.chip, svcTotal === d ? styles.chipOn : styles.chipOff]}>
+                      <AppText variant="labelMd" color={svcTotal === d ? colors.onAccent : colors.accent}>{fmtDur(d)}</AppText>
                     </Pressable>
                   ))}
                 </ScrollView>
-                <AppText variant="labelSm" color={colors.secondary}>{t("Любое значение — например, 37 или 42 мин.")}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{t("Например, 1 ч 30 мин.")}</AppText>
               </View>
               <Field label={t("Цена, сум")}>
                 <TextInput value={svcPrice} onChangeText={(v) => setSvcPrice(v.replace(/[^\d]/g, ""))} keyboardType="number-pad" placeholder="250000" placeholderTextColor={colors.outline} style={styles.input} />
@@ -181,6 +198,8 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   avatarBadge: { position: "absolute", bottom: 4, right: 4, width: 32, height: 32, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   input: { height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   suffix: { position: "absolute", right: 16 },
+  durField: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
+  durInput: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.full },
   chipOn: { backgroundColor: colors.accent },
   chipOff: { backgroundColor: colors.surfaceMid },

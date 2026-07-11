@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { fmtMoney } from "../../lib/format";
+import { fmtDur } from "./service-form";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
@@ -39,7 +40,7 @@ export default function Services() {
             <View style={[styles.card, cardShadow]}>
               <View style={{ flex: 1 }}>
                 <AppText variant="labelMd" color={colors.ink}>{t(s.name)}</AppText>
-                <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: 2 }}>{t("{count} мин", { count: s.duration })}</AppText>
+                <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: 2 }}>{fmtDur(s.duration)}</AppText>
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
                 <AppText variant="labelMd" color={colors.accent}>{fmtMoney(s.price)}</AppText>

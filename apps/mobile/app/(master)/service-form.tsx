@@ -7,7 +7,16 @@ import { useT } from "../../lib/i18n";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
-const PRESETS = [30, 45, 60, 90];
+const PRESETS = [30, 45, 60, 90, 120];
+
+// «90» → «1 ч 30 мин», «60» → «1 ч», «45» → «45 мин».
+export function fmtDur(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h && m) return `${h} ч ${m} мин`;
+  if (h) return `${h} ч`;
+  return `${m} мин`;
+}
 
 export default function ServiceForm() {
   const router = useRouter();
@@ -19,7 +28,11 @@ export default function ServiceForm() {
 
   const [name, setName] = useState(params.name ?? "");
   const [desc, setDesc] = useState("");
-  const [duration, setDuration] = useState<string>(params.duration ?? "50");
+  const initMin = params.duration ? Number(params.duration) : 50;
+  const [hours, setHours] = useState(String(Math.floor(initMin / 60)));
+  const [mins, setMins] = useState(String(initMin % 60));
+  const totalMin = (Number(hours) || 0) * 60 + (Number(mins) || 0);
+  const setPreset = (d: number) => { setHours(String(Math.floor(d / 60))); setMins(String(d % 60)); };
   const [price, setPrice] = useState(params.price ?? "");
   const [deposit, setDeposit] = useState(false);
 
@@ -43,29 +56,28 @@ export default function ServiceForm() {
           </Field>
 
           <View style={{ gap: space.sm }}>
-            <AppText variant="labelMd" color={colors.inkVariant}>{t("Длительность, мин")}</AppText>
-            <View style={{ position: "relative", justifyContent: "center" }}>
-              <TextInput
-                value={duration}
-                onChangeText={(v) => setDuration(v.replace(/[^\d]/g, ""))}
-                keyboardType="number-pad"
-                placeholder="50"
-                placeholderTextColor={colors.outline}
-                style={[styles.input, { paddingRight: 56 }]}
-              />
-              <AppText variant="labelMd" color={colors.inkVariant} style={styles.suffix}>{t("мин")}</AppText>
+            <AppText variant="labelMd" color={colors.inkVariant}>{t("Длительность")}</AppText>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={styles.durField}>
+                <TextInput value={hours} onChangeText={(v) => setHours(v.replace(/[^\d]/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
+                <AppText variant="labelMd" color={colors.inkVariant}>{t("ч")}</AppText>
+              </View>
+              <View style={styles.durField}>
+                <TextInput value={mins} onChangeText={(v) => { const n = Number(v.replace(/[^\d]/g, "")) || 0; setMins(String(Math.min(n, 59))); }} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
+                <AppText variant="labelMd" color={colors.inkVariant}>{t("мин")}</AppText>
+              </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
               {PRESETS.map((d) => {
-                const on = String(d) === duration;
+                const on = totalMin === d;
                 return (
-                  <Pressable key={d} onPress={() => setDuration(String(d))} style={[styles.chip, on ? styles.chipOn : styles.chipOff]}>
-                    <AppText variant="labelMd" color={on ? colors.onAccent : colors.accent}>{d}</AppText>
+                  <Pressable key={d} onPress={() => setPreset(d)} style={[styles.chip, on ? styles.chipOn : styles.chipOff]}>
+                    <AppText variant="labelMd" color={on ? colors.onAccent : colors.accent}>{fmtDur(d)}</AppText>
                   </Pressable>
                 );
               })}
             </ScrollView>
-            <AppText variant="labelSm" color={colors.secondary}>{t("Любое значение — например, 37 или 42 мин.")}</AppText>
+            <AppText variant="labelSm" color={colors.secondary}>{t("Например, 1 ч 30 мин.")}</AppText>
           </View>
 
           <Field label={t("Цена, сум")}>
@@ -113,7 +125,9 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   input: { minHeight: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   textarea: { minHeight: 110, paddingTop: 14, textAlignVertical: "top" },
   suffix: { position: "absolute", right: 16 },
-  chip: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: radius.full },
+  durField: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
+  durInput: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
+  chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.full },
   chipOn: { backgroundColor: colors.accent },
   chipOff: { backgroundColor: colors.surfaceMid },
   depositRow: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm },
