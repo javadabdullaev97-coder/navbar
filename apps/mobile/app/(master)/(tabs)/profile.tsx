@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Sym } from "../../../components/ui";
+import { signOut } from "../../../lib/auth";
 import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
 import { Lang, ThemeMode, useStore } from "../../../lib/store";
@@ -104,7 +105,7 @@ export default function MasterProfile() {
         </View>
 
         <View style={{ alignItems: "center", marginTop: space.lg }}>
-          <Pressable onPress={() => router.replace("/")} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 12 }}>
+          <Pressable onPress={async () => { await signOut(); router.replace("/"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 12 }}>
             <Sym name="logout" size={20} color={colors.error} />
             <AppText variant="labelMd" color={colors.error}>{t("Выйти")}</AppText>
           </Pressable>

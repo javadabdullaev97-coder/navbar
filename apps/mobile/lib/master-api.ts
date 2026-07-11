@@ -1,10 +1,16 @@
-// API кабинета мастера. Личность мастера — анонимная сессия, «превращённая»
-// в демо-мастера через claim_demo_master() (email/OTP не требуется на этом этапе).
-// Все RPC работают в контексте auth.uid() и защищены RLS + security-definer.
+// API кабинета мастера. Личность мастера — реальная email-сессия (мультимастер).
+// Профиль создаётся become_solo_master() на онбординге. Все RPC работают в
+// контексте auth.uid() и защищены RLS + security-definer.
 import { useCallback, useEffect, useState } from "react";
-import { ensureAnonSession, supabase, supabaseConfigured } from "./supabase";
+import { supabase, supabaseConfigured } from "./supabase";
 
 export { supabaseConfigured as masterConfigured };
+
+/** Стать соло-мастером: создаёт организацию + профиль + дефолтный график. */
+export async function becomeSoloMaster(name: string, spec: string, city?: string): Promise<void> {
+  const { error } = await supabase.rpc("become_solo_master", { p_name: name, p_spec: spec, p_city: city ?? null });
+  if (error) throw error;
+}
 
 export type MasterService = { id: string; name: string; duration_min: number; price: number; is_active: boolean };
 export type MasterAvailability = { day_of_week: number; start_min: number; end_min: number; is_day_off: boolean };
@@ -29,35 +35,19 @@ export type MasterBooking = {
   status: MasterBookingStatus;
 };
 
-// Анонимная сессия + захват демо-мастера (идемпотентно). Ошибки «уже владелец /
-// уже занят» не критичны — просто читаем то, что доступно.
-let claiming: Promise<void> | null = null;
-export function ensureMasterSession(): Promise<void> {
-  if (!supabaseConfigured) return Promise.resolve();
-  if (claiming) return claiming;
-  claiming = (async () => {
-    await ensureAnonSession();
-    try { await supabase.rpc("claim_demo_master"); } catch { /* уже занят/владелец */ }
-  })();
-  return claiming;
-}
-
 export async function getMyMaster(): Promise<MyMaster | null> {
-  await ensureMasterSession();
   const { data, error } = await supabase.rpc("get_my_master");
   if (error) throw error;
   return (data as MyMaster | null) ?? null;
 }
 
 export async function getMasterBookings(): Promise<MasterBooking[]> {
-  await ensureMasterSession();
   const { data, error } = await supabase.rpc("get_my_bookings");
   if (error) throw error;
   return (data as MasterBooking[]) ?? [];
 }
 
 export async function upsertService(p: { id?: string; name: string; duration: number; price: number }): Promise<string> {
-  await ensureMasterSession();
   const { data, error } = await supabase.rpc("upsert_service", {
     p_id: p.id ?? null, p_name: p.name, p_duration: p.duration, p_price: p.price,
   });
@@ -66,25 +56,21 @@ export async function upsertService(p: { id?: string; name: string; duration: nu
 }
 
 export async function deleteService(id: string): Promise<void> {
-  await ensureMasterSession();
   const { error } = await supabase.rpc("delete_service", { p_id: id });
   if (error) throw error;
 }
 
 export async function setAvailability(dow: number, start: number, end: number, dayoff: boolean): Promise<void> {
-  await ensureMasterSession();
   const { error } = await supabase.rpc("set_availability", { p_dow: dow, p_start: start, p_end: end, p_dayoff: dayoff });
   if (error) throw error;
 }
 
 export async function setBookingStatus(booking: string, status: MasterBookingStatus): Promise<void> {
-  await ensureMasterSession();
   const { error } = await supabase.rpc("set_booking_status", { p_booking: booking, p_status: status });
   if (error) throw error;
 }
 
 export async function updateMyProfile(p: { spec?: string | null; bio?: string | null; address?: string | null; visible?: boolean | null; slug?: string | null; category?: string | null }): Promise<void> {
-  await ensureMasterSession();
   const { error } = await supabase.rpc("update_my_profile", {
     p_spec: p.spec ?? null, p_bio: p.bio ?? null, p_address: p.address ?? null,
     p_visible: p.visible ?? null, p_slug: p.slug ?? null, p_category: p.category ?? null,
@@ -118,7 +104,6 @@ export type Analytics = {
 };
 
 export async function getMyAnalytics(days: number): Promise<Analytics> {
-  await ensureMasterSession();
   const { data, error } = await supabase.rpc("get_my_analytics", { p_days: days });
   if (error) throw error;
   return (data as Analytics) ?? { total: 0, count: 0, by_day: [], by_service: [] };

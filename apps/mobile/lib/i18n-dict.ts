@@ -376,4 +376,16 @@ export const DICT: Translations = {
   "Укажите название, длительность и цену услуги.": { uz: "Xizmat nomi, davomiyligi va narxini kiriting.", en: "Enter the service name, duration and price." },
   "Нажмите на время, чтобы задать часы работы.": { uz: "Ish soatlarini belgilash uchun vaqtni bosing.", en: "Tap the time to set your working hours." },
   "Покажите свои работы — это повышает доверие. Шаг необязательный.": { uz: "Ishlaringizni ko'rsating — bu ishonchni oshiradi. Bu qadam ixtiyoriy.", en: "Show your work — it builds trust. This step is optional." },
+
+  // ── Вход по email ──
+  "Введите email — пришлём код для входа": { uz: "Email kiriting — kirish uchun kod yuboramiz", en: "Enter your email — we'll send a login code" },
+  "Мы отправим код подтверждения на почту": { uz: "Tasdiqlash kodini pochtangizga yuboramiz", en: "We'll send a confirmation code to your email" },
+  "Проверьте email": { uz: "Emailni tekshiring", en: "Check your email" },
+  "Введите корректный адрес электронной почты.": { uz: "To'g'ri elektron pochta manzilini kiriting.", en: "Enter a valid email address." },
+  "Не удалось отправить код.": { uz: "Kodni yuborib bo'lmadi.", en: "Couldn't send the code." },
+  "Изменить email": { uz: "Emailni o'zgartirish", en: "Change email" },
+  "Неверный код": { uz: "Noto'g'ri kod", en: "Wrong code" },
+  "Код состоит из 6 цифр.": { uz: "Kod 6 raqamdan iborat.", en: "The code has 6 digits." },
+  "Проверьте код и попробуйте снова.": { uz: "Kodni tekshirib, qayta urinib ko'ring.", en: "Check the code and try again." },
+  "Не удалось завершить регистрацию.": { uz: "Ro'yxatdan o'tishni yakunlab bo'lmadi.", en: "Couldn't complete registration." },
 };

@@ -19,20 +19,20 @@ const ROLES: Role[] = [
     icon: "person",
     title: "Я клиент",
     subtitle: "Найти мастера, врача, психолога и записаться",
-    target: "/login",
+    target: "/login?role=client",
     primary: true,
   },
   {
     icon: "calendar-today",
     title: "Я мастер",
     subtitle: "Принимать записи и вести расписание",
-    target: "/(master)/onboarding",
+    target: "/login?role=master",
   },
   {
     icon: "storefront",
     title: "Салон",
     subtitle: "Управлять командой специалистов",
-    target: "/login",
+    target: "/login?role=master",
   },
 ];
 

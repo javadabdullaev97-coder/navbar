@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { signOut } from "../../lib/auth";
 import { initialOf } from "../../lib/data";
 import { useT } from "../../lib/i18n";
 import {
@@ -83,7 +84,7 @@ export default function Profile() {
         </View>
 
         <View style={{ alignItems: "center", marginTop: space.lg }}>
-          <Pressable onPress={() => router.replace("/")} style={({ pressed }) => [{ paddingHorizontal: 32, paddingVertical: 12, borderRadius: radius.xl }, pressed && { opacity: 0.6 }]}>
+          <Pressable onPress={async () => { await signOut(); router.replace("/"); }} style={({ pressed }) => [{ paddingHorizontal: 32, paddingVertical: 12, borderRadius: radius.xl }, pressed && { opacity: 0.6 }]}>
             <AppText variant="labelMd" color={colors.error}>{t("Выйти")}</AppText>
           </Pressable>
         </View>

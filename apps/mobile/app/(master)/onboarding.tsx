@@ -6,6 +6,7 @@ import { DurationSheet, HoursSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { fmtDur, minToHHMM } from "../../lib/format";
 import { useT } from "../../lib/i18n";
+import { becomeSoloMaster, masterConfigured, setAvailability, upsertService } from "../../lib/master-api";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
@@ -41,6 +42,7 @@ export default function MasterOnboarding() {
   const [editDay, setEditDay] = useState<number | null>(null);
   // Шаг 4 (загрузка фото появится со Storage)
   const [photos] = useState<number[]>([]);
+  const [busy, setBusy] = useState(false);
 
   const valid =
     step === 1 ? name.trim().length > 0 && spec.trim().length > 0 :
@@ -53,10 +55,28 @@ export default function MasterOnboarding() {
     step === 2 ? t("Укажите название, длительность и цену услуги.") :
     step === 3 ? t("Оставьте включённым хотя бы один рабочий день.") : "";
 
-  function next() {
+  async function next() {
+    if (busy) return;
     if (!valid) { Alert.alert(t("Заполните поля"), hint); return; }
     if (step < STEPS) { setStep(step + 1); return; }
+
+    // Финиш: создаём реального мастера (организация + профиль + услуга + график).
     if (name.trim()) setProfile({ ...profile, name: name.trim() });
+    if (masterConfigured) {
+      setBusy(true);
+      try {
+        await becomeSoloMaster(name.trim(), spec.trim(), CITIES[city]);
+        await upsertService({ name: svcName.trim(), duration: svcDuration, price: Number(svcPrice) || 0 });
+        for (let i = 0; i < days.length; i++) {
+          await setAvailability(i, days[i].start, days[i].end, !days[i].on);
+        }
+      } catch (e) {
+        setBusy(false);
+        Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось завершить регистрацию."));
+        return;
+      }
+      setBusy(false);
+    }
     router.replace("/(master)/(tabs)/today");
   }
 
@@ -180,6 +200,7 @@ export default function MasterOnboarding() {
           label={step < STEPS ? t("Далее") : t("Готово, к записям")}
           icon={step < STEPS ? "arrow-forward" : "check"}
           onPress={next}
+          loading={busy}
           style={!valid ? { opacity: 0.5 } : undefined}
         />
         {step === STEPS && (
