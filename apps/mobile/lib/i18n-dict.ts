@@ -397,4 +397,11 @@ export const DICT: Translations = {
   "Пароль — минимум 4 символа.": { uz: "Parol — kamida 4 belgi.", en: "Password must be at least 4 characters." },
   "Не удалось войти": { uz: "Kirib bo'lmadi", en: "Couldn't sign in" },
   "Проверьте email и пароль.": { uz: "Email va parolni tekshiring.", en: "Check your email and password." },
+
+  // ── Календарь / дашборд / портфолио ──
+  "Открыть аналитику →": { uz: "Tahlilni ochish →", en: "Open analytics →" },
+  "На этот день записей нет": { uz: "Bu kunga yozuvlar yo'q", en: "No bookings for this day" },
+  "На эту неделю записей нет": { uz: "Bu haftaga yozuvlar yo'q", en: "No bookings for this week" },
+  "Загрузить фото": { uz: "Rasm yuklash", en: "Upload photo" },
+  "JPG или PNG, до 4 фото": { uz: "JPG yoki PNG, 4 tagacha rasm", en: "JPG or PNG, up to 4 photos" },
 };

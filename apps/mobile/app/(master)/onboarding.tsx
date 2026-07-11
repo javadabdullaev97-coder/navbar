@@ -40,8 +40,7 @@ export default function MasterOnboarding() {
   // Шаг 3
   const [days, setDays] = useState<DayState[]>(DAYS_DEFAULT);
   const [editDay, setEditDay] = useState<number | null>(null);
-  // Шаг 4 (загрузка фото появится со Storage)
-  const [photos] = useState<number[]>([]);
+  // Шаг 4 — загрузка фото появится со Storage
   const [busy, setBusy] = useState(false);
 
   const valid =
@@ -179,17 +178,14 @@ export default function MasterOnboarding() {
           {step === 4 && (
             <View style={{ marginTop: space.lg, gap: space.md }}>
               <AppText variant="bodyMd" color={colors.secondary}>{t("Покажите свои работы — это повышает доверие. Шаг необязательный.")}</AppText>
-              <View style={styles.grid}>
-                <Pressable
-                  onPress={() => Alert.alert(t("Скоро"), t("Загрузка фото появится в следующем обновлении."))}
-                  style={[styles.tile, styles.addTile]}
-                >
-                  <Sym name="add-a-photo" size={28} color={colors.accent} />
-                </Pressable>
-                {photos.map((_, i) => (
-                  <View key={i} style={[styles.tile, styles.photoTile]}><Sym name="image" size={26} color={colors.outline} /></View>
-                ))}
-              </View>
+              <Pressable
+                onPress={() => Alert.alert(t("Скоро"), t("Загрузка фото появится в следующем обновлении."))}
+                style={styles.dropzone}
+              >
+                <View style={styles.dropIcon}><Sym name="add-a-photo" size={30} color={colors.accent} /></View>
+                <AppText variant="labelMd" color={colors.accent}>{t("Загрузить фото")}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{t("JPG или PNG, до 4 фото")}</AppText>
+              </Pressable>
             </View>
           )}
         </ScrollView>
@@ -251,9 +247,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
   hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.lg },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  tile: { width: "31%", aspectRatio: 1, borderRadius: radius.xl, alignItems: "center", justifyContent: "center" },
-  addTile: { borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
-  photoTile: { backgroundColor: colors.surfaceMid },
+  dropzone: { alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 36, borderRadius: radius.x2l, borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
+  dropIcon: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

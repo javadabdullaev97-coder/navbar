@@ -49,8 +49,10 @@ export function WheelPicker({
       <View pointerEvents="none" style={{ position: "absolute", top: PAD, height: ITEM_H, left: 4, right: 4, backgroundColor: colors.surfaceLow, borderRadius: radius.lg }} />
       <ScrollView
         ref={ref}
+        nestedScrollEnabled
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
+        disableIntervalMomentum
         decelerationRate="fast"
         scrollEventThrottle={16}
         onScroll={onScroll}

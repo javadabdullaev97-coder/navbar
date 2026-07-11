@@ -6,8 +6,8 @@ import { useFocusEffect } from "expo-router";
 import { AppText, Avatar, Sym } from "../../../components/ui";
 import { useT } from "../../../lib/i18n";
 import { initialOf } from "../../../lib/data";
-import { fmtTime } from "../../../lib/format";
-import { masterConfigured, useMasterBookings } from "../../../lib/master-api";
+import { fmtMoney, fmtTime } from "../../../lib/format";
+import { masterConfigured, useMasterAnalytics, useMasterBookings } from "../../../lib/master-api";
 import { useStore } from "../../../lib/store";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
@@ -27,7 +27,9 @@ export default function Today() {
   const { profile } = useStore();
   const name = profile.name ? profile.name.split(" ")[0] : t("мастер");
   const { data: bookings, reload } = useMasterBookings();
-  useFocusEffect(useCallback(() => { reload(); }, [reload]));
+  const { data: analytics, reload: reloadA } = useMasterAnalytics(1);
+  useFocusEffect(useCallback(() => { reload(); reloadA(); }, [reload, reloadA]));
+  const revenue = masterConfigured && analytics ? analytics.total : 1250000;
 
   const real = masterConfigured && bookings ? bookings.filter((b) => b.status !== "cancelled") : null;
   const isToday = (iso: string) => { const d = new Date(iso), n = new Date(); return d.toDateString() === n.toDateString(); };
@@ -72,13 +74,14 @@ export default function Today() {
               <AppText variant="labelSm" color={colors.secondary}>{t("свободно")}</AppText>
             </View>
           </View>
-          <View style={[styles.revenueCard, cardShadow]}>
+          <Pressable style={[styles.revenueCard, cardShadow]} onPress={() => router.push("/(master)/analytics")}>
             <View>
               <AppText variant="labelSm" color="#FFD9DD" style={styles.statLabel}>{t("Выручка за день")}</AppText>
-              <AppText variant="headlineMd" color="#FFFFFF" style={{ marginTop: 4, fontSize: 20 }}>1 250 000 {t("сум")}</AppText>
+              <AppText variant="headlineMd" color="#FFFFFF" style={{ marginTop: 4, fontSize: 20 }}>{fmtMoney(revenue)}</AppText>
+              <AppText variant="labelSm" color="#FFD9DD" style={{ marginTop: 2 }}>{t("Открыть аналитику →")}</AppText>
             </View>
-            <View style={styles.revenueIcon}><Sym name="payments" size={24} color={colors.onAccent} /></View>
-          </View>
+            <View style={styles.revenueIcon}><Sym name="payments" size={24} color="#FFFFFF" /></View>
+          </Pressable>
         </View>
 
         {/* Быстрые действия */}

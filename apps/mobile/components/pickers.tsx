@@ -1,5 +1,7 @@
 // Модальные листы выбора: длительность услуги (шаг 5 мин) и рабочие часы
 // (шаг 30 мин). Оба до 24 часов. На базе WheelPicker.
+// Важно: лист — обычный View (не Pressable), иначе Pressable перехватывает
+// жест и колесо «застывает». Закрытие — по тапу в пустую зону сверху.
 import { useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { fmtDur, minToHHMM } from "../lib/format";
@@ -19,6 +21,19 @@ const DURATIONS: WheelItem[] = range(5, 1440, 5).map((i) => ({ ...i, label: fmtD
 const STARTS: WheelItem[] = range(0, 1410, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
 const ENDS: WheelItem[] = range(30, 1440, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
 
+function Sheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const styles = useThemedStyles(makeStyles);
+  return (
+    <View style={styles.backdrop}>
+      <Pressable style={{ flex: 1 }} onPress={onClose} />
+      <View style={[styles.sheet, cardShadow]}>
+        <View style={styles.grip} />
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export function DurationSheet({
   visible, value, onSelect, onClose,
 }: {
@@ -32,14 +47,11 @@ export function DurationSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={[styles.sheet, cardShadow]} onPress={() => {}}>
-          <View style={styles.grip} />
-          <AppText variant="labelMd" color={colors.secondary} style={styles.title}>{t("Длительность услуги")}</AppText>
-          <WheelPicker items={DURATIONS} value={v} onChange={setV} />
-          <PrimaryButton label={t("Готово")} onPress={() => { onSelect(v); onClose(); }} />
-        </Pressable>
-      </Pressable>
+      <Sheet onClose={onClose}>
+        <AppText variant="labelMd" color={colors.secondary} style={styles.title}>{t("Длительность услуги")}</AppText>
+        <WheelPicker items={DURATIONS} value={v} onChange={setV} />
+        <PrimaryButton label={t("Готово")} onPress={() => { onSelect(v); onClose(); }} />
+      </Sheet>
     </Modal>
   );
 }
@@ -56,29 +68,25 @@ export function HoursSheet({
   const [e, setE] = useState(end);
   useEffect(() => { if (visible) { setS(start); setE(end); } }, [visible, start, end]);
 
-  // Конец не раньше начала + 30 мин.
   const endVal = e <= s ? s + 30 : e;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={[styles.sheet, cardShadow]} onPress={() => {}}>
-          <View style={styles.grip} />
-          <AppText variant="labelMd" color={colors.secondary} style={styles.title}>{t("Часы работы")}</AppText>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
-            <View style={{ alignItems: "center", flex: 1 }}>
-              <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Начало")}</AppText>
-              <WheelPicker items={STARTS} value={s} onChange={setS} width="100%" />
-            </View>
-            <AppText variant="headlineMd" color={colors.outline}>–</AppText>
-            <View style={{ alignItems: "center", flex: 1 }}>
-              <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Конец")}</AppText>
-              <WheelPicker items={ENDS} value={endVal} onChange={setE} width="100%" />
-            </View>
+      <Sheet onClose={onClose}>
+        <AppText variant="labelMd" color={colors.secondary} style={styles.title}>{t("Часы работы")}</AppText>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={{ alignItems: "center", flex: 1 }}>
+            <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Начало")}</AppText>
+            <WheelPicker items={STARTS} value={s} onChange={setS} width="100%" />
           </View>
-          <PrimaryButton label={t("Готово")} onPress={() => { onSelect(s, endVal); onClose(); }} />
-        </Pressable>
-      </Pressable>
+          <AppText variant="headlineMd" color={colors.outline}>–</AppText>
+          <View style={{ alignItems: "center", flex: 1 }}>
+            <AppText variant="labelSm" color={colors.secondary} style={{ marginBottom: 4 }}>{t("Конец")}</AppText>
+            <WheelPicker items={ENDS} value={endVal} onChange={setE} width="100%" />
+          </View>
+        </View>
+        <PrimaryButton label={t("Готово")} onPress={() => { onSelect(s, endVal); onClose(); }} />
+      </Sheet>
     </Modal>
   );
 }
