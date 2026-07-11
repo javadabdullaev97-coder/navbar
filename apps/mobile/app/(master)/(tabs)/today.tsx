@@ -29,7 +29,7 @@ export default function Today() {
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Avatar initial={profile.name ? initialOf(profile.name) : "М"} size={40} round tint={colors.surfaceMid} fg={colors.accent} />
-          <AppText variant="headlineMd" color={colors.accentDeep}>{t("Здравствуйте, {name}", { name })}</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Здравствуйте, {name}", { name })}</AppText>
         </View>
         <Pressable onPress={() => router.push("/(master)/notifications")} style={styles.bell} hitSlop={8}>
           <Sym name="notifications-none" size={22} color={colors.accent} />
@@ -42,21 +42,21 @@ export default function Today() {
           <View style={[styles.statCard, cardShadow]}>
             <AppText variant="labelSm" color={colors.secondary} style={styles.statLabel}>{t("Записи")}</AppText>
             <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-              <AppText variant="headlineMd" color={colors.accentDeep} style={{ fontSize: 26 }}>5</AppText>
+              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>5</AppText>
               <AppText variant="labelSm" color={colors.secondary}>{t("сегодня")}</AppText>
             </View>
           </View>
           <View style={[styles.statCard, cardShadow]}>
             <AppText variant="labelSm" color={colors.secondary} style={styles.statLabel}>{t("Слоты")}</AppText>
             <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-              <AppText variant="headlineMd" color={colors.accentDeep} style={{ fontSize: 26 }}>3</AppText>
+              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>3</AppText>
               <AppText variant="labelSm" color={colors.secondary}>{t("свободно")}</AppText>
             </View>
           </View>
           <View style={[styles.revenueCard, cardShadow]}>
             <View>
-              <AppText variant="labelSm" color={colors.accentTint} style={styles.statLabel}>{t("Выручка за день")}</AppText>
-              <AppText variant="headlineMd" color={colors.onAccent} style={{ marginTop: 4, fontSize: 20 }}>1 250 000 {t("сум")}</AppText>
+              <AppText variant="labelSm" color="#FFD9DD" style={styles.statLabel}>{t("Выручка за день")}</AppText>
+              <AppText variant="headlineMd" color="#FFFFFF" style={{ marginTop: 4, fontSize: 20 }}>1 250 000 {t("сум")}</AppText>
             </View>
             <View style={styles.revenueIcon}><Sym name="payments" size={24} color={colors.onAccent} /></View>
           </View>
@@ -76,7 +76,7 @@ export default function Today() {
 
         {/* Ближайшие записи */}
         <View style={styles.sectionHead}>
-          <AppText variant="headlineMd" color={colors.accentDeep}>{t("Ближайшие записи")}</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Ближайшие записи")}</AppText>
           <Pressable onPress={() => router.push("/(master)/(tabs)/requests")}>
             <AppText variant="labelMd" color={colors.accent}>{t("Все")}</AppText>
           </Pressable>

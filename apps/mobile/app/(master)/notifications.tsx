@@ -34,7 +34,7 @@ export default function MasterNotifications() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="chevron-left" size={28} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accentDeep}>{t("Уведомления")}</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Уведомления")}</AppText>
         <View style={{ width: 28 }} />
       </View>
 

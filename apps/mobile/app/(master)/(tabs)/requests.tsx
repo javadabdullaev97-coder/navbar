@@ -41,7 +41,7 @@ export default function Requests() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <AppText variant="headlineMd" color={colors.accentDeep}>{t("Записи")}</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Записи")}</AppText>
         <Sym name="search" size={24} color={colors.accent} />
       </View>
 
@@ -51,7 +51,7 @@ export default function Requests() {
           const on = s.key === tab;
           return (
             <Pressable key={s.key} onPress={() => setTab(s.key)} style={[styles.seg, on && styles.segOn]}>
-              <AppText variant="labelSm" color={on ? colors.accentDeep : colors.secondary}>{t(s.label)}</AppText>
+              <AppText variant="labelSm" color={on ? colors.accent : colors.secondary}>{t(s.label)}</AppText>
             </Pressable>
           );
         })}

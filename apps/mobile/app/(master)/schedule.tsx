@@ -32,7 +32,7 @@ export default function Schedule() {
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="chevron-left" size={28} color={colors.accent} /></Pressable>
-          <AppText variant="headlineMd" color={colors.accentDeep}>{t("График работы")}</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("График работы")}</AppText>
         </View>
       </View>
 
@@ -74,8 +74,8 @@ export default function Schedule() {
 
         {/* Атмосферная карточка */}
         <View style={styles.hero}>
-          <AppText variant="headlineMd" color={colors.onAccent}>{t("Эффективное время")}</AppText>
-          <AppText variant="bodyMd" color={colors.accentTint} style={{ marginTop: 6, maxWidth: 240 }}>
+          <AppText variant="headlineMd" color="#FFFFFF">{t("Эффективное время")}</AppText>
+          <AppText variant="bodyMd" color="#FFD9DD" style={{ marginTop: 6, maxWidth: 240 }}>
             {t("Точный график повышает доверие клиентов.")}
           </AppText>
         </View>

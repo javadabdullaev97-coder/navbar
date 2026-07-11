@@ -7,7 +7,7 @@ import { useT } from "../../lib/i18n";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
-const DURATIONS = [30, 50, 60, 90];
+const PRESETS = [30, 45, 60, 90];
 
 export default function ServiceForm() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function ServiceForm() {
 
   const [name, setName] = useState(params.name ?? "");
   const [desc, setDesc] = useState("");
-  const [duration, setDuration] = useState<number>(params.duration ? Number(params.duration) : 50);
+  const [duration, setDuration] = useState<string>(params.duration ?? "50");
   const [price, setPrice] = useState(params.price ?? "");
   const [deposit, setDeposit] = useState(false);
 
@@ -28,7 +28,7 @@ export default function ServiceForm() {
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="chevron-left" size={28} color={colors.accent} /></Pressable>
-          <AppText variant="headlineMd" color={colors.accentDeep}>{editing ? t("Услуга") : t("Новая услуга")}</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{editing ? t("Услуга") : t("Новая услуга")}</AppText>
         </View>
       </View>
 
@@ -43,17 +43,29 @@ export default function ServiceForm() {
           </Field>
 
           <View style={{ gap: space.sm }}>
-            <AppText variant="labelMd" color={colors.inkVariant}>{t("Длительность")}</AppText>
+            <AppText variant="labelMd" color={colors.inkVariant}>{t("Длительность, мин")}</AppText>
+            <View style={{ position: "relative", justifyContent: "center" }}>
+              <TextInput
+                value={duration}
+                onChangeText={(v) => setDuration(v.replace(/[^\d]/g, ""))}
+                keyboardType="number-pad"
+                placeholder="50"
+                placeholderTextColor={colors.outline}
+                style={[styles.input, { paddingRight: 56 }]}
+              />
+              <AppText variant="labelMd" color={colors.inkVariant} style={styles.suffix}>{t("мин")}</AppText>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-              {DURATIONS.map((d) => {
-                const on = d === duration;
+              {PRESETS.map((d) => {
+                const on = String(d) === duration;
                 return (
-                  <Pressable key={d} onPress={() => setDuration(d)} style={[styles.chip, on ? styles.chipOn : styles.chipOff]}>
-                    <AppText variant="labelMd" color={on ? colors.onAccent : colors.accentDeep}>{t("{count} мин", { count: d })}</AppText>
+                  <Pressable key={d} onPress={() => setDuration(String(d))} style={[styles.chip, on ? styles.chipOn : styles.chipOff]}>
+                    <AppText variant="labelMd" color={on ? colors.onAccent : colors.accent}>{d}</AppText>
                   </Pressable>
                 );
               })}
             </ScrollView>
+            <AppText variant="labelSm" color={colors.secondary}>{t("Любое значение — например, 37 или 42 мин.")}</AppText>
           </View>
 
           <Field label={t("Цена, сум")}>

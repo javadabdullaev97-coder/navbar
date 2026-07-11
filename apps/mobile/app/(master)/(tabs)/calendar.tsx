@@ -11,7 +11,7 @@ export default function Calendar() {
   const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}><AppText variant="headlineMd" color={colors.accentDeep}>{t("Календарь")}</AppText></View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>{t("Календарь")}</AppText></View>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.iconWrap}><Sym name="calendar-month" size={44} color={colors.accent} /></View>
         <AppText variant="headlineMd" color={colors.ink} style={{ textAlign: "center" }}>{t("Календарь скоро")}</AppText>

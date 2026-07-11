@@ -24,14 +24,14 @@ export default function ShareLink() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accentDeep}>{t("Ваша страница")}</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Ваша страница")}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 40, alignItems: "center" }} showsVerticalScrollIndicator={false}>
         <View style={[styles.card, cardShadow]}>
           <View style={styles.avatar}><AppText variant="displayLg" color={colors.accent} style={{ fontSize: 32 }}>{initialOf(name)}</AppText></View>
-          <AppText variant="headlineMd" color={colors.accentDeep} style={{ marginTop: 12 }}>{name}</AppText>
+          <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: 12 }}>{name}</AppText>
           <AppText variant="labelSm" color={colors.secondary} style={styles.spec}>{t("Профессиональный косметолог")}</AppText>
 
           {/* QR-заглушка */}
@@ -53,16 +53,16 @@ export default function ShareLink() {
         {/* Статистика */}
         <View style={styles.stats}>
           <View style={[styles.statCard, { backgroundColor: colors.accentDeep }]}>
-            <Sym name="visibility" size={26} color={colors.accentTint} />
+            <Sym name="visibility" size={26} color="#FFD9DD" />
             <View>
-              <AppText variant="headlineMd" color={colors.onAccent}>1.2k</AppText>
-              <AppText variant="labelSm" color={colors.accentTint} style={{ fontSize: 10, textTransform: "uppercase" }}>{t("Просмотры")}</AppText>
+              <AppText variant="headlineMd" color="#FFFFFF">1.2k</AppText>
+              <AppText variant="labelSm" color="#FFD9DD" style={{ fontSize: 10, textTransform: "uppercase" }}>{t("Просмотры")}</AppText>
             </View>
           </View>
           <View style={[styles.statCard, styles.statGold]}>
             <Sym name="star" size={26} color={colors.gold} />
             <View>
-              <AppText variant="headlineMd" color={colors.accentDeep}>4.9</AppText>
+              <AppText variant="headlineMd" color={colors.accent}>4.9</AppText>
               <AppText variant="labelSm" color={colors.secondary} style={{ fontSize: 10, textTransform: "uppercase" }}>{t("Рейтинг")}</AppText>
             </View>
           </View>

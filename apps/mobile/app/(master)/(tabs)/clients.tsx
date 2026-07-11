@@ -11,7 +11,7 @@ export default function Clients() {
   const styles = useThemedStyles(makeStyles);
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}><AppText variant="headlineMd" color={colors.accentDeep}>{t("Клиенты")}</AppText></View>
+      <View style={styles.header}><AppText variant="headlineMd" color={colors.accent}>{t("Клиенты")}</AppText></View>
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.iconWrap}><Sym name="group" size={44} color={colors.accent} /></View>
         <AppText variant="headlineMd" color={colors.ink} style={{ textAlign: "center" }}>{t("Клиентская база скоро")}</AppText>

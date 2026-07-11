@@ -26,7 +26,7 @@ const ROLES: Role[] = [
     icon: "calendar-today",
     title: "Я мастер",
     subtitle: "Принимать записи и вести расписание",
-    target: "/(master)/(tabs)/today",
+    target: "/(master)/onboarding",
   },
   {
     icon: "storefront",

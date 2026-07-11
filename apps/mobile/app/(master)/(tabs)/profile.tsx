@@ -34,7 +34,7 @@ export default function MasterProfile() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
-        <AppText variant="headlineMd" color={colors.accentDeep}>{t("Профиль")}</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Профиль")}</AppText>
         <Pressable onPress={() => router.push("/(master)/notifications")} hitSlop={8}>
           <Sym name="notifications-none" size={24} color={colors.accent} />
         </Pressable>
@@ -45,7 +45,7 @@ export default function MasterProfile() {
         <View style={[styles.profileCard, cardShadow]}>
           <Avatar initial={initialOf(name)} size={64} tint={colors.surfaceMid} fg={colors.accent} />
           <View style={{ flex: 1 }}>
-            <AppText variant="headlineMd" color={colors.accentDeep} style={{ fontSize: 20 }}>{name}</AppText>
+            <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 20 }}>{name}</AppText>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
               <AppText variant="bodyMd" color={colors.secondary}>{t(spec)}</AppText>
               <Sym name="star" size={16} color={colors.gold} />
@@ -82,7 +82,7 @@ export default function MasterProfile() {
             const on = k === themeMode;
             return (
               <Pressable key={k} onPress={() => setThemeMode(k)} style={[styles.pill, on && styles.pillOn]}>
-                <AppText variant="labelSm" color={on ? colors.accentDeep : colors.secondary}>{t(THEME_SHORT[k])}</AppText>
+                <AppText variant="labelSm" color={on ? colors.accent : colors.secondary}>{t(THEME_SHORT[k])}</AppText>
               </Pressable>
             );
           })}

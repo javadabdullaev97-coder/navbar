@@ -20,7 +20,7 @@ export default function MasterBooking() {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="chevron-left" size={28} color={colors.accent} /></Pressable>
-        <AppText variant="headlineMd" color={colors.accentDeep}>{t("Запись")}</AppText>
+        <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
         <View style={{ width: 28 }} />
       </View>
 

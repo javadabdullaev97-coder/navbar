@@ -25,7 +25,7 @@ export default function Services() {
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
-          <AppText variant="headlineMd" color={colors.accentDeep}>{t("Услуги")}</AppText>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Услуги")}</AppText>
         </View>
         <Pressable onPress={() => router.push("/(master)/service-form")} style={styles.addBtn}>
           <Sym name="add" size={20} color={colors.onAccent} />
