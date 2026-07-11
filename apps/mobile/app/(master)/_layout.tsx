@@ -17,6 +17,7 @@ function MasterStack() {
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="onboarding" />
+        <Stack.Screen name="edit-profile" />
         <Stack.Screen name="booking/[id]" />
         <Stack.Screen name="client/[id]" />
         <Stack.Screen name="services" />

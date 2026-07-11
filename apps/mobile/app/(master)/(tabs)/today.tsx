@@ -34,6 +34,7 @@ export default function Today() {
   const real = masterConfigured && bookings ? bookings.filter((b) => b.status !== "cancelled") : null;
   const isToday = (iso: string) => { const d = new Date(iso), n = new Date(); return d.toDateString() === n.toDateString(); };
   const todayCount = real ? real.filter((b) => isToday(b.starts_at)).length : 5;
+  const pendingCount = real ? real.filter((b) => b.status === "pending").length : 2;
   const near: Booking[] = real
     ? real.filter((b) => new Date(b.starts_at).getTime() >= Date.now() - 3600_000)
         .slice(0, 5)
@@ -67,13 +68,13 @@ export default function Today() {
               <AppText variant="labelSm" color={colors.secondary}>{t("сегодня")}</AppText>
             </View>
           </View>
-          <View style={[styles.statCard, cardShadow]}>
-            <AppText variant="labelSm" color={colors.secondary} style={styles.statLabel}>{t("Слоты")}</AppText>
+          <Pressable style={[styles.statCard, cardShadow]} onPress={() => router.push("/(master)/(tabs)/requests")}>
+            <AppText variant="labelSm" color={colors.secondary} style={styles.statLabel}>{t("Новые заявки")}</AppText>
             <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>3</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>{t("свободно")}</AppText>
+              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>{pendingCount}</AppText>
+              <AppText variant="labelSm" color={colors.secondary}>{t("новых")}</AppText>
             </View>
-          </View>
+          </Pressable>
           <Pressable style={[styles.revenueCard, cardShadow]} onPress={() => router.push("/(master)/analytics")}>
             <View>
               <AppText variant="labelSm" color="#FFD9DD" style={styles.statLabel}>{t("Выручка за день")}</AppText>

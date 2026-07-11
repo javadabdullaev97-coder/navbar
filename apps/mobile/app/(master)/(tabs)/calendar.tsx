@@ -61,7 +61,6 @@ export default function Calendar() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <AppText variant="headlineMd" color={colors.accent}>{t("Календарь")}</AppText>
-        <Sym name="search" size={24} color={colors.accent} />
       </View>
 
       {/* Сегмент День/Неделя/Месяц */}

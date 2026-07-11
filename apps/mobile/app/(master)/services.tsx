@@ -9,12 +9,12 @@ import { masterConfigured, useMyMaster } from "../../lib/master-api";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
-type Service = { id: string; name: string; duration: number; price: number };
+type Service = { id: string; name: string; duration: number; price: number; description: string | null };
 const DEMO: Service[] = [
-  { id: "1", name: "Консультация 50 мин", duration: 50, price: 250000 },
-  { id: "2", name: "Первичный приём", duration: 60, price: 300000 },
-  { id: "3", name: "Диагностика", duration: 40, price: 180000 },
-  { id: "4", name: "Повторный сеанс", duration: 45, price: 220000 },
+  { id: "1", name: "Консультация 50 мин", duration: 50, price: 250000, description: null },
+  { id: "2", name: "Первичный приём", duration: 60, price: 300000, description: null },
+  { id: "3", name: "Диагностика", duration: 40, price: 180000, description: null },
+  { id: "4", name: "Повторный сеанс", duration: 45, price: 220000, description: null },
 ];
 
 export default function Services() {
@@ -26,7 +26,7 @@ export default function Services() {
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   const SERVICES: Service[] = masterConfigured && master
-    ? master.services.map((s) => ({ id: s.id, name: s.name, duration: s.duration_min, price: s.price }))
+    ? master.services.map((s) => ({ id: s.id, name: s.name, duration: s.duration_min, price: s.price, description: s.description }))
     : DEMO;
   const showLoading = masterConfigured && master === null && loading;
 
@@ -49,7 +49,7 @@ export default function Services() {
           <View style={{ alignItems: "center", paddingVertical: 40 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Услуг пока нет — добавьте первую.")}</AppText></View>
         )}
         {!showLoading && SERVICES.map((s) => (
-          <Pressable key={s.id} onPress={() => router.push({ pathname: "/(master)/service-form", params: { id: s.id, name: s.name, duration: String(s.duration), price: String(s.price) } })}>
+          <Pressable key={s.id} onPress={() => router.push({ pathname: "/(master)/service-form", params: { id: s.id, name: s.name, duration: String(s.duration), price: String(s.price), description: s.description ?? "" } })}>
             <View style={[styles.card, cardShadow]}>
               <View style={{ flex: 1 }}>
                 <AppText variant="labelMd" color={colors.ink}>{t(s.name)}</AppText>

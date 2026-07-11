@@ -1,12 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, PrimaryButton, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
 import { fmtDate, fmtTime } from "../../../lib/format";
-import { masterConfigured, MasterBookingStatus, setBookingStatus, useMasterBookings } from "../../../lib/master-api";
+import { masterConfigured, MasterBookingStatus, setBookingStatus, setClientNote, useMasterBookings } from "../../../lib/master-api";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 
@@ -40,6 +40,12 @@ export default function MasterBooking() {
     : meta.kind === "info" ? { bg: colors.infoBg, fg: colors.infoText }
     : { bg: colors.surfaceHigh, fg: colors.secondary };
   const canManage = status === "pending" || status === "confirmed";
+
+  // Заметка о клиенте (client.notes) — грузим из брони, сохраняем на blur.
+  useEffect(() => { if (b?.client_note != null) setNote(b.client_note); }, [b?.client_note]);
+  async function saveNote() {
+    if (masterConfigured && b?.client_id) { try { await setClientNote(b.client_id, note); } catch { /* игнор */ } }
+  }
 
   async function apply(next: MasterBookingStatus) {
     if (busy) return;
@@ -103,6 +109,7 @@ export default function MasterBooking() {
             <TextInput
               value={note}
               onChangeText={setNote}
+              onBlur={saveNote}
               placeholder={t("Добавьте важные детали о клиенте или процедуре…")}
               placeholderTextColor={colors.outline}
               multiline

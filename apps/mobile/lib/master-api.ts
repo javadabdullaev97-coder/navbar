@@ -12,7 +12,7 @@ export async function becomeSoloMaster(name: string, spec: string, city?: string
   if (error) throw error;
 }
 
-export type MasterService = { id: string; name: string; duration_min: number; price: number; is_active: boolean };
+export type MasterService = { id: string; name: string; description: string | null; duration_min: number; price: number; is_active: boolean };
 export type MasterAvailability = { day_of_week: number; start_min: number; end_min: number; is_day_off: boolean };
 export type MyMaster = {
   org_id: string;
@@ -30,13 +30,19 @@ export type GalleryItem = { id: string; url: string; caption: string | null };
 export type MasterBookingStatus = "pending" | "confirmed" | "done" | "cancelled";
 export type MasterBooking = {
   id: string;
+  client_id: string | null;
   client_name: string | null;
   client_phone: string | null;
+  client_note: string | null;
   service_name: string | null;
   starts_at: string;
   ends_at: string;
   status: MasterBookingStatus;
 };
+
+export type MasterClient = { id: string; name: string; phone: string; notes: string | null; visits: number; last_visit: string | null };
+export type ClientHistory = { id: string; service_name: string | null; price: number | null; starts_at: string; status: MasterBookingStatus };
+export type MasterClientDetail = { id: string; name: string; phone: string; notes: string | null; since: string; visits: number; total_spent: number; history: ClientHistory[] };
 
 export async function getMyMaster(): Promise<MyMaster | null> {
   const { data, error } = await supabase.rpc("get_my_master");
@@ -50,12 +56,29 @@ export async function getMasterBookings(): Promise<MasterBooking[]> {
   return (data as MasterBooking[]) ?? [];
 }
 
-export async function upsertService(p: { id?: string; name: string; duration: number; price: number }): Promise<string> {
+export async function upsertService(p: { id?: string; name: string; duration: number; price: number; description?: string }): Promise<string> {
   const { data, error } = await supabase.rpc("upsert_service", {
-    p_id: p.id ?? null, p_name: p.name, p_duration: p.duration, p_price: p.price,
+    p_id: p.id ?? null, p_name: p.name, p_duration: p.duration, p_price: p.price, p_description: p.description ?? null,
   });
   if (error) throw error;
   return data as string;
+}
+
+export async function getMyClients(): Promise<MasterClient[]> {
+  const { data, error } = await supabase.rpc("get_my_clients");
+  if (error) throw error;
+  return (data as MasterClient[]) ?? [];
+}
+
+export async function getClient(id: string): Promise<MasterClientDetail | null> {
+  const { data, error } = await supabase.rpc("get_client", { p_id: id });
+  if (error) throw error;
+  return (data as MasterClientDetail | null) ?? null;
+}
+
+export async function setClientNote(id: string, note: string): Promise<void> {
+  const { error } = await supabase.rpc("set_client_note", { p_id: id, p_note: note });
+  if (error) throw error;
 }
 
 export async function deleteService(id: string): Promise<void> {
@@ -124,6 +147,7 @@ export async function deleteGalleryItem(id: string): Promise<void> {
 
 export function useMyMaster() { return useResource<MyMaster | null>(getMyMaster); }
 export function useMyGallery() { return useResource<GalleryItem[]>(getMyGallery); }
+export function useMyClients() { return useResource<MasterClient[]>(getMyClients); }
 export function useMasterBookings() { return useResource<MasterBooking[]>(getMasterBookings); }
 
 export type Analytics = {

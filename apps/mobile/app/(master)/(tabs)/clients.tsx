@@ -1,24 +1,27 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Sym } from "../../../components/ui";
+import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
+import { MONTHS_GEN } from "../../../lib/format";
+import { masterConfigured, MasterClient, useMyClients } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 
-type Client = { id: string; name: string; visits: number; last: string; regular?: boolean };
-const CLIENTS: Client[] = [
-  { id: "1", name: "Азиза Каримова", visits: 12, last: "12 июля", regular: true },
-  { id: "2", name: "Дмитрий Соколов", visits: 8, last: "5 авг", regular: true },
-  { id: "3", name: "Елена Волкова", visits: 4, last: "28 июля", regular: true },
-  { id: "4", name: "Бахтиёр Хакимов", visits: 1, last: "14 авг" },
-  { id: "5", name: "Иван Кравцов", visits: 2, last: "1 авг" },
-  { id: "6", name: "Камила Исаева", visits: 6, last: "20 июля" },
+const DEMO: MasterClient[] = [
+  { id: "1", name: "Азиза Каримова", phone: "", notes: null, visits: 12, last_visit: new Date().toISOString() },
+  { id: "2", name: "Дмитрий Соколов", phone: "", notes: null, visits: 8, last_visit: new Date(Date.now() - 6e8).toISOString() },
+  { id: "3", name: "Бахтиёр Хакимов", phone: "", notes: null, visits: 1, last_visit: new Date(Date.now() - 3e9).toISOString() },
 ];
+const CHIPS = ["Все", "Постоянные", "Новые"];
 
-const CHIPS = ["Все", "Постоянные", "Новые", "Архив"];
+function shortDate(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "—" : `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+}
 
 export default function Clients() {
   const router = useRouter();
@@ -27,34 +30,23 @@ export default function Clients() {
   const styles = useThemedStyles(makeStyles);
   const [q, setQ] = useState("");
   const [chip, setChip] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const { data: remote, loading, reload } = useMyClients();
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const filtered = CLIENTS.filter((c) => {
-    if (q && !c.name.toLowerCase().includes(q.toLowerCase())) return false;
-    if (chip === 1) return c.regular; // Постоянные
-    if (chip === 2) return c.visits <= 1; // Новые
-    return true;
-  });
-  const regulars = filtered.filter((c) => c.regular);
-  const others = filtered.filter((c) => !c.regular);
+  const source = masterConfigured && remote ? remote : DEMO;
+  const showLoading = masterConfigured && remote === null && loading;
+  const list = source
+    .filter((c) => (q ? c.name.toLowerCase().includes(q.toLowerCase()) : true))
+    .filter((c) => (chip === 1 ? c.visits >= 3 : chip === 2 ? c.visits <= 1 : true));
 
-  const Row = (c: Client) => (
-    <Pressable key={c.id} onPress={() => router.push(`/(master)/client/${c.id}`)}>
-      <View style={[styles.row, cardShadow]}>
-        <Avatar initial={initialOf(c.name)} size={48} round tint={colors.surfaceMid} fg={colors.inkVariant} />
-        <View style={{ flex: 1 }}>
-          <AppText variant="labelMd" color={colors.ink}>{c.name}</AppText>
-          <AppText variant="labelSm" color={colors.secondary}>{t("Визитов: {count} · Последний: {date}", { count: c.visits, date: c.last })}</AppText>
-        </View>
-        <Sym name="chevron-right" size={22} color={colors.secondary} />
-      </View>
-    </Pressable>
-  );
+  const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <AppText variant="headlineMd" color={colors.accent}>{t("Клиенты")}</AppText>
-        <Sym name="add-circle-outline" size={26} color={colors.accent} />
+        <AppText variant="labelMd" color={colors.secondary}>{t("{count} чел.", { count: source.length })}</AppText>
       </View>
 
       <View style={styles.searchWrap}>
@@ -70,24 +62,31 @@ export default function Clients() {
         ))}
       </ScrollView>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        {filtered.length === 0 && (
-          <View style={{ alignItems: "center", paddingVertical: 56 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Никого не найдено")}</AppText></View>
-        )}
-        {regulars.length > 0 && (
-          <>
-            <View style={styles.sectionRow}>
-              <AppText variant="labelSm" color={colors.secondary} style={styles.upper}>{t("Постоянные")}</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>{t("{count} чел.", { count: regulars.length })}</AppText>
-            </View>
-            <View style={{ gap: space.sm }}>{regulars.map(Row)}</View>
-          </>
-        )}
-        {others.length > 0 && (
-          <>
-            <AppText variant="labelSm" color={colors.secondary} style={[styles.upper, { marginTop: space.lg, marginBottom: space.sm }]}>{t("Все клиенты")}</AppText>
-            <View style={{ gap: space.sm }}>{others.map(Row)}</View>
-          </>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 120, gap: space.sm }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      >
+        {showLoading ? <Loading /> : list.length === 0 ? (
+          <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
+            <Sym name="group" size={44} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>
+              {q ? t("Никого не найдено") : t("Клиенты появятся после первых записей.")}
+            </AppText>
+          </View>
+        ) : (
+          list.map((c) => (
+            <Pressable key={c.id} onPress={() => router.push(`/(master)/client/${c.id}`)}>
+              <View style={[styles.row, cardShadow]}>
+                <Avatar initial={initialOf(c.name)} size={48} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="labelMd" color={colors.ink}>{c.name}</AppText>
+                  <AppText variant="labelSm" color={colors.secondary}>{t("Визитов: {count} · Последний: {date}", { count: c.visits, date: shortDate(c.last_visit) })}</AppText>
+                </View>
+                <Sym name="chevron-right" size={22} color={colors.secondary} />
+              </View>
+            </Pressable>
+          ))
         )}
       </ScrollView>
     </SafeAreaView>
@@ -104,7 +103,5 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   chip: { height: 38, paddingHorizontal: 20, borderRadius: radius.full, alignItems: "center", justifyContent: "center" },
   chipOn: { backgroundColor: colors.accent },
   chipOff: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant },
-  sectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: space.sm },
-  upper: { textTransform: "uppercase", letterSpacing: 1.5 },
   row: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 12 },
 });

@@ -72,7 +72,6 @@ export default function Requests() {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
         <AppText variant="headlineMd" color={colors.accent}>{t("Записи")}</AppText>
-        <Sym name="search" size={24} color={colors.accent} />
       </View>
 
       {/* Сегментированный контрол */}

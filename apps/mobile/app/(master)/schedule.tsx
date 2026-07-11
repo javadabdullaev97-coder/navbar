@@ -93,17 +93,6 @@ export default function Schedule() {
               </View>
             </View>
 
-            <View style={{ gap: space.sm }}>
-              <AppText variant="labelSm" color={colors.secondary} style={styles.upper}>{t("Обед и перерывы")}</AppText>
-              <View style={[styles.card, styles.breakRow, cardShadow]}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <View style={styles.coffee}><Sym name="coffee" size={20} color={colors.successText} /></View>
-                  <AppText variant="labelMd" color={colors.ink}>{t("Перерыв")}</AppText>
-                </View>
-                <View style={styles.hoursBtn}><AppText variant="bodyMd" color={colors.accent}>13:00 – 14:00</AppText></View>
-              </View>
-            </View>
-
             <View style={styles.hero}>
               <AppText variant="headlineMd" color="#FFFFFF">{t("Эффективное время")}</AppText>
               <AppText variant="bodyMd" color="#FFD9DD" style={{ marginTop: 6, maxWidth: 240 }}>

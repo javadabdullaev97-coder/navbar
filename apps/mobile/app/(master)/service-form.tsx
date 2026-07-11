@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DurationSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
@@ -15,14 +15,13 @@ export default function ServiceForm() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const params = useLocalSearchParams<{ id?: string; name?: string; duration?: string; price?: string }>();
+  const params = useLocalSearchParams<{ id?: string; name?: string; duration?: string; price?: string; description?: string }>();
   const editing = Boolean(params.id);
 
   const [name, setName] = useState(params.name ?? "");
-  const [desc, setDesc] = useState("");
+  const [desc, setDesc] = useState(params.description ?? "");
   const [duration, setDuration] = useState(params.duration ? Number(params.duration) : 50);
   const [price, setPrice] = useState(params.price ?? "");
-  const [deposit, setDeposit] = useState(false);
   const [busy, setBusy] = useState(false);
   const [durOpen, setDurOpen] = useState(false);
 
@@ -37,7 +36,7 @@ export default function ServiceForm() {
     if (masterConfigured) {
       setBusy(true);
       try {
-        await upsertService({ id: params.id, name: name.trim(), duration, price: Number(price) || 0 });
+        await upsertService({ id: params.id, name: name.trim(), duration, price: Number(price) || 0, description: desc.trim() });
       } catch (e) {
         setBusy(false);
         Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось сохранить услугу."));
@@ -95,13 +94,6 @@ export default function ServiceForm() {
             </View>
           </Field>
 
-          <View style={styles.depositRow}>
-            <View style={{ flex: 1, paddingRight: 12 }}>
-              <AppText variant="labelMd" color={colors.ink}>{t("Требовать депозит")}</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>{t("Клиент оплатит часть суммы при бронировании")}</AppText>
-            </View>
-            <Switch value={deposit} onValueChange={setDeposit} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -136,6 +128,5 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   textarea: { minHeight: 110, paddingTop: 14, textAlignVertical: "top" },
   suffix: { position: "absolute", right: 16 },
   pickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
-  depositRow: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, gap: 4, borderTopWidth: 1, borderTopColor: colors.outlineVariant, backgroundColor: colors.surface },
 });

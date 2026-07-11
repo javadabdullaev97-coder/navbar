@@ -51,24 +51,6 @@ export default function ShareLink() {
             {t("Клиенты найдут вас и запишутся по этой ссылке.")}
           </AppText>
         </View>
-
-        {/* Статистика */}
-        <View style={styles.stats}>
-          <View style={[styles.statCard, { backgroundColor: colors.accentDeep }]}>
-            <Sym name="visibility" size={26} color="#FFD9DD" />
-            <View>
-              <AppText variant="headlineMd" color="#FFFFFF">1.2k</AppText>
-              <AppText variant="labelSm" color="#FFD9DD" style={{ fontSize: 10, textTransform: "uppercase" }}>{t("Просмотры")}</AppText>
-            </View>
-          </View>
-          <View style={[styles.statCard, styles.statGold]}>
-            <Sym name="star" size={26} color={colors.gold} />
-            <View>
-              <AppText variant="headlineMd" color={colors.accent}>4.9</AppText>
-              <AppText variant="labelSm" color={colors.secondary} style={{ fontSize: 10, textTransform: "uppercase" }}>{t("Рейтинг")}</AppText>
-            </View>
-          </View>
-        </View>
       </ScrollView>
 
       <View style={styles.footer}>
