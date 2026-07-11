@@ -37,6 +37,22 @@ export function nextDays(count: number, from: Date = new Date()): Date[] {
   });
 }
 
+/** Минуты → «1 ч 30 мин» / «1 ч» / «45 мин». */
+export function fmtDur(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h && m) return `${h} ч ${m} мин`;
+  if (h) return `${h} ч`;
+  return `${m} мин`;
+}
+
+/** Минуты от полуночи → «HH:MM» (1440 → «24:00»). */
+export function minToHHMM(total: number): string {
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${p2(h)}:${p2(m)}`;
+}
+
 /** Дата + время «HH:MM» → новый Date. */
 export function withTime(day: Date, hhmm: string): Date {
   const [h, m] = hhmm.split(":").map(Number);

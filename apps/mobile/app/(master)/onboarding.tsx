@@ -1,8 +1,10 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { DurationSheet, HoursSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { fmtDur, minToHHMM } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
@@ -10,20 +12,11 @@ import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 const CITIES = ["Ташкент", "Самарканд", "Бухара", "Наманган", "Андижан"];
 const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"];
-const PRESETS = [30, 45, 60, 90, 120];
-
-function fmtDur(total: number): string {
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  if (h && m) return `${h} ч ${m} мин`;
-  if (h) return `${h} ч`;
-  return `${m} мин`;
-}
-const DAYS = [
-  { key: "mon", label: "Пн" }, { key: "tue", label: "Вт" }, { key: "wed", label: "Ср" },
-  { key: "thu", label: "Чт" }, { key: "fri", label: "Пт" }, { key: "sat", label: "Сб" }, { key: "sun", label: "Вс" },
-];
-const STEP_TITLE = ["Расскажите о себе", "Добавьте первую услугу", "Настройте график"];
+const DAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+type DayState = { on: boolean; start: number; end: number };
+const DAYS_DEFAULT: DayState[] = DAY_LABELS.map((_, i) => ({ on: i < 5, start: 540, end: i === 4 ? 1020 : 1080 }));
+const STEP_TITLE = ["Расскажите о себе", "Добавьте первую услугу", "Настройте график", "Загрузите портфолио"];
+const STEPS = 4;
 
 export default function MasterOnboarding() {
   const router = useRouter();
@@ -40,20 +33,29 @@ export default function MasterOnboarding() {
   const [cover, setCover] = useState(0);
   // Шаг 2
   const [svcName, setSvcName] = useState("");
-  const [svcHours, setSvcHours] = useState("0");
-  const [svcMins, setSvcMins] = useState("50");
-  const svcTotal = (Number(svcHours) || 0) * 60 + (Number(svcMins) || 0);
-  const setSvcPreset = (d: number) => { setSvcHours(String(Math.floor(d / 60))); setSvcMins(String(d % 60)); };
+  const [svcDuration, setSvcDuration] = useState(50);
   const [svcPrice, setSvcPrice] = useState("");
+  const [durOpen, setDurOpen] = useState(false);
   // Шаг 3
-  const [days, setDays] = useState<Record<string, boolean>>({ mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false });
+  const [days, setDays] = useState<DayState[]>(DAYS_DEFAULT);
+  const [editDay, setEditDay] = useState<number | null>(null);
+  // Шаг 4 (загрузка фото появится со Storage)
+  const [photos] = useState<number[]>([]);
 
-  function back() {
-    if (step > 1) setStep(step - 1);
-    else router.back();
-  }
+  const valid =
+    step === 1 ? name.trim().length > 0 && spec.trim().length > 0 :
+    step === 2 ? svcName.trim().length > 0 && svcDuration > 0 && (Number(svcPrice) || 0) > 0 :
+    step === 3 ? days.some((d) => d.on) :
+    true; // шаг 4 — необязательный
+
+  const hint =
+    step === 1 ? t("Заполните имя и специализацию.") :
+    step === 2 ? t("Укажите название, длительность и цену услуги.") :
+    step === 3 ? t("Оставьте включённым хотя бы один рабочий день.") : "";
+
   function next() {
-    if (step < 3) { setStep(step + 1); return; }
+    if (!valid) { Alert.alert(t("Заполните поля"), hint); return; }
+    if (step < STEPS) { setStep(step + 1); return; }
     if (name.trim()) setProfile({ ...profile, name: name.trim() });
     router.replace("/(master)/(tabs)/today");
   }
@@ -61,21 +63,20 @@ export default function MasterOnboarding() {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <Pressable onPress={back} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
+        <Pressable onPress={() => (step > 1 ? setStep(step - 1) : router.back())} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
         <AppText variant="headlineMd" color={colors.accent}>{t("Профиль мастера")}</AppText>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Прогресс */}
       <View style={styles.progressRow}>
-        {[1, 2, 3].map((s) => (
-          <View key={s} style={[styles.progressSeg, { backgroundColor: s <= step ? colors.accent : colors.surfaceHigh }]} />
+        {Array.from({ length: STEPS }, (_, i) => (
+          <View key={i} style={[styles.progressSeg, { backgroundColor: i < step ? colors.accent : colors.surfaceHigh }]} />
         ))}
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 40 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <AppText variant="labelSm" color={colors.secondary} style={styles.step}>{t("Шаг {n} из 3", { n: step })}</AppText>
+          <AppText variant="labelSm" color={colors.secondary} style={styles.step}>{t("Шаг {n} из {total}", { n: step, total: STEPS })}</AppText>
           <AppText variant="displayLg" color={colors.accent} style={{ marginTop: 4 }}>{t(STEP_TITLE[step - 1])}</AppText>
 
           {step === 1 && (
@@ -120,48 +121,55 @@ export default function MasterOnboarding() {
               <Field label={t("Название")}>
                 <TextInput value={svcName} onChangeText={setSvcName} placeholder={t("Например, Консультация")} placeholderTextColor={colors.outline} style={styles.input} />
               </Field>
-              <View style={{ gap: 8 }}>
-                <AppText variant="labelMd" color={colors.secondary}>{t("Длительность")}</AppText>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  <View style={styles.durField}>
-                    <TextInput value={svcHours} onChangeText={(v) => setSvcHours(v.replace(/[^\d]/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
-                    <AppText variant="labelMd" color={colors.inkVariant}>{t("ч")}</AppText>
-                  </View>
-                  <View style={styles.durField}>
-                    <TextInput value={svcMins} onChangeText={(v) => { const n = Number(v.replace(/[^\d]/g, "")) || 0; setSvcMins(String(Math.min(n, 59))); }} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
-                    <AppText variant="labelMd" color={colors.inkVariant}>{t("мин")}</AppText>
-                  </View>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                  {PRESETS.map((d) => (
-                    <Pressable key={d} onPress={() => setSvcPreset(d)} style={[styles.chip, svcTotal === d ? styles.chipOn : styles.chipOff]}>
-                      <AppText variant="labelMd" color={svcTotal === d ? colors.onAccent : colors.accent}>{fmtDur(d)}</AppText>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-                <AppText variant="labelSm" color={colors.secondary}>{t("Например, 1 ч 30 мин.")}</AppText>
-              </View>
+              <Field label={t("Длительность")}>
+                <Pressable style={styles.pickerRow} onPress={() => setDurOpen(true)}>
+                  <AppText variant="bodyMd" color={colors.ink}>{fmtDur(svcDuration)}</AppText>
+                  <Sym name="expand-more" size={22} color={colors.secondary} />
+                </Pressable>
+              </Field>
               <Field label={t("Цена, сум")}>
                 <TextInput value={svcPrice} onChangeText={(v) => setSvcPrice(v.replace(/[^\d]/g, ""))} keyboardType="number-pad" placeholder="250000" placeholderTextColor={colors.outline} style={styles.input} />
               </Field>
-              <AppText variant="labelSm" color={colors.secondary}>{t("Услуги можно будет добавить и изменить позже.")}</AppText>
             </View>
           )}
 
           {step === 3 && (
             <View style={{ marginTop: space.lg }}>
               <View style={[styles.card, cardShadow]}>
-                {DAYS.map((d, i) => (
-                  <View key={d.key} style={[styles.dayRow, i < DAYS.length - 1 && styles.divider]}>
-                    <AppText variant="labelMd" color={colors.ink}>{t(d.label)}</AppText>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                      <AppText variant="labelSm" color={days[d.key] ? colors.secondary : colors.outline}>{days[d.key] ? "09:00 – 18:00" : t("Выходной")}</AppText>
-                      <Switch value={days[d.key]} onValueChange={() => setDays((x) => ({ ...x, [d.key]: !x[d.key] }))} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+                {days.map((d, i) => (
+                  <View key={i} style={[styles.dayRow, i < days.length - 1 && styles.divider]}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                      <Switch value={d.on} onValueChange={() => setDays((x) => x.map((y, idx) => (idx === i ? { ...y, on: !y.on } : y)))} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+                      <AppText variant="labelMd" color={colors.ink}>{t(DAY_LABELS[i])}</AppText>
                     </View>
+                    {d.on ? (
+                      <Pressable style={styles.hoursBtn} onPress={() => setEditDay(i)}>
+                        <AppText variant="bodyMd" color={colors.accent}>{minToHHMM(d.start)} – {minToHHMM(d.end)}</AppText>
+                      </Pressable>
+                    ) : (
+                      <AppText variant="bodyMd" color={colors.secondary} style={{ fontStyle: "italic" }}>{t("Выходной")}</AppText>
+                    )}
                   </View>
                 ))}
               </View>
-              <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: space.sm }}>{t("Точное время по каждому дню настроите в графике работы.")}</AppText>
+              <AppText variant="labelSm" color={colors.secondary} style={{ marginTop: space.sm }}>{t("Нажмите на время, чтобы задать часы работы.")}</AppText>
+            </View>
+          )}
+
+          {step === 4 && (
+            <View style={{ marginTop: space.lg, gap: space.md }}>
+              <AppText variant="bodyMd" color={colors.secondary}>{t("Покажите свои работы — это повышает доверие. Шаг необязательный.")}</AppText>
+              <View style={styles.grid}>
+                <Pressable
+                  onPress={() => Alert.alert(t("Скоро"), t("Загрузка фото появится в следующем обновлении."))}
+                  style={[styles.tile, styles.addTile]}
+                >
+                  <Sym name="add-a-photo" size={28} color={colors.accent} />
+                </Pressable>
+                {photos.map((_, i) => (
+                  <View key={i} style={[styles.tile, styles.photoTile]}><Sym name="image" size={26} color={colors.outline} /></View>
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>
@@ -169,11 +177,26 @@ export default function MasterOnboarding() {
 
       <View style={styles.footer}>
         <PrimaryButton
-          label={step < 3 ? t("Далее") : t("Готово, к записям")}
-          icon={step < 3 ? "arrow-forward" : "check"}
+          label={step < STEPS ? t("Далее") : t("Готово, к записям")}
+          icon={step < STEPS ? "arrow-forward" : "check"}
           onPress={next}
+          style={!valid ? { opacity: 0.5 } : undefined}
         />
+        {step === STEPS && (
+          <Pressable onPress={next} style={{ alignItems: "center", paddingVertical: 10 }}>
+            <AppText variant="labelMd" color={colors.secondary}>{t("Пропустить")}</AppText>
+          </Pressable>
+        )}
       </View>
+
+      <DurationSheet visible={durOpen} value={svcDuration} onSelect={setSvcDuration} onClose={() => setDurOpen(false)} />
+      <HoursSheet
+        visible={editDay !== null}
+        start={editDay !== null ? days[editDay].start : 540}
+        end={editDay !== null ? days[editDay].end : 1080}
+        onSelect={(s, e) => { if (editDay !== null) setDays((d) => d.map((x, idx) => (idx === editDay ? { ...x, start: s, end: e } : x))); }}
+        onClose={() => setEditDay(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -197,9 +220,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   avatar: { width: 128, height: 128, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: colors.surface },
   avatarBadge: { position: "absolute", bottom: 4, right: 4, width: 32, height: 32, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   input: { height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
-  suffix: { position: "absolute", right: 16 },
-  durField: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
-  durInput: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
+  pickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
   chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.full },
   chipOn: { backgroundColor: colors.accent },
   chipOff: { backgroundColor: colors.surfaceMid },
@@ -208,5 +229,10 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   card: { backgroundColor: colors.surface, borderRadius: radius.xl, overflow: "hidden" },
   dayRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
+  hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.lg },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  tile: { width: "31%", aspectRatio: 1, borderRadius: radius.xl, alignItems: "center", justifyContent: "center" },
+  addTile: { borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
+  photoTile: { backgroundColor: colors.surfaceMid },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

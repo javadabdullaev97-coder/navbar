@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { HoursSheet } from "../../components/pickers";
 import { AppText, Loading, PrimaryButton, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { masterConfigured, setAvailability, useMyMaster } from "../../lib/master-api";
@@ -22,6 +23,7 @@ export default function Schedule() {
   const { data: master, loading } = useMyMaster();
   const [days, setDays] = useState<DayState[]>(DEFAULT);
   const [busy, setBusy] = useState(false);
+  const [editDay, setEditDay] = useState<number | null>(null);
 
   // Подгружаем реальный график, когда мастер загрузился.
   useEffect(() => {
@@ -82,7 +84,7 @@ export default function Schedule() {
                       <AppText variant="labelMd" color={colors.ink}>{t(LABELS[i])}</AppText>
                     </View>
                     {d.on ? (
-                      <View style={styles.hoursBtn}><AppText variant="bodyMd" color={colors.accent}>{minutesToTime(d.start)} – {minutesToTime(d.end)}</AppText></View>
+                      <Pressable style={styles.hoursBtn} onPress={() => setEditDay(i)}><AppText variant="bodyMd" color={colors.accent}>{minutesToTime(d.start)} – {minutesToTime(d.end)}</AppText></Pressable>
                     ) : (
                       <AppText variant="bodyMd" color={colors.secondary} style={{ fontStyle: "italic" }}>{t("Выходной")}</AppText>
                     )}
@@ -115,6 +117,14 @@ export default function Schedule() {
       <View style={styles.footer}>
         <PrimaryButton label={t("Сохранить изменения")} onPress={save} loading={busy} />
       </View>
+
+      <HoursSheet
+        visible={editDay !== null}
+        start={editDay !== null ? days[editDay].start : 540}
+        end={editDay !== null ? days[editDay].end : 1080}
+        onSelect={(s, e) => { if (editDay !== null) setDays((d) => d.map((x, idx) => (idx === editDay ? { ...x, start: s, end: e } : x))); }}
+        onClose={() => setEditDay(null)}
+      />
     </SafeAreaView>
   );
 }

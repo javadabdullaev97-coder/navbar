@@ -361,4 +361,19 @@ export const DICT: Translations = {
   "Удалить услугу?": { uz: "Xizmat o'chirilsinmi?", en: "Delete this service?" },
   "Не удалось сохранить график.": { uz: "Jadvalni saqlab bo'lmadi.", en: "Couldn't save the schedule." },
   "Отменено": { uz: "Bekor qilingan", en: "Cancelled" },
+
+  // ── Мастер: колёса выбора, валидация онбординга, портфолио ──
+  "Готово": { uz: "Tayyor", en: "Done" },
+  "Пропустить": { uz: "O'tkazib yuborish", en: "Skip" },
+  "Начало": { uz: "Boshlanishi", en: "Start" },
+  "Конец": { uz: "Tugashi", en: "End" },
+  "Часы работы": { uz: "Ish soatlari", en: "Working hours" },
+  "Длительность услуги": { uz: "Xizmat davomiyligi", en: "Service duration" },
+  "Загрузите портфолио": { uz: "Portfolio yuklang", en: "Upload your portfolio" },
+  "Шаг {n} из {total}": { uz: "{n}-qadam / {total}", en: "Step {n} of {total}" },
+  "Заполните имя и специализацию.": { uz: "Ism va mutaxassislikni to'ldiring.", en: "Fill in your name and specialization." },
+  "Оставьте включённым хотя бы один рабочий день.": { uz: "Kamida bitta ish kunini yoqilgan holda qoldiring.", en: "Keep at least one working day enabled." },
+  "Укажите название, длительность и цену услуги.": { uz: "Xizmat nomi, davomiyligi va narxini kiriting.", en: "Enter the service name, duration and price." },
+  "Нажмите на время, чтобы задать часы работы.": { uz: "Ish soatlarini belgilash uchun vaqtni bosing.", en: "Tap the time to set your working hours." },
+  "Покажите свои работы — это повышает доверие. Шаг необязательный.": { uz: "Ishlaringizni ko'rsating — bu ishonchni oshiradi. Bu qadam ixtiyoriy.", en: "Show your work — it builds trust. This step is optional." },
 };

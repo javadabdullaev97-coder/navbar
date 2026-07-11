@@ -4,9 +4,8 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Loading, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
-import { fmtMoney } from "../../lib/format";
+import { fmtDur, fmtMoney } from "../../lib/format";
 import { masterConfigured, useMyMaster } from "../../lib/master-api";
-import { fmtDur } from "./service-form";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 

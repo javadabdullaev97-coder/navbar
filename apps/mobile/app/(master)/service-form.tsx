@@ -2,22 +2,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { DurationSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
+import { fmtDur } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { deleteService, masterConfigured, upsertService } from "../../lib/master-api";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
-
-const PRESETS = [30, 45, 60, 90, 120];
-
-// «90» → «1 ч 30 мин», «60» → «1 ч», «45» → «45 мин».
-export function fmtDur(total: number): string {
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  if (h && m) return `${h} ч ${m} мин`;
-  if (h) return `${h} ч`;
-  return `${m} мин`;
-}
 
 export default function ServiceForm() {
   const router = useRouter();
@@ -29,25 +20,24 @@ export default function ServiceForm() {
 
   const [name, setName] = useState(params.name ?? "");
   const [desc, setDesc] = useState("");
-  const initMin = params.duration ? Number(params.duration) : 50;
-  const [hours, setHours] = useState(String(Math.floor(initMin / 60)));
-  const [mins, setMins] = useState(String(initMin % 60));
-  const totalMin = (Number(hours) || 0) * 60 + (Number(mins) || 0);
-  const setPreset = (d: number) => { setHours(String(Math.floor(d / 60))); setMins(String(d % 60)); };
+  const [duration, setDuration] = useState(params.duration ? Number(params.duration) : 50);
   const [price, setPrice] = useState(params.price ?? "");
   const [deposit, setDeposit] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [durOpen, setDurOpen] = useState(false);
+
+  const valid = name.trim().length > 0 && duration > 0 && (Number(price) || 0) > 0;
 
   async function submit() {
     if (busy) return;
-    if (!name.trim() || totalMin <= 0) {
-      Alert.alert(t("Заполните поля"), t("Укажите название и длительность услуги."));
+    if (!valid) {
+      Alert.alert(t("Заполните поля"), t("Укажите название, длительность и цену услуги."));
       return;
     }
     if (masterConfigured) {
       setBusy(true);
       try {
-        await upsertService({ id: params.id, name: name.trim(), duration: totalMin, price: Number(price) || 0 });
+        await upsertService({ id: params.id, name: name.trim(), duration, price: Number(price) || 0 });
       } catch (e) {
         setBusy(false);
         Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось сохранить услугу."));
@@ -90,30 +80,13 @@ export default function ServiceForm() {
             <TextInput value={desc} onChangeText={setDesc} placeholder={t("Добавьте детали услуги…")} placeholderTextColor={colors.outline} multiline style={[styles.input, styles.textarea]} />
           </Field>
 
-          <View style={{ gap: space.sm }}>
-            <AppText variant="labelMd" color={colors.inkVariant}>{t("Длительность")}</AppText>
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <View style={styles.durField}>
-                <TextInput value={hours} onChangeText={(v) => setHours(v.replace(/[^\d]/g, "").slice(0, 2))} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
-                <AppText variant="labelMd" color={colors.inkVariant}>{t("ч")}</AppText>
-              </View>
-              <View style={styles.durField}>
-                <TextInput value={mins} onChangeText={(v) => { const n = Number(v.replace(/[^\d]/g, "")) || 0; setMins(String(Math.min(n, 59))); }} keyboardType="number-pad" placeholder="0" placeholderTextColor={colors.outline} style={styles.durInput} />
-                <AppText variant="labelMd" color={colors.inkVariant}>{t("мин")}</AppText>
-              </View>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-              {PRESETS.map((d) => {
-                const on = totalMin === d;
-                return (
-                  <Pressable key={d} onPress={() => setPreset(d)} style={[styles.chip, on ? styles.chipOn : styles.chipOff]}>
-                    <AppText variant="labelMd" color={on ? colors.onAccent : colors.accent}>{fmtDur(d)}</AppText>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-            <AppText variant="labelSm" color={colors.secondary}>{t("Например, 1 ч 30 мин.")}</AppText>
-          </View>
+          {/* Длительность — колесо выбора (шаг 5 мин) */}
+          <Field label={t("Длительность")}>
+            <Pressable style={styles.pickerRow} onPress={() => setDurOpen(true)}>
+              <AppText variant="bodyMd" color={colors.ink}>{fmtDur(duration)}</AppText>
+              <Sym name="expand-more" size={22} color={colors.secondary} />
+            </Pressable>
+          </Field>
 
           <Field label={t("Цена, сум")}>
             <View style={{ position: "relative", justifyContent: "center" }}>
@@ -133,13 +106,15 @@ export default function ServiceForm() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label={t("Сохранить")} onPress={submit} loading={busy} />
+        <PrimaryButton label={t("Сохранить")} onPress={submit} loading={busy} style={!valid ? { opacity: 0.5 } : undefined} />
         {editing && (
           <Pressable onPress={remove} style={{ alignItems: "center", paddingVertical: 12 }}>
             <AppText variant="labelMd" color={colors.error}>{t("Удалить услугу")}</AppText>
           </Pressable>
         )}
       </View>
+
+      <DurationSheet visible={durOpen} value={duration} onSelect={setDuration} onClose={() => setDurOpen(false)} />
     </SafeAreaView>
   );
 }
@@ -160,11 +135,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   input: { minHeight: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   textarea: { minHeight: 110, paddingTop: 14, textAlignVertical: "top" },
   suffix: { position: "absolute", right: 16 },
-  durField: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
-  durInput: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
-  chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.full },
-  chipOn: { backgroundColor: colors.accent },
-  chipOff: { backgroundColor: colors.surfaceMid },
+  pickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
   depositRow: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, gap: 4, borderTopWidth: 1, borderTopColor: colors.outlineVariant, backgroundColor: colors.surface },
 });
