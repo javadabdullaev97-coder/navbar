@@ -22,6 +22,7 @@ function MasterStack() {
         <Stack.Screen name="services" />
         <Stack.Screen name="service-form" />
         <Stack.Screen name="schedule" />
+        <Stack.Screen name="analytics" />
         <Stack.Screen name="portfolio" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="share" />

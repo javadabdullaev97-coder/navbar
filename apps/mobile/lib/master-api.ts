@@ -109,3 +109,29 @@ function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
 
 export function useMyMaster() { return useResource<MyMaster | null>(getMyMaster); }
 export function useMasterBookings() { return useResource<MasterBooking[]>(getMasterBookings); }
+
+export type Analytics = {
+  total: number;
+  count: number;
+  by_day: { date: string; amount: number }[];
+  by_service: { name: string; count: number; total: number }[];
+};
+
+export async function getMyAnalytics(days: number): Promise<Analytics> {
+  await ensureMasterSession();
+  const { data, error } = await supabase.rpc("get_my_analytics", { p_days: days });
+  if (error) throw error;
+  return (data as Analytics) ?? { total: 0, count: 0, by_day: [], by_service: [] };
+}
+
+export function useMasterAnalytics(days: number) {
+  const [data, setData] = useState<Analytics | null>(null);
+  const [loading, setLoading] = useState(false);
+  const reload = useCallback(async () => {
+    if (!supabaseConfigured) return;
+    setLoading(true);
+    try { setData(await getMyAnalytics(days)); } catch { setData(null); } finally { setLoading(false); }
+  }, [days]);
+  useEffect(() => { reload(); }, [reload]);
+  return { data, loading, reload };
+}

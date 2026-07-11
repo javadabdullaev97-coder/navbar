@@ -17,6 +17,7 @@ type IconName = React.ComponentProps<typeof Sym>["name"];
 const ROWS: { icon: IconName; label: string; route: string; badge?: string }[] = [
   { icon: "send", label: "Telegram-подключение", route: "", badge: "подключено" },
   { icon: "design-services", label: "Услуги", route: "/(master)/services" },
+  { icon: "insights", label: "Аналитика", route: "/(master)/analytics" },
   { icon: "calendar-month", label: "График работы", route: "/(master)/schedule" },
   { icon: "photo-library", label: "Портфолио", route: "/(master)/portfolio" },
   { icon: "link", label: "Ссылка для записи", route: "/(master)/share" },

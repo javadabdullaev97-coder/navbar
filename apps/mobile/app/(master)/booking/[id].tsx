@@ -1,20 +1,63 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, PrimaryButton, Sym } from "../../../components/ui";
+import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
-import { fmtMoney } from "../../../lib/format";
+import { fmtDate, fmtTime } from "../../../lib/format";
+import { masterConfigured, MasterBookingStatus, setBookingStatus, useMasterBookings } from "../../../lib/master-api";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
+
+const STATUS_META: Record<MasterBookingStatus, { label: string; kind: "success" | "warning" | "info" | "muted" }> = {
+  confirmed: { label: "Подтверждено", kind: "success" },
+  pending: { label: "Ожидает", kind: "warning" },
+  done: { label: "Выполнено", kind: "info" },
+  cancelled: { label: "Отменено", kind: "muted" },
+};
 
 export default function MasterBooking() {
   const router = useRouter();
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { data: bookings, reload } = useMasterBookings();
+
+  const b = masterConfigured && bookings ? bookings.find((x) => x.id === id) : null;
+  const clientName = b?.client_name ?? "Азиза Р.";
+  const phone = b?.client_phone ?? "+998 90 123 45 67";
+  const service = b?.service_name ?? t("Консультация");
+  const dateStr = b ? fmtDate(new Date(b.starts_at)) : t("Пт, 12 июля");
+  const timeStr = b ? fmtTime(new Date(b.starts_at)) : "11:00";
+  const status: MasterBookingStatus = b?.status ?? "confirmed";
+  const meta = STATUS_META[status];
+  const badgeColor = meta.kind === "success" ? { bg: colors.successBg, fg: colors.successText }
+    : meta.kind === "warning" ? { bg: colors.warningBg, fg: colors.warningText }
+    : meta.kind === "info" ? { bg: colors.infoBg, fg: colors.infoText }
+    : { bg: colors.surfaceHigh, fg: colors.secondary };
+  const canManage = status === "pending" || status === "confirmed";
+
+  async function apply(next: MasterBookingStatus) {
+    if (busy) return;
+    if (masterConfigured && b) {
+      setBusy(true);
+      try { await setBookingStatus(b.id, next); await reload(); }
+      catch (e) { setBusy(false); Alert.alert(t("Ошибка"), e instanceof Error ? e.message : ""); return; }
+      setBusy(false);
+    }
+    router.back();
+  }
+
+  function confirmCancel() {
+    Alert.alert(t("Отменить запись?"), t("Это действие нельзя отменить."), [
+      { text: t("Назад"), style: "cancel" },
+      { text: t("Отменить"), style: "destructive", onPress: () => apply("cancelled") },
+    ]);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -29,10 +72,10 @@ export default function MasterBooking() {
           {/* Клиент */}
           <View style={[styles.clientCard, cardShadow]}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flex: 1 }}>
-              <Avatar initial="А" size={56} round tint={colors.surfaceMid} fg={colors.inkVariant} />
+              <Avatar initial={initialOf(clientName)} size={56} round tint={colors.surfaceMid} fg={colors.inkVariant} />
               <View>
-                <AppText variant="labelMd" color={colors.ink}>Азиза Р.</AppText>
-                <AppText variant="labelSm" color={colors.secondary}>+998 90 123 45 67</AppText>
+                <AppText variant="labelMd" color={colors.ink}>{clientName}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{phone}</AppText>
               </View>
             </View>
             <Pressable style={styles.chatBtn}>
@@ -43,14 +86,13 @@ export default function MasterBooking() {
 
           {/* Детали */}
           <View style={[styles.detailsCard, cardShadow]}>
-            <DetailRow label={t("Услуга")} value={t("Консультация")} strong />
-            <DetailRow label={t("Дата")} value={t("Пт, 12 июля")} />
-            <DetailRow label={t("Время")} value={`11:00  ·  ${t("{count} мин", { count: 50 })}`} />
-            <DetailRow label={t("Цена")} value={fmtMoney(250000)} accent />
+            <DetailRow label={t("Услуга")} value={service} strong />
+            <DetailRow label={t("Дата")} value={dateStr} />
+            <DetailRow label={t("Время")} value={timeStr} />
             <View style={styles.detail}>
               <AppText variant="labelMd" color={colors.secondary}>{t("Статус")}</AppText>
-              <View style={styles.confirmBadge}>
-                <AppText variant="labelSm" color={colors.successText}>{t("Подтверждено")}</AppText>
+              <View style={[styles.confirmBadge, { backgroundColor: badgeColor.bg }]}>
+                <AppText variant="labelSm" color={badgeColor.fg}>{t(meta.label)}</AppText>
               </View>
             </View>
           </View>
@@ -70,20 +112,26 @@ export default function MasterBooking() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={styles.footer}>
-        <PrimaryButton label={t("Отметить выполненной")} icon="check-circle" onPress={() => router.back()} />
-        <View style={styles.actionsRow}>
-          <Pressable style={styles.action} onPress={() => router.back()}>
-            <Sym name="event-repeat" size={20} color={colors.secondary} />
-            <AppText variant="labelMd" color={colors.secondary}>{t("Перенести")}</AppText>
-          </Pressable>
-          <View style={styles.vline} />
-          <Pressable style={styles.action} onPress={() => router.back()}>
-            <Sym name="cancel" size={20} color={colors.error} />
-            <AppText variant="labelMd" color={colors.error}>{t("Отменить")}</AppText>
-          </Pressable>
+      {canManage && (
+        <View style={styles.footer}>
+          {status === "pending" ? (
+            <PrimaryButton label={t("Подтвердить")} icon="check-circle" onPress={() => apply("confirmed")} loading={busy} />
+          ) : (
+            <PrimaryButton label={t("Отметить выполненной")} icon="check-circle" onPress={() => apply("done")} loading={busy} />
+          )}
+          <View style={styles.actionsRow}>
+            <Pressable style={styles.action} onPress={() => router.back()}>
+              <Sym name="event-repeat" size={20} color={colors.secondary} />
+              <AppText variant="labelMd" color={colors.secondary}>{t("Перенести")}</AppText>
+            </Pressable>
+            <View style={styles.vline} />
+            <Pressable style={styles.action} onPress={confirmCancel}>
+              <Sym name="cancel" size={20} color={colors.error} />
+              <AppText variant="labelMd" color={colors.error}>{t("Отменить")}</AppText>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
     </SafeAreaView>
   );
 }

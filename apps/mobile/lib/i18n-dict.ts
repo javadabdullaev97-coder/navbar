@@ -343,4 +343,22 @@ export const DICT: Translations = {
   "Готово, к записям": { uz: "Tayyor, yozuvlarga", en: "Done, to bookings" },
   "Услуги можно будет добавить и изменить позже.": { uz: "Xizmatlarni keyinroq qo'shish va o'zgartirish mumkin.", en: "You can add and change services later." },
   "Точный график повышает доверие клиентов.": { uz: "Aniq jadval mijozlar ishonchini oshiradi.", en: "An accurate schedule builds client trust." },
+
+  // ── Мастер: аналитика + данные ──
+  "Аналитика": { uz: "Tahlil", en: "Analytics" },
+  "Месяц": { uz: "Oy", en: "Month" },
+  "Год": { uz: "Yil", en: "Year" },
+  "Выручка за период": { uz: "Davr daromadi", en: "Revenue for the period" },
+  "Средний чек": { uz: "O'rtacha chek", en: "Average check" },
+  "Топ услуги": { uz: "Top xizmatlar", en: "Top services" },
+  "Пока нет завершённых визитов.": { uz: "Hozircha yakunlangan tashriflar yo'q.", en: "No completed visits yet." },
+  "Выручка по дням": { uz: "Kunlar bo'yicha daromad", en: "Revenue by day" },
+  "На сегодня записей нет.": { uz: "Bugunga yozuvlar yo'q.", en: "No bookings for today." },
+  "Услуг пока нет — добавьте первую.": { uz: "Hozircha xizmatlar yo'q — birinchisini qo'shing.", en: "No services yet — add your first." },
+  "Заполните поля": { uz: "Maydonlarni to'ldiring", en: "Fill in the fields" },
+  "Укажите название и длительность услуги.": { uz: "Xizmat nomi va davomiyligini kiriting.", en: "Enter the service name and duration." },
+  "Не удалось сохранить услугу.": { uz: "Xizmatni saqlab bo'lmadi.", en: "Couldn't save the service." },
+  "Удалить услугу?": { uz: "Xizmat o'chirilsinmi?", en: "Delete this service?" },
+  "Не удалось сохранить график.": { uz: "Jadvalni saqlab bo'lmadi.", en: "Couldn't save the schedule." },
+  "Отменено": { uz: "Bekor qilingan", en: "Cancelled" },
 };
