@@ -388,4 +388,13 @@ export const DICT: Translations = {
   "Код состоит из 6 цифр.": { uz: "Kod 6 raqamdan iborat.", en: "The code has 6 digits." },
   "Проверьте код и попробуйте снова.": { uz: "Kodni tekshirib, qayta urinib ko'ring.", en: "Check the code and try again." },
   "Не удалось завершить регистрацию.": { uz: "Ro'yxatdan o'tishni yakunlab bo'lmadi.", en: "Couldn't complete registration." },
+
+  // ── Вход по email + пароль ──
+  "Войдите по email — новый аккаунт создаётся автоматически": { uz: "Email orqali kiring — yangi akkaunt avtomatik yaratiladi", en: "Sign in with email — a new account is created automatically" },
+  "Пароль": { uz: "Parol", en: "Password" },
+  "Продолжить": { uz: "Davom etish", en: "Continue" },
+  "Короткий пароль": { uz: "Parol qisqa", en: "Password too short" },
+  "Пароль — минимум 4 символа.": { uz: "Parol — kamida 4 belgi.", en: "Password must be at least 4 characters." },
+  "Не удалось войти": { uz: "Kirib bo'lmadi", en: "Couldn't sign in" },
+  "Проверьте email и пароль.": { uz: "Email va parolni tekshiring.", en: "Check your email and password." },
 };

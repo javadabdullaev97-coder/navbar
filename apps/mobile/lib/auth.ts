@@ -21,6 +21,19 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
   if (error) throw error;
 }
 
+/** Вход или регистрация по email+паролю (без SMTP; при выключенном
+ *  «Confirm email» сессия открывается сразу). Новый email → регистрируем,
+ *  существующий с верным паролем → входим, иначе — ошибка. */
+export async function signInOrUp(email: string, password: string): Promise<void> {
+  const em = email.trim().toLowerCase();
+  const { error } = await supabase.auth.signInWithPassword({ email: em, password });
+  if (!error) return;
+  const { error: upErr } = await supabase.auth.signUp({ email: em, password });
+  if (upErr) throw error; // email занят / неверный пароль → исходная ошибка входа
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) throw new Error("Требуется подтверждение email. Отключите «Confirm email» в Supabase.");
+}
+
 /** Гостевой вход (анонимно) — только для клиента без регистрации. */
 export async function ensureGuest(): Promise<void> {
   if (!supabaseConfigured) return;
