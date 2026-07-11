@@ -20,10 +20,13 @@ export type MyMaster = {
   specialization: string | null;
   bio: string | null;
   address: string | null;
+  avatar_url: string | null;
+  verified: boolean;
   visible_in_search: boolean;
   services: MasterService[];
   availability: MasterAvailability[];
 };
+export type GalleryItem = { id: string; url: string; caption: string | null };
 export type MasterBookingStatus = "pending" | "confirmed" | "done" | "cancelled";
 export type MasterBooking = {
   id: string;
@@ -93,7 +96,34 @@ function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
   return { data, loading, reload };
 }
 
+export async function setAvatar(url: string): Promise<void> {
+  const { error } = await supabase.rpc("set_avatar", { p_url: url });
+  if (error) throw error;
+}
+
+export async function submitVerification(docPath: string): Promise<void> {
+  const { error } = await supabase.rpc("submit_verification", { p_doc_path: docPath });
+  if (error) throw error;
+}
+
+export async function getMyGallery(): Promise<GalleryItem[]> {
+  const { data, error } = await supabase.rpc("get_my_gallery");
+  if (error) throw error;
+  return (data as GalleryItem[]) ?? [];
+}
+
+export async function addGalleryItem(url: string, caption?: string): Promise<void> {
+  const { error } = await supabase.rpc("add_gallery_item", { p_url: url, p_caption: caption ?? null });
+  if (error) throw error;
+}
+
+export async function deleteGalleryItem(id: string): Promise<void> {
+  const { error } = await supabase.rpc("delete_gallery_item", { p_id: id });
+  if (error) throw error;
+}
+
 export function useMyMaster() { return useResource<MyMaster | null>(getMyMaster); }
+export function useMyGallery() { return useResource<GalleryItem[]>(getMyGallery); }
 export function useMasterBookings() { return useResource<MasterBooking[]>(getMasterBookings); }
 
 export type Analytics = {

@@ -21,6 +21,8 @@ export type PublicMaster = {
   bio: string | null;
   address: string | null;
   cover_color: string | null;
+  avatar_url: string | null;
+  verified: boolean;
   org_id: string;
   master_id: string;
   rating: number;

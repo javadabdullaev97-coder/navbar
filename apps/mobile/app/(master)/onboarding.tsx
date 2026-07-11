@@ -1,12 +1,16 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DurationSheet, HoursSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { fmtDur, fmtMoney, minToHHMM } from "../../lib/format";
 import { useT } from "../../lib/i18n";
-import { becomeSoloMaster, masterConfigured, setAvailability, upsertService } from "../../lib/master-api";
+import {
+  addGalleryItem, becomeSoloMaster, masterConfigured, setAvailability, setAvatar,
+  submitVerification, updateMyProfile, upsertService,
+} from "../../lib/master-api";
+import { uploadImage } from "../../lib/storage";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
@@ -14,11 +18,12 @@ import { cardShadow, radius, space, ThemeColors } from "../../theme";
 const CITIES = ["Ташкент", "Самарканд", "Бухара", "Наманган", "Андижан"];
 const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"];
 const DAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const STEP_TITLE = ["Расскажите о себе", "Добавьте услуги", "Настройте график", "Загрузите портфолио", "Документы и верификация"];
+const STEPS = 5;
+const MAX_PHOTOS = 10;
 type DayState = { on: boolean; start: number; end: number };
-const DAYS_DEFAULT: DayState[] = DAY_LABELS.map((_, i) => ({ on: i < 5, start: 540, end: i === 4 ? 1020 : 1080 }));
-const STEP_TITLE = ["Расскажите о себе", "Добавьте услуги", "Настройте график", "Загрузите портфолио"];
-const STEPS = 4;
 type Svc = { name: string; duration: number; price: number };
+const DAYS_DEFAULT: DayState[] = DAY_LABELS.map((_, i) => ({ on: i < 5, start: 540, end: i === 4 ? 1020 : 1080 }));
 
 export default function MasterOnboarding() {
   const router = useRouter();
@@ -28,17 +33,28 @@ export default function MasterOnboarding() {
   const { profile, setProfile } = useStore();
 
   const [step, setStep] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   // Шаг 1
   const [name, setName] = useState(profile.name);
   const [spec, setSpec] = useState("");
+  const [bio, setBio] = useState("");
   const [city, setCity] = useState(0);
+  const [address, setAddress] = useState("");
   const [cover, setCover] = useState(0);
-  // Шаг 2 — черновик услуги + список добавленных
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  // Шаг 2
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(50);
   const [svcPrice, setSvcPrice] = useState("");
   const [durOpen, setDurOpen] = useState(false);
   const [services, setServices] = useState<Svc[]>([]);
+  // Шаг 3
+  const [days, setDays] = useState<DayState[]>(DAYS_DEFAULT);
+  const [editDay, setEditDay] = useState<number | null>(null);
+  // Шаг 4 / 5
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [docPath, setDocPath] = useState<string | null>(null);
 
   function addService() {
     if (!svcName.trim() || svcDuration <= 0 || (Number(svcPrice) || 0) <= 0) {
@@ -48,17 +64,21 @@ export default function MasterOnboarding() {
     setServices((s) => [...s, { name: svcName.trim(), duration: svcDuration, price: Number(svcPrice) || 0 }]);
     setSvcName(""); setSvcPrice(""); setSvcDuration(50);
   }
-  // Шаг 3
-  const [days, setDays] = useState<DayState[]>(DAYS_DEFAULT);
-  const [editDay, setEditDay] = useState<number | null>(null);
-  // Шаг 4 — загрузка фото появится со Storage
-  const [busy, setBusy] = useState(false);
+
+  async function upload(bucket: string, onDone: (r: { path: string; url: string }) => void) {
+    if (!masterConfigured) { Alert.alert(t("Скоро"), t("Загрузка станет доступна после подключения к серверу.")); return; }
+    if (uploading) return;
+    setUploading(true);
+    try { const r = await uploadImage(bucket); if (r) onDone(r); }
+    catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось загрузить файл.")); }
+    finally { setUploading(false); }
+  }
 
   const valid =
     step === 1 ? name.trim().length > 0 && spec.trim().length > 0 :
     step === 2 ? services.length > 0 :
     step === 3 ? days.some((d) => d.on) :
-    true; // шаг 4 — необязательный
+    true;
 
   const hint =
     step === 1 ? t("Заполните имя и специализацию.") :
@@ -70,16 +90,17 @@ export default function MasterOnboarding() {
     if (!valid) { Alert.alert(t("Заполните поля"), hint); return; }
     if (step < STEPS) { setStep(step + 1); return; }
 
-    // Финиш: создаём реального мастера (организация + профиль + услуга + график).
     if (name.trim()) setProfile({ ...profile, name: name.trim() });
     if (masterConfigured) {
       setBusy(true);
       try {
         await becomeSoloMaster(name.trim(), spec.trim(), CITIES[city]);
+        await updateMyProfile({ spec: spec.trim(), bio: bio.trim(), address: address.trim() || CITIES[city] });
+        if (avatarUrl) await setAvatar(avatarUrl);
         for (const s of services) await upsertService(s);
-        for (let i = 0; i < days.length; i++) {
-          await setAvailability(i, days[i].start, days[i].end, !days[i].on);
-        }
+        for (let i = 0; i < days.length; i++) await setAvailability(i, days[i].start, days[i].end, !days[i].on);
+        for (const url of photos) await addGalleryItem(url);
+        if (docPath) await submitVerification(docPath);
       } catch (e) {
         setBusy(false);
         Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось завершить регистрацию."));
@@ -112,9 +133,9 @@ export default function MasterOnboarding() {
           {step === 1 && (
             <>
               <View style={{ alignItems: "center", marginTop: space.lg }}>
-                <Pressable style={styles.avatar}>
-                  <Sym name="photo-camera" size={36} color={colors.accent} />
-                  <View style={styles.avatarBadge}><Sym name="add" size={16} color={colors.onAccent} /></View>
+                <Pressable style={styles.avatar} onPress={() => upload("avatars", (r) => setAvatarUrl(r.url))}>
+                  {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatarImg} /> : <Sym name="photo-camera" size={36} color={colors.accent} />}
+                  <View style={styles.avatarBadge}>{uploading ? <ActivityIndicator size="small" color={colors.onAccent} /> : <Sym name="add" size={16} color={colors.onAccent} />}</View>
                 </Pressable>
               </View>
               <View style={{ gap: space.md, marginTop: space.lg }}>
@@ -123,6 +144,9 @@ export default function MasterOnboarding() {
                 </Field>
                 <Field label={t("Специализация")}>
                   <TextInput value={spec} onChangeText={setSpec} placeholder={t("Психолог")} placeholderTextColor={colors.outline} style={styles.input} />
+                </Field>
+                <Field label={t("О себе (необязательно)")}>
+                  <TextInput value={bio} onChangeText={setBio} placeholder={t("Коротко о себе и опыте…")} placeholderTextColor={colors.outline} multiline style={[styles.input, styles.textarea]} />
                 </Field>
                 <View style={{ gap: 8 }}>
                   <AppText variant="labelMd" color={colors.secondary}>{t("Город")}</AppText>
@@ -134,6 +158,9 @@ export default function MasterOnboarding() {
                     ))}
                   </ScrollView>
                 </View>
+                <Field label={t("Адрес (необязательно)")}>
+                  <TextInput value={address} onChangeText={setAddress} placeholder={t("Улица, дом, ориентир")} placeholderTextColor={colors.outline} style={styles.input} />
+                </Field>
               </View>
               <AppText variant="labelMd" color={colors.accent} style={{ marginTop: space.lg, marginBottom: space.sm }}>{t("Обложка профиля")}</AppText>
               <View style={{ flexDirection: "row", gap: 16 }}>
@@ -148,7 +175,6 @@ export default function MasterOnboarding() {
 
           {step === 2 && (
             <View style={{ gap: space.md, marginTop: space.lg }}>
-              {/* Добавленные услуги */}
               {services.length > 0 && (
                 <View style={{ gap: space.sm }}>
                   {services.map((s, i) => (
@@ -164,8 +190,6 @@ export default function MasterOnboarding() {
                   ))}
                 </View>
               )}
-
-              {/* Форма добавления */}
               <Field label={t("Название")}>
                 <TextInput value={svcName} onChangeText={setSvcName} placeholder={t("Например, Консультация")} placeholderTextColor={colors.outline} style={styles.input} />
               </Field>
@@ -216,14 +240,36 @@ export default function MasterOnboarding() {
           {step === 4 && (
             <View style={{ marginTop: space.lg, gap: space.md }}>
               <AppText variant="bodyMd" color={colors.secondary}>{t("Добавьте минимум 4 фото — это заметно повышает доверие клиентов. Шаг необязательный, можно пропустить.")}</AppText>
-              <Pressable
-                onPress={() => Alert.alert(t("Скоро"), t("Загрузка фото появится в следующем обновлении."))}
-                style={styles.dropzone}
-              >
-                <View style={styles.dropIcon}><Sym name="add-a-photo" size={30} color={colors.accent} /></View>
-                <AppText variant="labelMd" color={colors.accent}>{t("Загрузить фото")}</AppText>
-                <AppText variant="labelSm" color={colors.secondary}>{t("JPG или PNG, до 10 фото")}</AppText>
+              <View style={styles.grid}>
+                {photos.map((url, i) => (
+                  <Pressable key={i} onLongPress={() => setPhotos((p) => p.filter((_, idx) => idx !== i))} style={styles.tile}>
+                    <Image source={{ uri: url }} style={styles.tileImg} />
+                  </Pressable>
+                ))}
+                {photos.length < MAX_PHOTOS && (
+                  <Pressable style={[styles.tile, styles.addTile]} onPress={() => upload("portfolio", (r) => setPhotos((p) => [...p, r.url]))}>
+                    {uploading ? <ActivityIndicator color={colors.accent} /> : <Sym name="add-a-photo" size={26} color={colors.accent} />}
+                  </Pressable>
+                )}
+              </View>
+              <AppText variant="labelSm" color={colors.secondary}>{t("Загружено: {count} из 10. Удерживайте фото, чтобы удалить.", { count: photos.length })}</AppText>
+            </View>
+          )}
+
+          {step === 5 && (
+            <View style={{ marginTop: space.lg, gap: space.md }}>
+              <AppText variant="bodyMd" color={colors.secondary}>{t("Загрузите диплом или сертификат. После проверки в профиле появится бейдж «Диплом проверен». Шаг необязательный.")}</AppText>
+              <Pressable style={styles.dropzone} onPress={() => upload("docs", (r) => setDocPath(r.path))}>
+                <View style={styles.dropIcon}>
+                  {uploading ? <ActivityIndicator color={colors.accent} /> : <Sym name={docPath ? "check-circle" : "upload-file"} size={30} color={docPath ? colors.successText : colors.accent} />}
+                </View>
+                <AppText variant="labelMd" color={docPath ? colors.successText : colors.accent}>{docPath ? t("Документ загружен") : t("Загрузить документ")}</AppText>
+                <AppText variant="labelSm" color={colors.secondary}>{t("Фото диплома, сертификата или лицензии")}</AppText>
               </Pressable>
+              <View style={[styles.verifyNote, { backgroundColor: colors.infoBg }]}>
+                <Sym name="verified" size={18} color={colors.infoText} />
+                <AppText variant="labelSm" color={colors.infoText} style={{ flex: 1 }}>{t("Проверка занимает 1–2 дня. Бейдж повышает доверие, но не обязателен.")}</AppText>
+              </View>
             </View>
           )}
         </ScrollView>
@@ -237,9 +283,9 @@ export default function MasterOnboarding() {
           loading={busy}
           style={!valid ? { opacity: 0.5 } : undefined}
         />
-        {step === STEPS && (
+        {step >= 4 && (
           <Pressable onPress={next} style={{ alignItems: "center", paddingVertical: 10 }}>
-            <AppText variant="labelMd" color={colors.secondary}>{t("Пропустить")}</AppText>
+            <AppText variant="labelMd" color={colors.secondary}>{step < STEPS ? t("Пропустить") : t("Пропустить и завершить")}</AppText>
           </Pressable>
         )}
       </View>
@@ -272,9 +318,11 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   progressRow: { flexDirection: "row", gap: 6, paddingHorizontal: space.margin, marginBottom: 8 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2 },
   step: { textTransform: "uppercase", letterSpacing: 1.5 },
-  avatar: { width: 128, height: 128, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: colors.surface },
+  avatar: { width: 128, height: 128, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: colors.surface, overflow: "hidden" },
+  avatarImg: { width: "100%", height: "100%" },
   avatarBadge: { position: "absolute", bottom: 4, right: 4, width: 32, height: 32, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
-  input: { height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
+  input: { minHeight: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
+  textarea: { minHeight: 96, paddingTop: 14, textAlignVertical: "top" },
   pickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16 },
   chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: radius.full },
   chipOn: { backgroundColor: colors.accent },
@@ -287,7 +335,12 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, height: 36, justifyContent: "center", borderRadius: radius.lg },
   svcRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 14 },
   addSvcBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.accent, borderStyle: "dashed" },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  tile: { width: "31%", aspectRatio: 1, borderRadius: radius.xl, overflow: "hidden", alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceMid },
+  tileImg: { width: "100%", height: "100%" },
+  addTile: { borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
   dropzone: { alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 36, borderRadius: radius.x2l, borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
   dropIcon: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  verifyNote: { flexDirection: "row", gap: 10, alignItems: "center", padding: 16, borderRadius: radius.xl },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
 });

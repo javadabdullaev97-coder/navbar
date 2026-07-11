@@ -18,7 +18,14 @@
         "backgroundColor": "#FCF9F8"
       }
     },
-    "plugins": ["expo-router", "expo-font"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-image-picker",
+        { "photosPermission": "Разрешите доступ к фото, чтобы загрузить аватар, портфолио и документы." }
+      ]
+    ],
     "experiments": {
       "typedRoutes": false
     }

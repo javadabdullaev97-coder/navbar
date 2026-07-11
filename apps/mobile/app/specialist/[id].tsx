@@ -65,6 +65,8 @@ export default function Specialist() {
   const bio = master?.bio ?? DEMO.bio;
   const services = master?.services ?? DEMO.services;
   const initial = initialOf(name);
+  const avatar = master?.avatar_url ?? null;
+  const verified = master?.verified ?? false;
 
   function startBooking(pre?: { id: string; name: string; duration_min: number; price: number }) {
     const chosen = pre ?? services[0];
@@ -99,9 +101,13 @@ export default function Specialist() {
 
         <View style={styles.head}>
           <View style={styles.avatar}>
-            <AppText style={styles.avatarInitial} color={colors.inkVariant}>{initial}</AppText>
+            {avatar ? <Image source={{ uri: avatar }} style={styles.avatarImg} /> : <AppText style={styles.avatarInitial} color={colors.inkVariant}>{initial}</AppText>}
+            {verified ? <View style={styles.verifiedBadge}><Sym name="verified" size={16} color={colors.onAccent} /></View> : null}
           </View>
-          <AppText variant="displayLg" color={colors.accent} style={{ marginTop: 10 }}>{name}</AppText>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 }}>
+            <AppText variant="displayLg" color={colors.accent}>{name}</AppText>
+            {verified ? <Sym name="verified" size={20} color={colors.infoText} /> : null}
+          </View>
           <AppText variant="labelMd" color={colors.secondary} style={{ marginTop: 2 }}>{spec}</AppText>
           <View style={styles.metaRow}>
             <Sym name="star" size={18} color={colors.gold} />
@@ -144,10 +150,12 @@ export default function Specialist() {
             <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: space.lg }}>{tr("О себе")}</AppText>
             <AppText variant="bodyMd" color={colors.secondary}>{bio}</AppText>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: space.sm }}>
-              <View style={[styles.pill, { backgroundColor: colors.infoBg }]}>
-                <Sym name="verified" size={14} color={colors.infoText} />
-                <AppText variant="labelSm" color={colors.infoText}>{tr("Диплом проверен")}</AppText>
-              </View>
+              {verified ? (
+                <View style={[styles.pill, { backgroundColor: colors.infoBg }]}>
+                  <Sym name="verified" size={14} color={colors.infoText} />
+                  <AppText variant="labelSm" color={colors.infoText}>{tr("Диплом проверен")}</AppText>
+                </View>
+              ) : null}
               <View style={[styles.pill, { backgroundColor: colors.successBg }]}>
                 <Sym name="check-circle" size={14} color={colors.successText} />
                 <AppText variant="labelSm" color={colors.successText}>{tr("Принимает очно")}</AppText>
@@ -233,8 +241,10 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   floatBar: { position: "absolute", top: 0, left: 0, right: 0, paddingHorizontal: space.margin, flexDirection: "row", justifyContent: "space-between" },
   circleBtn: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: "rgba(255,255,255,0.9)", alignItems: "center", justifyContent: "center", ...cardShadow },
   head: { paddingHorizontal: space.margin, marginTop: -64 },
-  avatar: { width: 128, height: 128, borderRadius: radius.x2l, backgroundColor: colors.surfaceMid, borderWidth: 4, borderColor: colors.bg, alignItems: "center", justifyContent: "center" },
+  avatar: { width: 128, height: 128, borderRadius: radius.x2l, backgroundColor: colors.surfaceMid, borderWidth: 4, borderColor: colors.bg, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  avatarImg: { width: "100%", height: "100%" },
   avatarInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 52, lineHeight: 58 },
+  verifiedBadge: { position: "absolute", bottom: 4, right: 4, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.infoText, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
   locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
   tabs: { flexDirection: "row", gap: 8, marginHorizontal: space.margin, marginTop: space.lg, padding: 4, backgroundColor: colors.surfaceLow, borderRadius: radius.full },
