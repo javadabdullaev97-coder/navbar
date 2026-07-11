@@ -1,9 +1,13 @@
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { AppText, Avatar, Sym } from "../../../components/ui";
 import { useT } from "../../../lib/i18n";
 import { initialOf } from "../../../lib/data";
+import { fmtTime } from "../../../lib/format";
+import { masterConfigured, useMasterBookings } from "../../../lib/master-api";
 import { useStore } from "../../../lib/store";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
@@ -22,6 +26,21 @@ export default function Today() {
   const styles = useThemedStyles(makeStyles);
   const { profile } = useStore();
   const name = profile.name ? profile.name.split(" ")[0] : t("мастер");
+  const { data: bookings, reload } = useMasterBookings();
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
+
+  const real = masterConfigured && bookings ? bookings.filter((b) => b.status !== "cancelled") : null;
+  const isToday = (iso: string) => { const d = new Date(iso), n = new Date(); return d.toDateString() === n.toDateString(); };
+  const todayCount = real ? real.filter((b) => isToday(b.starts_at)).length : 5;
+  const near: Booking[] = real
+    ? real.filter((b) => new Date(b.starts_at).getTime() >= Date.now() - 3600_000)
+        .slice(0, 5)
+        .map((b) => ({
+          id: b.id, initial: initialOf(b.client_name ?? "?"), name: b.client_name ?? t("Клиент"),
+          service: b.service_name ?? t("Услуга"), time: fmtTime(new Date(b.starts_at)),
+          status: b.status === "confirmed" ? "confirmed" : "pending",
+        }))
+    : TODAY;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -42,7 +61,7 @@ export default function Today() {
           <View style={[styles.statCard, cardShadow]}>
             <AppText variant="labelSm" color={colors.secondary} style={styles.statLabel}>{t("Записи")}</AppText>
             <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>5</AppText>
+              <AppText variant="headlineMd" color={colors.accent} style={{ fontSize: 26 }}>{todayCount}</AppText>
               <AppText variant="labelSm" color={colors.secondary}>{t("сегодня")}</AppText>
             </View>
           </View>
@@ -83,7 +102,10 @@ export default function Today() {
         </View>
 
         <View style={{ gap: space.md }}>
-          {TODAY.map((b) => (
+          {near.length === 0 && (
+            <View style={{ alignItems: "center", paddingVertical: 24 }}><AppText variant="bodyMd" color={colors.secondary}>{t("На сегодня записей нет.")}</AppText></View>
+          )}
+          {near.map((b) => (
             <Pressable key={b.id} onPress={() => router.push(`/(master)/booking/${b.id}`)}>
               <View style={[styles.bookingCard, cardShadow]}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>

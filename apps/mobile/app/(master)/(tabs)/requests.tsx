@@ -1,8 +1,11 @@
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Sym } from "../../../components/ui";
+import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
+import { initialOf } from "../../../lib/data";
+import { fmtDate, fmtTime } from "../../../lib/format";
+import { masterConfigured, MasterBookingStatus, setBookingStatus, useMasterBookings } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
@@ -10,7 +13,7 @@ import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 type Status = "pending" | "confirmed" | "done";
 type Req = { id: string; initial: string; name: string; service: string; date: string; time: string; status: Status };
 
-const DATA: Req[] = [
+const DEMO: Req[] = [
   { id: "1", initial: "А", name: "Анна Кузнецова", service: "Маникюр & Уход", date: "15 октября", time: "14:00 — 15:30", status: "pending" },
   { id: "2", initial: "Д", name: "Дмитрий Соколов", service: "Мужская стрижка", date: "16 октября", time: "10:00 — 11:00", status: "pending" },
   { id: "3", initial: "Е", name: "Елена Петрова", service: "Консультация", date: "16 октября", time: "17:30 — 18:30", status: "pending" },
@@ -31,12 +34,39 @@ export default function Requests() {
   const styles = useThemedStyles(makeStyles);
   const [tab, setTab] = useState<Status>("pending");
   const [overrides, setOverrides] = useState<Record<string, Status>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const { data: remote, loading, reload } = useMasterBookings();
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const list = DATA
+  // Реальные брони мастера → карточки. Статус done/cancelled → «История».
+  const source: Req[] = masterConfigured && remote
+    ? remote.map((b) => {
+        const start = new Date(b.starts_at);
+        const end = new Date(b.ends_at);
+        const st: Status = b.status === "confirmed" ? "confirmed" : b.status === "pending" ? "pending" : "done";
+        return {
+          id: b.id, initial: initialOf(b.client_name ?? "?"), name: b.client_name ?? t("Клиент"),
+          service: b.service_name ?? t("Услуга"), date: fmtDate(start),
+          time: `${fmtTime(start)} — ${fmtTime(end)}`, status: st,
+        };
+      })
+    : DEMO;
+
+  const list = source
     .map((r) => ({ ...r, status: overrides[r.id] ?? r.status }))
     .filter((r) => r.status === tab);
+  const showLoading = masterConfigured && remote === null && loading;
 
-  const set = (id: string, status: Status) => setOverrides((o) => ({ ...o, [id]: status }));
+  const set = (id: string, status: Status) => {
+    setOverrides((o) => ({ ...o, [id]: status }));
+    if (masterConfigured) {
+      // Отклонение брони → cancelled (уходит из всех вкладок).
+      const rpc: MasterBookingStatus = status === "done" ? "cancelled" : status;
+      setBookingStatus(id, rpc).then(reload).catch(() => {});
+    }
+  };
+
+  const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -57,8 +87,12 @@ export default function Requests() {
         })}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 120, gap: space.md }} showsVerticalScrollIndicator={false}>
-        {list.length === 0 ? (
+      <ScrollView
+        contentContainerStyle={{ padding: space.margin, paddingBottom: 120, gap: space.md }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
+      >
+        {showLoading ? <Loading /> : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="event-note" size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("Здесь пока пусто")}</AppText>

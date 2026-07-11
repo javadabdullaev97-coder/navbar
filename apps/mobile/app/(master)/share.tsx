@@ -4,11 +4,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { initialOf } from "../../lib/data";
+import { masterConfigured, useMyMaster } from "../../lib/master-api";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
-
-const LINK = "ora.uz/dilnoza-aliyeva";
 
 export default function ShareLink() {
   const router = useRouter();
@@ -16,7 +15,10 @@ export default function ShareLink() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { profile } = useStore();
+  const { data: master } = useMyMaster();
   const name = profile.name || "Дилноза Алиева";
+  const slug = masterConfigured && master?.slug ? master.slug : "dilnoza-aliyeva";
+  const LINK = `ora.uz/${slug}`;
 
   const share = () => Share.share({ message: `${t("Запишитесь ко мне онлайн")}: https://${LINK}` }).catch(() => {});
 

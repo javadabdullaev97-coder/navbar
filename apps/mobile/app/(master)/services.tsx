@@ -1,15 +1,17 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Sym } from "../../components/ui";
+import { AppText, Loading, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { fmtMoney } from "../../lib/format";
+import { masterConfigured, useMyMaster } from "../../lib/master-api";
 import { fmtDur } from "./service-form";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 type Service = { id: string; name: string; duration: number; price: number };
-const SERVICES: Service[] = [
+const DEMO: Service[] = [
   { id: "1", name: "Консультация 50 мин", duration: 50, price: 250000 },
   { id: "2", name: "Первичный приём", duration: 60, price: 300000 },
   { id: "3", name: "Диагностика", duration: 40, price: 180000 },
@@ -21,6 +23,14 @@ export default function Services() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
+  const { data: master, loading, reload } = useMyMaster();
+  useFocusEffect(useCallback(() => { reload(); }, [reload]));
+
+  const SERVICES: Service[] = masterConfigured && master
+    ? master.services.map((s) => ({ id: s.id, name: s.name, duration: s.duration_min, price: s.price }))
+    : DEMO;
+  const showLoading = masterConfigured && master === null && loading;
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.header}>
@@ -35,7 +45,11 @@ export default function Services() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 40, gap: space.md }} showsVerticalScrollIndicator={false}>
-        {SERVICES.map((s) => (
+        {showLoading && <Loading />}
+        {!showLoading && SERVICES.length === 0 && (
+          <View style={{ alignItems: "center", paddingVertical: 40 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Услуг пока нет — добавьте первую.")}</AppText></View>
+        )}
+        {!showLoading && SERVICES.map((s) => (
           <Pressable key={s.id} onPress={() => router.push({ pathname: "/(master)/service-form", params: { id: s.id, name: s.name, duration: String(s.duration), price: String(s.price) } })}>
             <View style={[styles.card, cardShadow]}>
               <View style={{ flex: 1 }}>

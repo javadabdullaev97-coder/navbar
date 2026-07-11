@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
+import { deleteService, masterConfigured, upsertService } from "../../lib/master-api";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
@@ -35,6 +36,40 @@ export default function ServiceForm() {
   const setPreset = (d: number) => { setHours(String(Math.floor(d / 60))); setMins(String(d % 60)); };
   const [price, setPrice] = useState(params.price ?? "");
   const [deposit, setDeposit] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (busy) return;
+    if (!name.trim() || totalMin <= 0) {
+      Alert.alert(t("Заполните поля"), t("Укажите название и длительность услуги."));
+      return;
+    }
+    if (masterConfigured) {
+      setBusy(true);
+      try {
+        await upsertService({ id: params.id, name: name.trim(), duration: totalMin, price: Number(price) || 0 });
+      } catch (e) {
+        setBusy(false);
+        Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось сохранить услугу."));
+        return;
+      }
+      setBusy(false);
+    }
+    router.back();
+  }
+
+  function remove() {
+    Alert.alert(t("Удалить услугу?"), t("Это действие нельзя отменить."), [
+      { text: t("Назад"), style: "cancel" },
+      {
+        text: t("Удалить"), style: "destructive",
+        onPress: async () => {
+          if (masterConfigured && params.id) { try { await deleteService(params.id); } catch { /* игнор */ } }
+          router.back();
+        },
+      },
+    ]);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -98,9 +133,9 @@ export default function ServiceForm() {
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
-        <PrimaryButton label={t("Сохранить")} onPress={() => router.back()} />
+        <PrimaryButton label={t("Сохранить")} onPress={submit} loading={busy} />
         {editing && (
-          <Pressable onPress={() => router.back()} style={{ alignItems: "center", paddingVertical: 12 }}>
+          <Pressable onPress={remove} style={{ alignItems: "center", paddingVertical: 12 }}>
             <AppText variant="labelMd" color={colors.error}>{t("Удалить услугу")}</AppText>
           </Pressable>
         )}
