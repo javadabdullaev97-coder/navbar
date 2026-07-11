@@ -68,6 +68,61 @@ export const darkColors: ThemeColors = {
 // они импортируют статичную светлую палитру.
 export const colors = lightColors;
 
+// ── Палитра МАСТЕРА (бордо). Те же нейтрали, акцент — deep-bordo. ──
+export const masterLightColors: ThemeColors = {
+  bg: "#FDF8F8",
+  surface: "#FFFFFF",
+  surfaceLow: "#F7F2F2",
+  surfaceMid: "#F1EDEC",
+  surfaceHigh: "#ECE7E7",
+  surfaceHighest: "#E6E1E1",
+  ink: "#1C1B1B",
+  inkVariant: "#544244",
+  secondary: "#5E5E5E",
+  outline: "#877274",
+  outlineVariant: "#DAC0C3",
+  accent: "#5E1226", // primary-container (бордо)
+  accentTint: "#FFD9DD", // primary-fixed
+  accentDeep: "#3F0013", // primary
+  onAccent: "#FFFFFF",
+  gold: "#D4AF37",
+  successBg: "#ECFDF5",
+  successText: "#065F46",
+  warningBg: "#FFFBEB",
+  warningText: "#92400E",
+  infoBg: "#EFF3FF",
+  infoText: "#1E40AF",
+  error: "#BA1A1A",
+};
+
+export const masterDarkColors: ThemeColors = {
+  bg: "#131011",
+  surface: "#1D1A1B",
+  surfaceLow: "#221F20",
+  surfaceMid: "#282425",
+  surfaceHigh: "#302C2D",
+  surfaceHighest: "#393435",
+  ink: "#EAE0E1",
+  inkVariant: "#D7C1C4",
+  secondary: "#A89EA0",
+  outline: "#A08D90",
+  outlineVariant: "#4A3F41",
+  accent: "#FFB2BC", // осветлённый бордо
+  accentTint: "#5E1226",
+  accentDeep: "#3F0013",
+  onAccent: "#400013", // тёмный текст на светлом акценте
+  gold: "#E3C158",
+  successBg: "#0C2A1E",
+  successText: "#6EE7B7",
+  warningBg: "#2A2410",
+  warningText: "#F5C451",
+  infoBg: "#121D34",
+  infoText: "#9DB8FF",
+  error: "#FFB4AB",
+};
+
+export type Brand = "client" | "master";
+
 export const radius = {
   sm: 4,
   lg: 8,

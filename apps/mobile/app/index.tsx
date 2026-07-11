@@ -10,6 +10,7 @@ type Role = {
   icon: React.ComponentProps<typeof Sym>["name"];
   title: string;
   subtitle: string;
+  target: string;
   primary?: boolean;
 };
 
@@ -18,17 +19,20 @@ const ROLES: Role[] = [
     icon: "person",
     title: "Я клиент",
     subtitle: "Найти мастера, врача, психолога и записаться",
+    target: "/login",
     primary: true,
   },
   {
     icon: "calendar-today",
     title: "Я мастер",
     subtitle: "Принимать записи и вести расписание",
+    target: "/(master)/(tabs)/today",
   },
   {
     icon: "storefront",
     title: "Салон",
     subtitle: "Управлять командой специалистов",
+    target: "/login",
   },
 ];
 
@@ -39,8 +43,7 @@ export default function Welcome() {
   const styles = useThemedStyles(makeStyles);
 
   function pick(role: Role) {
-    // Пока во всех продуктах клиентский флоу: ведём на вход.
-    router.push("/login");
+    router.push(role.target as any);
   }
 
   return (

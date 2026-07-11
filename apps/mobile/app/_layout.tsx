@@ -33,6 +33,7 @@ function Root() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(master)" />
       </Stack>
     </>
   );
