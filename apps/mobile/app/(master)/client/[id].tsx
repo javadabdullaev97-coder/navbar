@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { fmtDate, fmtMoney, MONTHS_NOM } from "../../../lib/format";
 import { getClient, MasterClientDetail, setClientNote } from "../../../lib/master-api";
@@ -17,14 +17,19 @@ export default function ClientCard() {
   const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [client, setClient] = useState<MasterClientDetail | null | undefined>(undefined);
+  const [failed, setFailed] = useState(false);
   const [note, setNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setClient(undefined); setFailed(false);
     let alive = true;
-    getClient(id).then((c) => { if (alive) { setClient(c); setNote(c?.notes ?? ""); } }).catch(() => alive && setClient(null));
+    getClient(id)
+      .then((c) => { if (alive) { setClient(c); setNote(c?.notes ?? ""); } })
+      .catch(() => { if (alive) { setClient(null); setFailed(true); } });
     return () => { alive = false; };
   }, [id]);
+  useEffect(() => load(), [load]);
 
   async function saveNote() {
     if (!client || savingNote) return;
@@ -43,10 +48,12 @@ export default function ClientCard() {
           <AppText variant="headlineMd" color={colors.accent}>{t("Клиент")}</AppText>
           <View style={{ width: 24 }} />
         </View>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
-          <Sym name="person-off" size={44} color={colors.outlineVariant} />
-          <AppText variant="bodyMd" color={colors.secondary}>{t("Клиент не найден")}</AppText>
-        </View>
+        {failed ? <ErrorState onRetry={load} /> : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+            <Sym name="person-off" size={44} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary}>{t("Клиент не найден")}</AppText>
+          </View>
+        )}
       </SafeAreaView>
     );
   }

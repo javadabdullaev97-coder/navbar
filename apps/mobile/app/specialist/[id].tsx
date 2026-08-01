@@ -2,7 +2,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, PrimaryButton, Sym } from "../../components/ui";
 import { toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured, useMaster, useReviews } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
@@ -25,7 +25,7 @@ export default function Specialist() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { master, loading, reload } = useMaster(id);
+  const { master, loading, error, reload } = useMaster(id);
   const { data: reviewList, loading: reviewsLoading, reload: reloadReviews } = useReviews(master?.slug);
   const { patchDraft } = useStore();
   const [tab, setTab] = useState(0);
@@ -50,7 +50,9 @@ export default function Specialist() {
             <Sym name="arrow-back" size={22} color={colors.accent} />
           </Pressable>
         </SafeAreaView>
-        {loading ? <Loading /> : (
+        {loading ? <Loading /> : error ? (
+          <ErrorState onRetry={reload} />
+        ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
             <Sym name="person-off" size={44} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{tr("Специалист не найден")}</AppText>

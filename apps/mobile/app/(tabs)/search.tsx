@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, ErrorState, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useSearchMasters } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
@@ -20,7 +20,7 @@ export default function Search() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [q, setQ] = useState("");
-  const { data: remote, reload } = useSearchMasters(q);
+  const { data: remote, error, reload } = useSearchMasters(q);
   const [refreshing, setRefreshing] = useState(false);
   const [sort, setSort] = useState<SortKey>("rating");
   const [topRated, setTopRated] = useState(false);
@@ -72,10 +72,11 @@ export default function Search() {
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
-        {!loading && results.length === 0 && (
+        {!loading && error && <ErrorState onRetry={onRefresh} />}
+        {!loading && !error && results.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Ничего не найдено")}</AppText></View>
         )}
-        {!loading && results.map((s) => (
+        {!loading && !error && results.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
             <Card padding={12} style={{ flexDirection: "row", gap: space.md }}>
               <Avatar initial={s.initial} size={96} tint={colors.surfaceMid} fg={colors.inkVariant} />

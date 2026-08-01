@@ -46,6 +46,15 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+/** Удалить аккаунт и ВСЕ связанные данные (RPC delete_my_account), затем выйти.
+ *  Необратимо: профиль, услуги, брони, клиенты, отзыв, избранное и сам вход. */
+export async function deleteAccount(): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { error } = await supabase.rpc("delete_my_account");
+  if (error) throw error;
+  await supabase.auth.signOut().catch(() => {});
+}
+
 export async function currentUserId(): Promise<string | null> {
   if (!supabaseConfigured) return null;
   const { data } = await supabase.auth.getSession();

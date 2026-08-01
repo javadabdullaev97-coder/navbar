@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, ErrorState, Loading, Sym } from "../../components/ui";
 import type { CatalogMaster } from "../../lib/api";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
@@ -42,7 +42,7 @@ export default function Home() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const { data: catalog, reload } = useCatalog();
+  const { data: catalog, error, reload } = useCatalog();
   const { profile } = useStore();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
@@ -93,7 +93,9 @@ export default function Home() {
           ))}
         </ScrollView>
 
-        {loading ? <Loading /> : list.length === 0 ? (
+        {loading ? <Loading /> : error ? (
+          <ErrorState onRetry={onRefresh} />
+        ) : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 48, gap: 8 }}>
             <Sym name="search-off" size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("Специалистов пока нет")}</AppText>

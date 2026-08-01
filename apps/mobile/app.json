@@ -5,9 +5,15 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "scheme": "ora",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "backgroundColor": "#FCF9F8",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#5E1226"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "uz.ora.client"
@@ -15,8 +21,12 @@
     "android": {
       "package": "uz.ora.client",
       "adaptiveIcon": {
-        "backgroundColor": "#FCF9F8"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#5E1226"
       }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",

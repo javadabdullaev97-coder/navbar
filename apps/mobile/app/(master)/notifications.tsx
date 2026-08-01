@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Loading, Sym } from "../../components/ui";
+import { AppText, ErrorState, Loading, Sym } from "../../components/ui";
 import { MONTHS_GEN } from "../../lib/format";
 import { masterConfigured, MasterBooking, useMasterBookings } from "../../lib/master-api";
 import { useT } from "../../lib/i18n";
@@ -40,7 +40,7 @@ export default function MasterNotifications() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [refreshing, setRefreshing] = useState(false);
-  const { data: bookings, loading, reload } = useMasterBookings();
+  const { data: bookings, loading, error, reload } = useMasterBookings();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   const notes = bookings ? build(bookings, Date.now(), t) : [];
@@ -67,7 +67,9 @@ export default function MasterNotifications() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       >
-        {showLoading ? <Loading /> : notes.length === 0 ? (
+        {showLoading ? <Loading /> : error && bookings === null ? (
+          <ErrorState onRetry={onRefresh} />
+        ) : notes.length === 0 ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 80 }}>
             <Sym name="notifications-none" size={48} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>{t("Новых уведомлений нет.")}</AppText>

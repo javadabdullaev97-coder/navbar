@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Loading, Sym } from "../../components/ui";
+import { AppText, ErrorState, Loading, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { fmtMoney, WD_SHORT } from "../../lib/format";
 import { Analytics, masterConfigured, useMasterAnalytics } from "../../lib/master-api";
@@ -23,7 +23,7 @@ export default function AnalyticsScreen() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [days, setDays] = useState(30);
-  const { data: remote, loading } = useMasterAnalytics(days);
+  const { data: remote, loading, error, reload } = useMasterAnalytics(days);
 
   const a: Analytics = remote ?? EMPTY;
   const showLoading = masterConfigured && remote === null && loading;
@@ -51,7 +51,9 @@ export default function AnalyticsScreen() {
           })}
         </View>
 
-        {showLoading ? <Loading /> : (
+        {showLoading ? <Loading /> : error && remote === null ? (
+          <ErrorState onRetry={reload} />
+        ) : (
           <>
             {/* Выручка */}
             <View style={[styles.hero, cardShadow]}>

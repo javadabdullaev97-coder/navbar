@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Card, GhostBorderButton, Loading, PrimaryButton, Sym } from "../../components/ui";
+import { AppText, Card, ErrorState, GhostBorderButton, Loading, PrimaryButton, Sym } from "../../components/ui";
 import { cancelBookingRpc, ClientBooking, getMyBookings } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { fmtDate, fmtMoney, fmtTime } from "../../lib/format";
@@ -45,16 +45,19 @@ export default function Appointment() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { bookings, cancelBooking } = useStore();
   const [remote, setRemote] = useState<ClientBooking | null | undefined>(undefined); // undefined = грузим
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!supabaseConfigured) { setRemote(null); return; }
+    setRemote(undefined); setFailed(false);
     let alive = true;
     getMyBookings()
-      .then((list) => alive && setRemote(list.find((b) => b.id === id) ?? null))
-      .catch(() => alive && setRemote(null));
+      .then((list) => { if (alive) setRemote(list.find((b) => b.id === id) ?? null); })
+      .catch(() => { if (alive) { setRemote(null); setFailed(true); } });
     return () => { alive = false; };
   }, [id]);
+  useEffect(() => load(), [load]);
 
   if (supabaseConfigured && remote === undefined) {
     return (
@@ -79,10 +82,12 @@ export default function Appointment() {
           <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
           <View style={{ width: 26 }} />
         </View>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
-          <Sym name="event-busy" size={44} color={colors.outlineVariant} />
-          <AppText variant="bodyMd" color={colors.secondary}>{t("Запись не найдена")}</AppText>
-        </View>
+        {failed ? <ErrorState onRetry={load} /> : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+            <Sym name="event-busy" size={44} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary}>{t("Запись не найдена")}</AppText>
+          </View>
+        )}
       </SafeAreaView>
     );
   }

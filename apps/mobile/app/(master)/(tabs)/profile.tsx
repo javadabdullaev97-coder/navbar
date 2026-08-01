@@ -126,10 +126,13 @@ export default function MasterProfile() {
           })}
         </View>
 
-        <View style={{ alignItems: "center", marginTop: space.lg }}>
+        <View style={{ alignItems: "center", marginTop: space.lg, gap: 4 }}>
           <Pressable onPress={async () => { await signOut(); router.replace("/"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 12 }}>
             <Sym name="logout" size={20} color={colors.error} />
             <AppText variant="labelMd" color={colors.error}>{t("Выйти")}</AppText>
+          </Pressable>
+          <Pressable onPress={() => router.push("/delete-account")} style={({ pressed }) => [{ paddingHorizontal: 24, paddingVertical: 8 }, pressed && { opacity: 0.6 }]}>
+            <AppText variant="labelSm" color={colors.secondary}>{t("Удалить аккаунт")}</AppText>
           </Pressable>
         </View>
       </ScrollView>

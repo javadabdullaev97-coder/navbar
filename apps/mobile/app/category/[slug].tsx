@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, ErrorState, Loading, Sym } from "../../components/ui";
 import { initialOf, supabaseConfigured, useCatalog } from "../../lib/data";
 import { fmtMoney } from "../../lib/format";
 import { useT } from "../../lib/i18n";
@@ -18,7 +18,7 @@ export default function Category() {
   const styles = useThemedStyles(makeStyles);
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const title = typeof slug === "string" ? slug : "Специалисты";
-  const { data: remote, reload } = useCatalog(title);
+  const { data: remote, error, reload } = useCatalog(title);
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [refreshing, setRefreshing] = useState(false);
   const [topRated, setTopRated] = useState(false);
@@ -64,10 +64,11 @@ export default function Category() {
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 24, gap: space.md, paddingTop: space.sm }} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}>
         {loading && <Loading />}
-        {!loading && rows.length === 0 && (
+        {!loading && error && <ErrorState onRetry={onRefresh} />}
+        {!loading && !error && rows.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 48 }}><AppText variant="bodyMd" color={colors.secondary}>{t("В этой категории пока пусто")}</AppText></View>
         )}
-        {!loading && rows.map((s) => (
+        {!loading && !error && rows.map((s) => (
           <Pressable key={s.key} onPress={() => router.push(`/specialist/${s.key}`)}>
             <Card padding={16} style={{ flexDirection: "row", gap: space.md }}>
               <Avatar initial={s.initial} size={96} tint={colors.surfaceMid} fg={colors.inkVariant} />

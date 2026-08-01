@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Loading, Sym } from "../../components/ui";
+import { AppText, ErrorState, Loading, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { fmtDur, fmtMoney } from "../../lib/format";
 import { masterConfigured, useMyMaster } from "../../lib/master-api";
@@ -16,7 +16,7 @@ export default function Services() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const { data: master, loading, reload } = useMyMaster();
+  const { data: master, loading, error, reload } = useMyMaster();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   const SERVICES: Service[] = master
@@ -39,7 +39,8 @@ export default function Services() {
 
       <ScrollView contentContainerStyle={{ padding: space.margin, paddingBottom: 40, gap: space.md }} showsVerticalScrollIndicator={false}>
         {showLoading && <Loading />}
-        {!showLoading && SERVICES.length === 0 && (
+        {!showLoading && error && master === null && <ErrorState onRetry={reload} />}
+        {!showLoading && !(error && master === null) && SERVICES.length === 0 && (
           <View style={{ alignItems: "center", paddingVertical: 40 }}><AppText variant="bodyMd" color={colors.secondary}>{t("Услуг пока нет — добавьте первую.")}</AppText></View>
         )}
         {!showLoading && SERVICES.map((s) => (

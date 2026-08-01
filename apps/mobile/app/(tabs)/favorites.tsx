@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
+import { AppText, Avatar, Card, ErrorState, Loading, Sym } from "../../components/ui";
 import { getFavorites, toggleFavorite } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
 import { useT } from "../../lib/i18n";
@@ -26,6 +26,7 @@ export default function Saved() {
   const styles = useThemedStyles(makeStyles);
   const [cat, setCat] = useState(0);
   const [remote, setRemote] = useState<Item[] | null>(null);
+  const [error, setError] = useState(false);
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
   const [refreshing, setRefreshing] = useState(false);
 
@@ -34,8 +35,8 @@ export default function Saved() {
       if (!supabaseConfigured) return;
       let alive = true;
       getFavorites()
-        .then((f) => alive && setRemote(f.map((x) => ({ key: x.slug, initial: initialOf(x.name), name: x.name, spec: x.specialization ?? "" }))))
-        .catch(() => alive && setRemote([]));
+        .then((f) => { if (alive) { setRemote(f.map((x) => ({ key: x.slug, initial: initialOf(x.name), name: x.name, spec: x.specialization ?? "" }))); setError(false); } })
+        .catch(() => { if (alive) { setRemote([]); setError(true); } });
       return () => { alive = false; };
     }, [])
   );
@@ -47,7 +48,8 @@ export default function Saved() {
       const f = await getFavorites();
       setRemote(f.map((x) => ({ key: x.slug, initial: initialOf(x.name), name: x.name, spec: x.specialization ?? "" })));
       setRemoved({});
-    } catch { setRemote([]); } finally { setRefreshing(false); }
+      setError(false);
+    } catch { setRemote([]); setError(true); } finally { setRefreshing(false); }
   };
 
   const loading = supabaseConfigured && remote === null;
@@ -85,7 +87,9 @@ export default function Saved() {
           </View>
         </View>
 
-        {loading ? <Loading /> : list.length === 0 ? (
+        {loading ? <Loading /> : error && source.length === 0 ? (
+          <ErrorState onRetry={onRefresh} />
+        ) : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="bookmark-border" size={56} color={colors.surfaceHighest} />
             <AppText variant="headlineMd" color={colors.ink}>{t("Список пуст")}</AppText>

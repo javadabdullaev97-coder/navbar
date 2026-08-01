@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { fmtDate, fmtTime } from "../../../lib/format";
 import { masterConfigured, MasterBookingStatus, setBookingStatus, useMasterBookings } from "../../../lib/master-api";
@@ -27,7 +27,7 @@ export default function Requests() {
   const [tab, setTab] = useState<Status>("pending");
   const [overrides, setOverrides] = useState<Record<string, Status>>({});
   const [refreshing, setRefreshing] = useState(false);
-  const { data: remote, loading, reload } = useMasterBookings();
+  const { data: remote, loading, error, reload } = useMasterBookings();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   // Реальные брони мастера → карточки. Статус done/cancelled → «История».
@@ -81,7 +81,9 @@ export default function Requests() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       >
-        {showLoading ? <Loading /> : list.length === 0 ? (
+        {showLoading ? <Loading /> : error && remote === null ? (
+          <ErrorState onRetry={onRefresh} />
+        ) : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="event-note" size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("Здесь пока пусто")}</AppText>

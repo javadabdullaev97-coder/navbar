@@ -105,18 +105,19 @@ export async function updateMyProfile(p: { spec?: string | null; bio?: string | 
 }
 
 // ── Хуки с откатом на демо и reload ──────────────────────────────
-type Resource<T> = { data: T | null; loading: boolean; reload: () => Promise<void> };
+type Resource<T> = { data: T | null; loading: boolean; error: boolean; reload: () => Promise<void> };
 function useResource<T>(fetcher: () => Promise<T>): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const reload = useCallback(async () => {
     if (!supabaseConfigured) return;
     setLoading(true);
-    try { setData(await fetcher()); } catch { setData(null); } finally { setLoading(false); }
+    try { setData(await fetcher()); setError(false); } catch { setData(null); setError(true); } finally { setLoading(false); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { reload(); }, [reload]);
-  return { data, loading, reload };
+  return { data, loading, error, reload };
 }
 
 export async function setAvatar(url: string): Promise<void> {
@@ -166,11 +167,12 @@ export async function getMyAnalytics(days: number): Promise<Analytics> {
 export function useMasterAnalytics(days: number) {
   const [data, setData] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const reload = useCallback(async () => {
     if (!supabaseConfigured) return;
     setLoading(true);
-    try { setData(await getMyAnalytics(days)); } catch { setData(null); } finally { setLoading(false); }
+    try { setData(await getMyAnalytics(days)); setError(false); } catch { setData(null); setError(true); } finally { setLoading(false); }
   }, [days]);
   useEffect(() => { reload(); }, [reload]);
-  return { data, loading, reload };
+  return { data, loading, error, reload };
 }

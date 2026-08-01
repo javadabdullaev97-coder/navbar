@@ -13,6 +13,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { useColors } from "../lib/theme-context";
+import { useT } from "../lib/i18n";
 import { cardShadow, radius, space, type as T } from "../theme";
 
 type IconName = ComponentProps<typeof MaterialIcons>["name"];
@@ -110,6 +111,30 @@ export function Loading() {
   return (
     <View style={{ paddingVertical: 48, alignItems: "center" }}>
       <ActivityIndicator color={colors.accent} />
+    </View>
+  );
+}
+
+/** Состояние ошибки сети с кнопкой «Повторить». Показывать, когда загрузка не удалась. */
+export function ErrorState({ onRetry }: { onRetry?: () => void }) {
+  const colors = useColors();
+  const t = useT();
+  return (
+    <View style={{ paddingVertical: 48, alignItems: "center", gap: 12, paddingHorizontal: 24 }}>
+      <Sym name="wifi-off" size={44} color={colors.outlineVariant} />
+      <AppText variant="headlineMd" color={colors.ink}>{t("Нет соединения")}</AppText>
+      <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center", maxWidth: 280 }}>
+        {t("Не удалось загрузить данные. Проверьте интернет и попробуйте снова.")}
+      </AppText>
+      {onRetry ? (
+        <Pressable
+          onPress={onRetry}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, paddingHorizontal: 20, paddingVertical: 10, borderRadius: radius.full, backgroundColor: colors.surfaceLow, borderWidth: 1, borderColor: colors.outlineVariant }}
+        >
+          <Sym name="refresh" size={18} color={colors.accent} />
+          <AppText variant="labelMd" color={colors.accent}>{t("Повторить")}</AppText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

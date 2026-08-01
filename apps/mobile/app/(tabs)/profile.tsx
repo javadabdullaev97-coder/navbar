@@ -83,9 +83,12 @@ export default function Profile() {
           <Row icon="help-outline" label={t("Помощь и поддержка")} onPress={() => router.push("/help")} last />
         </View>
 
-        <View style={{ alignItems: "center", marginTop: space.lg }}>
+        <View style={{ alignItems: "center", marginTop: space.lg, gap: 4 }}>
           <Pressable onPress={async () => { await signOut(); router.replace("/"); }} style={({ pressed }) => [{ paddingHorizontal: 32, paddingVertical: 12, borderRadius: radius.xl }, pressed && { opacity: 0.6 }]}>
             <AppText variant="labelMd" color={colors.error}>{t("Выйти")}</AppText>
+          </Pressable>
+          <Pressable onPress={() => router.push("/delete-account")} style={({ pressed }) => [{ paddingHorizontal: 32, paddingVertical: 8 }, pressed && { opacity: 0.6 }]}>
+            <AppText variant="labelSm" color={colors.secondary}>{t("Удалить аккаунт")}</AppText>
           </Pressable>
         </View>
       </ScrollView>

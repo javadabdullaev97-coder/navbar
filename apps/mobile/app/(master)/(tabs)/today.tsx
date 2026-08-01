@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useCallback } from "react";
 import { useFocusEffect } from "expo-router";
-import { AppText, Avatar, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Sym } from "../../../components/ui";
 import { useT } from "../../../lib/i18n";
 import { initialOf } from "../../../lib/data";
 import { fmtMoney, fmtTime } from "../../../lib/format";
@@ -21,7 +21,7 @@ export default function Today() {
   const styles = useThemedStyles(makeStyles);
   const { profile } = useStore();
   const name = profile.name ? profile.name.split(" ")[0] : t("мастер");
-  const { data: bookings, reload } = useMasterBookings();
+  const { data: bookings, error, reload } = useMasterBookings();
   const { data: analytics, reload: reloadA } = useMasterAnalytics(1);
   useFocusEffect(useCallback(() => { reload(); reloadA(); }, [reload, reloadA]));
   const revenue = analytics?.total ?? 0;
@@ -101,9 +101,11 @@ export default function Today() {
         </View>
 
         <View style={{ gap: space.md }}>
-          {near.length === 0 && (
+          {error && bookings === null ? (
+            <ErrorState onRetry={reload} />
+          ) : near.length === 0 ? (
             <View style={{ alignItems: "center", paddingVertical: 24 }}><AppText variant="bodyMd" color={colors.secondary}>{t("На сегодня записей нет.")}</AppText></View>
-          )}
+          ) : null}
           {near.map((b) => (
             <Pressable key={b.id} onPress={() => router.push(`/(master)/booking/${b.id}`)}>
               <View style={[styles.bookingCard, cardShadow]}>

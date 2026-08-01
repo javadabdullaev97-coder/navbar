@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { MONTHS_GEN } from "../../../lib/format";
 import { masterConfigured, useMyClients } from "../../../lib/master-api";
@@ -26,7 +26,7 @@ export default function Clients() {
   const [q, setQ] = useState("");
   const [chip, setChip] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const { data: remote, loading, reload } = useMyClients();
+  const { data: remote, loading, error, reload } = useMyClients();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   const source = remote ?? [];
@@ -62,7 +62,9 @@ export default function Clients() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />}
       >
-        {showLoading ? <Loading /> : list.length === 0 ? (
+        {showLoading ? <Loading /> : error && remote === null ? (
+          <ErrorState onRetry={onRefresh} />
+        ) : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 64, gap: 12 }}>
             <Sym name="group" size={44} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary} style={{ textAlign: "center" }}>

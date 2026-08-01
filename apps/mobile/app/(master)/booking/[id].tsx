@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, PrimaryButton, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
 import { fmtDate, fmtTime } from "../../../lib/format";
@@ -25,7 +25,7 @@ export default function MasterBooking() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const { data: bookings, reload } = useMasterBookings();
+  const { data: bookings, error, reload } = useMasterBookings();
 
   const b = bookings ? bookings.find((x) => x.id === id) : null;
 
@@ -62,7 +62,7 @@ export default function MasterBooking() {
           <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
           <View style={{ width: 28 }} />
         </View>
-        {bookings === null ? <Loading /> : (
+        {bookings === null ? (error ? <ErrorState onRetry={reload} /> : <Loading />) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
             <Sym name="event-busy" size={44} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("Запись не найдена")}</AppText>

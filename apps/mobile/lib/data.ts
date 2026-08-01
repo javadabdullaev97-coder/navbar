@@ -13,23 +13,24 @@ import { supabaseConfigured } from "./supabase";
 
 export { supabaseConfigured };
 
-type Resource<T> = { data: T | null; loading: boolean; reload: () => Promise<void> };
+type Resource<T> = { data: T | null; loading: boolean; error: boolean; reload: () => Promise<void> };
 
 function useResource<T>(enabled: boolean, fetcher: () => Promise<T>, deps: unknown[]): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const reload = useCallback(async () => {
     if (!enabled) return;
     setLoading(true);
-    try { setData(await fetcher()); }
-    catch { setData(null); }
+    try { setData(await fetcher()); setError(false); }
+    catch { setData(null); setError(true); }
     finally { setLoading(false); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => { reload(); }, [reload]);
-  return { data, loading, reload };
+  return { data, loading, error, reload };
 }
 
 export function useCatalog(category?: string) {
@@ -46,7 +47,7 @@ export function useReviews(slug?: string) {
 
 export function useMaster(slug?: string) {
   const r = useResource<PublicMaster | null>(Boolean(supabaseConfigured && slug), () => getMaster(slug as string), [slug]);
-  return { master: r.data, loading: r.loading, reload: r.reload };
+  return { master: r.data, loading: r.loading, error: r.error, reload: r.reload };
 }
 
 /** Инициал из имени для аватар-плейсхолдера. */

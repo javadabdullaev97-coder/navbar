@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
+import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { fmtTime, MONTHS_NOM, WD_SHORT } from "../../../lib/format";
 import { masterConfigured, useMasterBookings } from "../../../lib/master-api";
@@ -26,7 +26,7 @@ export default function Calendar() {
   const styles = useThemedStyles(makeStyles);
   const [view, setView] = useState<View3>("day");
   const [anchor, setAnchor] = useState(new Date());
-  const { data: remote, loading, reload } = useMasterBookings();
+  const { data: remote, loading, error, reload } = useMasterBookings();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   const events: Ev[] = (remote ?? [])
@@ -121,7 +121,9 @@ export default function Calendar() {
 
       {/* Список записей снизу */}
       <ScrollView contentContainerStyle={{ paddingHorizontal: space.margin, paddingBottom: 120, paddingTop: space.md, gap: space.md }} showsVerticalScrollIndicator={false}>
-        {showLoading ? <Loading /> : view === "week" ? (
+        {showLoading ? <Loading /> : error && remote === null ? (
+          <ErrorState onRetry={reload} />
+        ) : view === "week" ? (
           Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)).map((d, i) => {
             const evs = dayEvents(d);
             if (evs.length === 0) return null;
@@ -144,7 +146,7 @@ export default function Calendar() {
             return evs.map((e) => <EventCard key={e.id} e={e} onPress={() => router.push(`/(master)/booking/${e.id}`)} />);
           })()
         )}
-        {view === "week" && events.filter((e) => e.date >= weekStart && e.date < addDays(weekStart, 7)).length === 0 && !showLoading && (
+        {view === "week" && !error && events.filter((e) => e.date >= weekStart && e.date < addDays(weekStart, 7)).length === 0 && !showLoading && (
           <View style={{ alignItems: "center", paddingVertical: 48, gap: 10 }}>
             <Sym name="event-available" size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("На эту неделю записей нет")}</AppText>
