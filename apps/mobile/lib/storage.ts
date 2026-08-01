@@ -28,11 +28,13 @@ function decodeBase64(input: string): Uint8Array {
 
 type Picked = { base64: string; mime: string; ext: string };
 
-async function pick(): Promise<Picked | null> {
+async function pick(square: boolean): Promise<Picked | null> {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) throw new Error("Нет доступа к галерее. Разрешите доступ к фото.");
   const res = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: square,          // квадратная обрезка для аватара/портфолио
+    aspect: square ? [1, 1] : undefined,
     quality: 0.7,
     base64: true,
   });
@@ -42,9 +44,11 @@ async function pick(): Promise<Picked | null> {
   return { base64: a.base64!, mime: a.mimeType ?? (ext === "png" ? "image/png" : "image/jpeg"), ext };
 }
 
-/** Выбрать фото и загрузить в бакет. Возвращает { path, url } или null (отмена). */
+/** Выбрать фото и загрузить в бакет. Возвращает { path, url } или null (отмена).
+ *  Аватар и портфолио режем квадратом, документы — как есть (не обрезаем сертификат). */
 export async function uploadImage(bucket: string): Promise<{ path: string; url: string } | null> {
-  const picked = await pick();
+  const square = bucket === "avatars" || bucket === "portfolio";
+  const picked = await pick(square);
   if (!picked) return null;
   const uid = await currentUserId();
   if (!uid) throw new Error("Требуется вход в аккаунт.");

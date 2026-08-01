@@ -94,18 +94,20 @@ export default function MasterOnboarding() {
     if (masterConfigured) {
       setBusy(true);
       try {
+        // Ядро — обязательно: без него аккаунт мастера не создать.
         await becomeSoloMaster(name.trim(), spec.trim(), CITIES[city]);
-        await updateMyProfile({ spec: spec.trim(), bio: bio.trim(), address: address.trim() || CITIES[city] });
-        if (avatarUrl) await setAvatar(avatarUrl);
         for (const s of services) await upsertService(s);
         for (let i = 0; i < days.length; i++) await setAvailability(i, days[i].start, days[i].end, !days[i].on);
-        for (const url of photos) await addGalleryItem(url);
-        if (docPath) await submitVerification(docPath);
       } catch (e) {
         setBusy(false);
         Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось завершить регистрацию."));
         return;
       }
+      // Необязательные шаги — сбой одного не мешает завершить регистрацию.
+      try { await updateMyProfile({ bio: bio.trim(), address: address.trim() || CITIES[city] }); } catch { /* игнор */ }
+      try { if (avatarUrl) await setAvatar(avatarUrl); } catch { /* игнор */ }
+      try { for (const url of photos) await addGalleryItem(url); } catch { /* игнор */ }
+      try { if (docPath) await submitVerification(docPath); } catch { /* игнор */ }
       setBusy(false);
     }
     router.replace("/(master)/(tabs)/today");
@@ -134,7 +136,9 @@ export default function MasterOnboarding() {
             <>
               <View style={{ alignItems: "center", marginTop: space.lg }}>
                 <Pressable style={styles.avatar} onPress={() => upload("avatars", (r) => setAvatarUrl(r.url))}>
-                  {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatarImg} /> : <Sym name="photo-camera" size={36} color={colors.accent} />}
+                  <View style={styles.avatarClip}>
+                    {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatarImg} /> : <Sym name="photo-camera" size={36} color={colors.accent} />}
+                  </View>
                   <View style={styles.avatarBadge}>{uploading ? <ActivityIndicator size="small" color={colors.onAccent} /> : <Sym name="add" size={16} color={colors.onAccent} />}</View>
                 </Pressable>
               </View>
@@ -318,7 +322,8 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   progressRow: { flexDirection: "row", gap: 6, paddingHorizontal: space.margin, marginBottom: 8 },
   progressSeg: { flex: 1, height: 4, borderRadius: 2 },
   step: { textTransform: "uppercase", letterSpacing: 1.5 },
-  avatar: { width: 128, height: 128, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: colors.surface, overflow: "hidden" },
+  avatar: { width: 128, height: 128, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: colors.surface },
+  avatarClip: { width: "100%", height: "100%", borderRadius: radius.full, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   avatarImg: { width: "100%", height: "100%" },
   avatarBadge: { position: "absolute", bottom: 4, right: 4, width: 32, height: 32, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   input: { minHeight: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },

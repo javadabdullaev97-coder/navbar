@@ -488,4 +488,29 @@ export const DICT: Translations = {
   "Удалить аккаунт?": { uz: "Akkaunt o'chirilsinmi?", en: "Delete account?" },
   "Это действие необратимо. Все данные будут удалены навсегда.": { uz: "Bu amalni ortga qaytarib bo'lmaydi. Barcha ma'lumotlar butunlay o'chiriladi.", en: "This action is irreversible. All data will be permanently deleted." },
   "Не удалось удалить аккаунт. Попробуйте позже.": { uz: "Akkauntni o'chirib bo'lmadi. Keyinroq urinib ko'ring.", en: "Couldn't delete the account. Please try again later." },
+
+  // --- Города ---
+  "Самарканд": { uz: "Samarqand", en: "Samarkand" },
+  "Бухара": { uz: "Buxoro", en: "Bukhara" },
+  "Наманган": { uz: "Namangan", en: "Namangan" },
+  "Андижан": { uz: "Andijon", en: "Andijan" },
+
+  // --- Дни недели (короткие) ---
+  "Пн": { uz: "Du", en: "Mon" },
+  "Вт": { uz: "Se", en: "Tue" },
+  "Ср": { uz: "Ch", en: "Wed" },
+  "Чт": { uz: "Pa", en: "Thu" },
+  "Пт": { uz: "Ju", en: "Fri" },
+  "Сб": { uz: "Sh", en: "Sat" },
+  "Вс": { uz: "Ya", en: "Sun" },
+
+  // --- Онбординг: шаги ---
+  "Расскажите о себе": { uz: "O'zingiz haqingizda", en: "Tell us about yourself" },
+  "Настройте график": { uz: "Jadvalni sozlang", en: "Set your schedule" },
+
+  // --- Вкладки / статусы ---
+  "Новые": { uz: "Yangi", en: "New" },
+  "Подтверждённые": { uz: "Tasdiqlangan", en: "Confirmed" },
+  "Новые клиенты": { uz: "Yangi mijozlar", en: "New clients" },
+  "Завершено": { uz: "Yakunlangan", en: "Completed" },
 };
