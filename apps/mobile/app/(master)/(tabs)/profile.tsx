@@ -19,6 +19,7 @@ const LANG_SHORT: Record<Lang, string> = { ru: "RU", uz: "UZ", en: "EN" };
 
 type IconName = React.ComponentProps<typeof Sym>["name"];
 const ROWS: { icon: IconName; label: string; route: string }[] = [
+  { icon: "person-outline", label: "Редактировать профиль", route: "/(master)/edit-profile" },
   { icon: "design-services", label: "Услуги", route: "/(master)/services" },
   { icon: "insights", label: "Аналитика", route: "/(master)/analytics" },
   { icon: "calendar-month", label: "График работы", route: "/(master)/schedule" },
@@ -71,12 +72,9 @@ export default function MasterProfile() {
             <AppText variant="bodyMd" color={colors.secondary} style={{ marginTop: 2 }}>{spec}</AppText>
           </View>
         </View>
-        <Pressable onPress={() => router.push("/(master)/edit-profile")} style={{ alignSelf: "flex-end", paddingVertical: 8 }}>
-          <AppText variant="labelMd" color={colors.accent}>{t("Редактировать профиль")}</AppText>
-        </Pressable>
 
         {/* Настройки кабинета */}
-        <View style={{ gap: space.sm, marginTop: space.sm }}>
+        <View style={{ gap: space.sm, marginTop: space.md }}>
           {ROWS.map((r, i) => (
             <Pressable key={i} onPress={() => router.push(r.route as any)} style={[styles.row, cardShadow]}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 14, flex: 1 }}>

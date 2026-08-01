@@ -26,7 +26,6 @@ const BASE_CATEGORIES = [
   "Косметолог", "Визажист", "Бровист", "Лашмейкер", "Массажист", "Депиляция", "Тату-мастер",
   "Психолог", "Стоматолог", "Врач", "Нутрициолог", "Тренер", "Репетитор",
 ];
-const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"];
 const DAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const STEP_TITLE = ["Расскажите о себе", "Добавьте услуги", "Настройте график", "Загрузите портфолио", "Документы и верификация"];
 const STEPS = 5;
@@ -55,7 +54,6 @@ export default function MasterOnboarding() {
   const [cityIdx, setCityIdx] = useState(0);
   const [cityOpen, setCityOpen] = useState(false);
   const [address, setAddress] = useState("");
-  const [cover, setCover] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   // Шаг 2
@@ -188,14 +186,6 @@ export default function MasterOnboarding() {
                 <Field label={t("Адрес (необязательно)")}>
                   <TextInput value={address} onChangeText={setAddress} placeholder={t("Улица, дом, ориентир")} placeholderTextColor={colors.outline} style={styles.input} />
                 </Field>
-              </View>
-              <AppText variant="labelMd" color={colors.accent} style={{ marginTop: space.lg, marginBottom: space.sm }}>{t("Обложка профиля")}</AppText>
-              <View style={{ flexDirection: "row", gap: 16 }}>
-                {COVERS.map((hex, i) => (
-                  <Pressable key={hex} onPress={() => setCover(i)} style={[styles.swatch, { backgroundColor: hex }, i === cover && styles.swatchOn]}>
-                    {i === cover ? <Sym name="check" size={18} color="#fff" /> : null}
-                  </Pressable>
-                ))}
               </View>
             </>
           )}

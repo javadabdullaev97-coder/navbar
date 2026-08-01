@@ -514,6 +514,10 @@ export const DICT: Translations = {
   "Новые клиенты": { uz: "Yangi mijozlar", en: "New clients" },
   "Завершено": { uz: "Yakunlangan", en: "Completed" },
 
+  // --- Вкладки / профиль мастера ---
+  "Сегодня": { uz: "Bugun", en: "Today" },
+  "Ссылка для записи": { uz: "Yozuv havolasi", en: "Booking link" },
+
   // --- Онбординг: поля ---
   "Фамилия": { uz: "Familiya", en: "Last name" },
   "Выберите категорию": { uz: "Kategoriyani tanlang", en: "Choose a category" },
