@@ -7,17 +7,12 @@ import { AppText, Avatar, Sym } from "../../../components/ui";
 import { useT } from "../../../lib/i18n";
 import { initialOf } from "../../../lib/data";
 import { fmtMoney, fmtTime } from "../../../lib/format";
-import { masterConfigured, useMasterAnalytics, useMasterBookings } from "../../../lib/master-api";
+import { useMasterAnalytics, useMasterBookings } from "../../../lib/master-api";
 import { useStore } from "../../../lib/store";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 
 type Booking = { id: string; initial: string; name: string; service: string; time: string; status: "confirmed" | "pending" };
-const TODAY: Booking[] = [
-  { id: "1", initial: "А", name: "Азиза Каримова", service: "Консультация", time: "14:00", status: "confirmed" },
-  { id: "2", initial: "Ф", name: "Фаррух Алиев", service: "Стрижка", time: "15:30", status: "pending" },
-  { id: "3", initial: "Е", name: "Елена Волкова", service: "Маникюр", time: "17:00", status: "confirmed" },
-];
 
 export default function Today() {
   const router = useRouter();
@@ -29,12 +24,12 @@ export default function Today() {
   const { data: bookings, reload } = useMasterBookings();
   const { data: analytics, reload: reloadA } = useMasterAnalytics(1);
   useFocusEffect(useCallback(() => { reload(); reloadA(); }, [reload, reloadA]));
-  const revenue = masterConfigured && analytics ? analytics.total : 1250000;
+  const revenue = analytics?.total ?? 0;
 
-  const real = masterConfigured && bookings ? bookings.filter((b) => b.status !== "cancelled") : null;
+  const real = bookings ? bookings.filter((b) => b.status !== "cancelled") : null;
   const isToday = (iso: string) => { const d = new Date(iso), n = new Date(); return d.toDateString() === n.toDateString(); };
-  const todayCount = real ? real.filter((b) => isToday(b.starts_at)).length : 5;
-  const pendingCount = real ? real.filter((b) => b.status === "pending").length : 2;
+  const todayCount = real ? real.filter((b) => isToday(b.starts_at)).length : 0;
+  const pendingCount = real ? real.filter((b) => b.status === "pending").length : 0;
   const near: Booking[] = real
     ? real.filter((b) => new Date(b.starts_at).getTime() >= Date.now() - 3600_000)
         .slice(0, 5)
@@ -43,7 +38,7 @@ export default function Today() {
           service: b.service_name ?? t("Услуга"), time: fmtTime(new Date(b.starts_at)),
           status: b.status === "confirmed" ? "confirmed" : "pending",
         }))
-    : TODAY;
+    : [];
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>

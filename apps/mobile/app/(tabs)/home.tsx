@@ -15,15 +15,6 @@ const CATS = ["Барберы", "Ногти", "Психологи", "Масса�
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; dist: string; price: string };
 
-const DEMO_NEAR: Item[] = [
-  { key: "1", initial: "Р", name: "Рустам Ахмедов", spec: "Топ-барбер", rating: "4.9", dist: "1.2 км", price: "от 80 000 сум" },
-  { key: "2", initial: "Д", name: "Дильноза Каримова", spec: "Senior Stylist", rating: "4.8", dist: "0.8 км", price: "от 120 000 сум" },
-];
-const DEMO_POPULAR: Item[] = [
-  { key: "3", initial: "С", name: "Доктор Санжар", spec: "Психолог • 10 лет опыта", rating: "5.0", dist: "2.5 км", price: "от 250 000 сум" },
-  { key: "4", initial: "А", name: "Алина Ким", spec: "Персональный тренер", rating: "4.9", dist: "3.1 км", price: "от 150 000 сум" },
-];
-
 function mapMaster(m: CatalogMaster): Item {
   return {
     key: m.slug,
@@ -59,9 +50,9 @@ export default function Home() {
   const firstName = profile.name ? profile.name.split(" ")[0] : null;
 
   const loading = supabaseConfigured && catalog === null;
-  const real = supabaseConfigured ? (catalog ?? []) : null; // null => показать демо
-  const near = real ? real.slice(0, 6).map(mapMaster) : DEMO_NEAR;
-  const popular = real ? real.map(mapMaster) : DEMO_POPULAR;
+  const list = catalog ?? [];
+  const near = list.slice(0, 6).map(mapMaster);
+  const popular = list.map(mapMaster);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -102,7 +93,7 @@ export default function Home() {
           ))}
         </ScrollView>
 
-        {loading ? <Loading /> : real && real.length === 0 ? (
+        {loading ? <Loading /> : list.length === 0 ? (
           <View style={{ alignItems: "center", paddingVertical: 48, gap: 8 }}>
             <Sym name="search-off" size={40} color={colors.outlineVariant} />
             <AppText variant="bodyMd" color={colors.secondary}>{t("Специалистов пока нет")}</AppText>

@@ -19,13 +19,6 @@ const addMonths = (d: Date, n: number) => { const x = new Date(d); x.setMonth(d.
 const startOfWeek = (d: Date) => addDays(d, -((d.getDay() + 6) % 7)); // понедельник
 const p2 = (n: number) => String(n).padStart(2, "0");
 
-const DEMO: Ev[] = [
-  { id: "1", date: new Date(), client: "Азиза Каримова", service: "Консультация", status: "confirmed" },
-  { id: "2", date: addDays(new Date(), 0), client: "Фаррух Алиев", service: "Стрижка", status: "pending" },
-  { id: "3", date: addDays(new Date(), 1), client: "Елена Волкова", service: "Маникюр", status: "confirmed" },
-  { id: "4", date: addDays(new Date(), 3), client: "Дмитрий Соколов", service: "Стрижка", status: "confirmed" },
-];
-
 export default function Calendar() {
   const router = useRouter();
   const t = useT();
@@ -36,12 +29,12 @@ export default function Calendar() {
   const { data: remote, loading, reload } = useMasterBookings();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const events: Ev[] = masterConfigured && remote
-    ? remote.filter((b) => b.status !== "cancelled").map((b) => ({
-        id: b.id, date: new Date(b.starts_at), client: b.client_name ?? t("Клиент"),
-        service: b.service_name ?? t("Услуга"), status: b.status,
-      }))
-    : DEMO;
+  const events: Ev[] = (remote ?? [])
+    .filter((b) => b.status !== "cancelled")
+    .map((b) => ({
+      id: b.id, date: new Date(b.starts_at), client: b.client_name ?? t("Клиент"),
+      service: b.service_name ?? t("Услуга"), status: b.status,
+    }));
   const showLoading = masterConfigured && remote === null && loading;
 
   const weekStart = useMemo(() => startOfWeek(anchor), [anchor]);

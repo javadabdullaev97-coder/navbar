@@ -5,19 +5,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { fmtDate, fmtMoney, MONTHS_NOM } from "../../../lib/format";
-import { getClient, masterConfigured, MasterClientDetail, setClientNote } from "../../../lib/master-api";
+import { getClient, MasterClientDetail, setClientNote } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
-
-const DEMO: MasterClientDetail = {
-  id: "0", name: "Азиза Каримова", phone: "+998 90 123 45 67", notes: "Предпочитает спокойную атмосферу. Аллергия на цитрусовые масла.",
-  since: new Date(Date.now() - 2.4e10).toISOString(), visits: 12, total_spent: 1250000,
-  history: [
-    { id: "h1", service_name: "Маникюр", price: 180000, starts_at: new Date(Date.now() - 6e8).toISOString(), status: "done" },
-    { id: "h2", service_name: "Стрижка", price: 250000, starts_at: new Date(Date.now() - 3e9).toISOString(), status: "done" },
-  ],
-};
 
 export default function ClientCard() {
   const router = useRouter();
@@ -25,27 +16,41 @@ export default function ClientCard() {
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [client, setClient] = useState<MasterClientDetail | null | undefined>(masterConfigured ? undefined : DEMO);
+  const [client, setClient] = useState<MasterClientDetail | null | undefined>(undefined);
   const [note, setNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
   useEffect(() => {
-    if (!masterConfigured) { setNote(DEMO.notes ?? ""); return; }
     let alive = true;
     getClient(id).then((c) => { if (alive) { setClient(c); setNote(c?.notes ?? ""); } }).catch(() => alive && setClient(null));
     return () => { alive = false; };
   }, [id]);
 
   async function saveNote() {
-    if (!masterConfigured || !client || savingNote) return;
+    if (!client || savingNote) return;
     setSavingNote(true);
     try { await setClientNote(client.id, note); } catch { /* игнор */ } finally { setSavingNote(false); }
   }
 
-  if (masterConfigured && client === undefined) {
+  if (client === undefined) {
     return <SafeAreaView style={styles.safe} edges={["top"]}><Loading /></SafeAreaView>;
   }
-  const c = client ?? DEMO;
+  if (client === null) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={24} color={colors.accent} /></Pressable>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Клиент")}</AppText>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+          <Sym name="person-off" size={44} color={colors.outlineVariant} />
+          <AppText variant="bodyMd" color={colors.secondary}>{t("Клиент не найден")}</AppText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  const c = client;
   const sinceD = new Date(c.since);
   const since = isNaN(sinceD.getTime()) ? "—" : `${MONTHS_NOM[sinceD.getMonth()].toLowerCase()} ${sinceD.getFullYear()}`;
 

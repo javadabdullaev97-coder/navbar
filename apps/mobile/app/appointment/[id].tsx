@@ -69,8 +69,23 @@ export default function Appointment() {
     );
   }
 
-  // Собираем данные: реальная запись → локальная → демо.
+  // Собираем данные: реальная запись → локальная. Фейка нет.
   const local = bookings.find((x) => x.id === id);
+  if (!remote && !local) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="arrow-back" size={26} color={colors.accent} /></Pressable>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
+          <View style={{ width: 26 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+          <Sym name="event-busy" size={44} color={colors.outlineVariant} />
+          <AppText variant="bodyMd" color={colors.secondary}>{t("Запись не найдена")}</AppText>
+        </View>
+      </SafeAreaView>
+    );
+  }
   const v: ApptView = remote
     ? {
         specialist: remote.master_name, initial: initialOf(remote.master_name), spec: "", slug: remote.master_slug,
@@ -78,11 +93,9 @@ export default function Appointment() {
         address: remote.master_address ?? "", status: remote.status, remote: true,
       }
     : {
-        specialist: local?.specialist ?? "Дилноза Каримова", initial: local?.initial ?? "Д",
-        spec: local?.spec ?? "Клинический психолог", slug: "",
-        date: local?.date ?? new Date(), service: local?.service ?? "Индивидуальная консультация",
-        duration: local?.duration ?? 50, price: local?.price ?? 180000,
-        address: local?.address ?? "Ташкент, Мирабад", status: local?.status ?? "confirmed", remote: false,
+        specialist: local!.specialist, initial: local!.initial, spec: local!.spec, slug: "",
+        date: local!.date, service: local!.service, duration: local!.duration, price: local!.price,
+        address: local!.address, status: local!.status, remote: false,
       };
 
   const cancelled = v.status === "cancelled";

@@ -13,14 +13,6 @@ import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 type Status = "pending" | "confirmed" | "done";
 type Req = { id: string; initial: string; name: string; service: string; date: string; time: string; status: Status };
 
-const DEMO: Req[] = [
-  { id: "1", initial: "А", name: "Анна Кузнецова", service: "Маникюр & Уход", date: "15 октября", time: "14:00 — 15:30", status: "pending" },
-  { id: "2", initial: "Д", name: "Дмитрий Соколов", service: "Мужская стрижка", date: "16 октября", time: "10:00 — 11:00", status: "pending" },
-  { id: "3", initial: "Е", name: "Елена Петрова", service: "Консультация", date: "16 октября", time: "17:30 — 18:30", status: "pending" },
-  { id: "4", initial: "К", name: "Камила Исаева", service: "Маникюр", date: "12 октября", time: "11:00 — 12:00", status: "confirmed" },
-  { id: "5", initial: "Б", name: "Бахтиёр Хакимов", service: "Стрижка", date: "5 октября", time: "16:00 — 16:45", status: "done" },
-];
-
 const TABS: { key: Status; label: string }[] = [
   { key: "pending", label: "Новые" },
   { key: "confirmed", label: "Подтверждённые" },
@@ -39,18 +31,16 @@ export default function Requests() {
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
   // Реальные брони мастера → карточки. Статус done/cancelled → «История».
-  const source: Req[] = masterConfigured && remote
-    ? remote.map((b) => {
-        const start = new Date(b.starts_at);
-        const end = new Date(b.ends_at);
-        const st: Status = b.status === "confirmed" ? "confirmed" : b.status === "pending" ? "pending" : "done";
-        return {
-          id: b.id, initial: initialOf(b.client_name ?? "?"), name: b.client_name ?? t("Клиент"),
-          service: b.service_name ?? t("Услуга"), date: fmtDate(start),
-          time: `${fmtTime(start)} — ${fmtTime(end)}`, status: st,
-        };
-      })
-    : DEMO;
+  const source: Req[] = (remote ?? []).map((b) => {
+    const start = new Date(b.starts_at);
+    const end = new Date(b.ends_at);
+    const st: Status = b.status === "confirmed" ? "confirmed" : b.status === "pending" ? "pending" : "done";
+    return {
+      id: b.id, initial: initialOf(b.client_name ?? "?"), name: b.client_name ?? t("Клиент"),
+      service: b.service_name ?? t("Услуга"), date: fmtDate(start),
+      time: `${fmtTime(start)} — ${fmtTime(end)}`, status: st,
+    };
+  });
 
   const list = source
     .map((r) => ({ ...r, status: overrides[r.id] ?? r.status }))

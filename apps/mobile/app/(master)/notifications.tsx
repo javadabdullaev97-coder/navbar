@@ -34,11 +34,6 @@ function build(bookings: MasterBooking[], now: number, t: (k: string, p?: Record
   return notes.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-const DEMO: Note[] = [
-  { id: "p-1", icon: "event", kind: "pending", title: "Новая заявка на запись", body: "Азиза К. · Консультация", time: "Сегодня, 14:00", go: "" },
-  { id: "s-1", icon: "notifications-active", kind: "info", title: "Скоро визит", body: "Фаррух А. · Стрижка в 15:30", time: "Сегодня", go: "" },
-];
-
 export default function MasterNotifications() {
   const router = useRouter();
   const t = useT();
@@ -48,7 +43,7 @@ export default function MasterNotifications() {
   const { data: bookings, loading, reload } = useMasterBookings();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const notes = masterConfigured && bookings ? build(bookings, Date.now(), t) : DEMO;
+  const notes = bookings ? build(bookings, Date.now(), t) : [];
   const showLoading = masterConfigured && bookings === null && loading;
 
   const tint = (k: Note["kind"]) => ({

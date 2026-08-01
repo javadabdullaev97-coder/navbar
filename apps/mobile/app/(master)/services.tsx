@@ -10,12 +10,6 @@ import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
 type Service = { id: string; name: string; duration: number; price: number; description: string | null };
-const DEMO: Service[] = [
-  { id: "1", name: "Консультация 50 мин", duration: 50, price: 250000, description: null },
-  { id: "2", name: "Первичный приём", duration: 60, price: 300000, description: null },
-  { id: "3", name: "Диагностика", duration: 40, price: 180000, description: null },
-  { id: "4", name: "Повторный сеанс", duration: 45, price: 220000, description: null },
-];
 
 export default function Services() {
   const router = useRouter();
@@ -25,9 +19,9 @@ export default function Services() {
   const { data: master, loading, reload } = useMyMaster();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const SERVICES: Service[] = masterConfigured && master
+  const SERVICES: Service[] = master
     ? master.services.map((s) => ({ id: s.id, name: s.name, duration: s.duration_min, price: s.price, description: s.description }))
-    : DEMO;
+    : [];
   const showLoading = masterConfigured && master === null && loading;
 
   return (

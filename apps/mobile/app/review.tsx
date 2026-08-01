@@ -14,8 +14,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Card, PrimaryButton, Sym } from "../components/ui";
 import { addReview } from "../lib/api";
-import { supabaseConfigured } from "../lib/data";
+import { initialOf, supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
+import { useStore } from "../lib/store";
 import { useColors, useThemedStyles } from "../lib/theme-context";
 import { radius, space, ThemeColors } from "../theme";
 
@@ -24,11 +25,14 @@ export default function Review() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const { slug } = useLocalSearchParams<{ slug?: string }>();
+  const { slug, name, spec } = useLocalSearchParams<{ slug?: string; name?: string; spec?: string }>();
+  const { profile } = useStore();
   const [rating, setRating] = useState(4);
   const [text, setText] = useState("");
   const [anon, setAnon] = useState(false);
   const [busy, setBusy] = useState(false);
+  const masterName = typeof name === "string" && name ? name : t("Специалист");
+  const masterSpec = typeof spec === "string" ? spec : "";
 
   async function submit() {
     if (busy) return;
@@ -41,7 +45,7 @@ export default function Review() {
 
     setBusy(true);
     try {
-      await addReview(slug, rating, text, anon ? t("Аноним") : "Азиз Рахимов");
+      await addReview(slug, rating, text, anon ? t("Аноним") : (profile.name || t("Клиент")));
       Alert.alert(t("Спасибо!"), t("Ваш отзыв опубликован."), [{ text: t("ОК"), onPress: () => router.back() }]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("Не удалось отправить отзыв. Попробуйте ещё раз.");
@@ -67,11 +71,10 @@ export default function Review() {
 
           {/* Специалист */}
           <Card padding={16} style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>Д</AppText></View>
-            <View>
-              <AppText variant="labelMd" color={colors.ink}>Дилноза Ахмедова</AppText>
-              <AppText variant="labelSm" color={colors.secondary}>{t("Индивидуальная терапия")}</AppText>
-              <AppText variant="labelSm" color={colors.outline} style={{ marginTop: 2 }}>24 июля 2024</AppText>
+            <View style={styles.av}><AppText style={styles.avInit} color={colors.inkVariant}>{initialOf(masterName)}</AppText></View>
+            <View style={{ flex: 1 }}>
+              <AppText variant="labelMd" color={colors.ink}>{masterName}</AppText>
+              {masterSpec ? <AppText variant="labelSm" color={colors.secondary}>{masterSpec}</AppText> : null}
             </View>
           </Card>
 

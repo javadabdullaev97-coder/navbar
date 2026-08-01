@@ -15,16 +15,7 @@ const PERIODS: { key: number; label: string }[] = [
   { key: 365, label: "Год" },
 ];
 
-const DEMO: Analytics = {
-  total: 12400000,
-  count: 96,
-  by_day: [],
-  by_service: [
-    { name: "Консультация", count: 20, total: 5000000 },
-    { name: "Маникюр", count: 18, total: 3200000 },
-    { name: "Стрижка", count: 12, total: 2100000 },
-  ],
-};
+const EMPTY: Analytics = { total: 0, count: 0, by_day: [], by_service: [] };
 
 export default function AnalyticsScreen() {
   const router = useRouter();
@@ -34,7 +25,7 @@ export default function AnalyticsScreen() {
   const [days, setDays] = useState(30);
   const { data: remote, loading } = useMasterAnalytics(days);
 
-  const a: Analytics = masterConfigured && remote ? remote : DEMO;
+  const a: Analytics = remote ?? EMPTY;
   const showLoading = masterConfigured && remote === null && loading;
   const maxService = Math.max(1, ...a.by_service.map((s) => s.total));
   const maxDay = Math.max(1, ...a.by_day.map((d) => d.amount));

@@ -12,9 +12,6 @@ import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
-// Демо-слоты, когда специалист без графика из БД.
-const DEMO_SLOTS = ["10:00", "10:30", "11:00", "12:00", "14:00", "15:00", "16:00"];
-
 function isoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -44,7 +41,7 @@ export default function DateTime() {
   const nowMin = isToday ? today.getHours() * 60 + today.getMinutes() : null;
 
   const slots = useMemo(() => {
-    if (!real) return DEMO_SLOTS;
+    if (!real) return [] as string[];
     return freeSlots({
       availability: draft.availability!,
       busy,

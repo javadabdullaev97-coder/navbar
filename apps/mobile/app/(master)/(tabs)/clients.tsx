@@ -5,16 +5,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { MONTHS_GEN } from "../../../lib/format";
-import { masterConfigured, MasterClient, useMyClients } from "../../../lib/master-api";
+import { masterConfigured, useMyClients } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
 
-const DEMO: MasterClient[] = [
-  { id: "1", name: "Азиза Каримова", phone: "", notes: null, visits: 12, last_visit: new Date().toISOString() },
-  { id: "2", name: "Дмитрий Соколов", phone: "", notes: null, visits: 8, last_visit: new Date(Date.now() - 6e8).toISOString() },
-  { id: "3", name: "Бахтиёр Хакимов", phone: "", notes: null, visits: 1, last_visit: new Date(Date.now() - 3e9).toISOString() },
-];
 const CHIPS = ["Все", "Постоянные", "Новые"];
 
 function shortDate(iso: string | null): string {
@@ -34,7 +29,7 @@ export default function Clients() {
   const { data: remote, loading, reload } = useMyClients();
   useFocusEffect(useCallback(() => { reload(); }, [reload]));
 
-  const source = masterConfigured && remote ? remote : DEMO;
+  const source = remote ?? [];
   const showLoading = masterConfigured && remote === null && loading;
   const list = source
     .filter((c) => (q ? c.name.toLowerCase().includes(q.toLowerCase()) : true))

@@ -1,10 +1,11 @@
 import { useRouter } from "expo-router";
+import QRCode from "react-native-qrcode-svg";
 import { Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
 import { initialOf } from "../../lib/data";
-import { masterConfigured, useMyMaster } from "../../lib/master-api";
+import { useMyMaster } from "../../lib/master-api";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
@@ -16,11 +17,16 @@ export default function ShareLink() {
   const styles = useThemedStyles(makeStyles);
   const { profile } = useStore();
   const { data: master } = useMyMaster();
-  const name = profile.name || "Дилноза Алиева";
-  const slug = masterConfigured && master?.slug ? master.slug : "dilnoza-aliyeva";
-  const LINK = `ora.uz/${slug}`;
+  const name = profile.name || t("Ваш профиль");
+  const spec = master?.specialization || t("Специалист");
+  const slug = master?.slug ?? "";
+  const LINK = slug ? `ora.uz/${slug}` : "ora.uz";
+  const URL = slug ? `https://ora.uz/${slug}` : "";
 
-  const share = () => Share.share({ message: `${t("Запишитесь ко мне онлайн")}: https://${LINK}` }).catch(() => {});
+  const share = () => {
+    if (!URL) return;
+    Share.share({ message: `${t("Запишитесь ко мне онлайн")}: ${URL}` }).catch(() => {});
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -34,11 +40,17 @@ export default function ShareLink() {
         <View style={[styles.card, cardShadow]}>
           <View style={styles.avatar}><AppText variant="displayLg" color={colors.accent} style={{ fontSize: 32 }}>{initialOf(name)}</AppText></View>
           <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: 12 }}>{name}</AppText>
-          <AppText variant="labelSm" color={colors.secondary} style={styles.spec}>{t("Профессиональный косметолог")}</AppText>
+          <AppText variant="labelSm" color={colors.secondary} style={styles.spec}>{spec}</AppText>
 
-          {/* QR-заглушка */}
+          {/* Реальный QR-код на публичную страницу записи */}
           <View style={styles.qr}>
-            <Sym name="qr-code-2" size={140} color={colors.accentDeep} />
+            {URL ? (
+              <QRCode value={URL} size={140} color="#3F0013" backgroundColor="#FFFFFF" />
+            ) : (
+              <View style={{ width: 140, height: 140, alignItems: "center", justifyContent: "center" }}>
+                <Sym name="qr-code-2" size={64} color={colors.outlineVariant} />
+              </View>
+            )}
           </View>
 
           {/* Ссылка */}

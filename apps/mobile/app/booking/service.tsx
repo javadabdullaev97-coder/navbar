@@ -9,23 +9,18 @@ import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
-const DEMO_SERVICES = [
-  { id: "d1", name: "Индивидуальная консультация", duration_min: 50, price: 180000 },
-  { id: "d2", name: "Семейная терапия", duration_min: 90, price: 250000 },
-  { id: "d3", name: "Психодиагностика", duration_min: 120, price: 350000 },
-  { id: "d4", name: "Онлайн-сессия", duration_min: 50, price: 150000 },
-];
-
 export default function ServiceSelect() {
   const router = useRouter();
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { draft, patchDraft } = useStore();
-  const options = draft.serviceOptions && draft.serviceOptions.length ? draft.serviceOptions : DEMO_SERVICES;
+  const options = draft.serviceOptions ?? [];
 
   // Выбранные услуги (по умолчанию — то, что пришло из профиля).
-  const [selected, setSelected] = useState<Set<string>>(new Set(draft.serviceIds.length ? draft.serviceIds : [options[0]?.id]));
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(draft.serviceIds.length ? draft.serviceIds : options[0] ? [options[0].id] : [])
+  );
 
   const chosen = options.filter((o) => selected.has(o.id));
   const totalPrice = chosen.reduce((s, o) => s + o.price, 0);
@@ -71,6 +66,9 @@ export default function ServiceSelect() {
         <AppText variant="labelMd" color={colors.ink} style={{ marginBottom: 8 }}>{t("Выберите одну или несколько услуг")}</AppText>
 
         <View style={{ gap: space.md }}>
+          {options.length === 0 ? (
+            <AppText variant="bodyMd" color={colors.secondary}>{t("У специалиста пока нет услуг")}</AppText>
+          ) : null}
           {options.map((s) => {
             const on = selected.has(s.id);
             return (

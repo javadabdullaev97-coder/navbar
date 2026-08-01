@@ -13,11 +13,6 @@ type SortKey = "rating" | "price";
 const SORT_LABEL: Record<SortKey, string> = { rating: "По рейтингу", price: "По цене" };
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; dist: string; price: string };
-const DEMO: Item[] = [
-  { key: "1", initial: "А", name: "Д-р Алишер Усманов", spec: "Психолог", rating: "5.0", dist: "0.8 км", price: "300 000 сум" },
-  { key: "2", initial: "Е", name: "Елена Ким", spec: "Семейный психолог", rating: "4.8", dist: "2.5 км", price: "250 000 сум" },
-  { key: "3", initial: "С", name: "Санжар Махмудов", spec: "Гештальт-терапевт", rating: "4.9", dist: "3.1 км", price: "200 000 сум" },
-];
 
 export default function Search() {
   const router = useRouter();
@@ -32,17 +27,15 @@ export default function Search() {
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
-  const results: Item[] = supabaseConfigured
-    ? (remote ?? [])
-        .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
-        .slice()
-        .sort((a, b) =>
-          sort === "rating"
-            ? (b.rating ?? 0) - (a.rating ?? 0)
-            : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
-        )
-        .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }))
-    : DEMO;
+  const results: Item[] = (remote ?? [])
+    .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
+    .slice()
+    .sort((a, b) =>
+      sort === "rating"
+        ? (b.rating ?? 0) - (a.rating ?? 0)
+        : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
+    )
+    .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", dist: "", price: m.min_price ? fmtMoney(m.min_price) : "" }));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>

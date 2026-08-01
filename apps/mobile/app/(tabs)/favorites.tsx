@@ -18,11 +18,6 @@ const CAT_KEYWORDS: Record<string, RegExp> = {
 };
 
 type Item = { key: string; initial: string; name: string; spec: string; rating?: string; next?: string; price?: string };
-const DEMO: Item[] = [
-  { key: "1", initial: "Е", name: "Елена Белова", spec: "Стилист · салон Mood", rating: "4.9", next: "Сегодня, 15:30", price: "от 250 000 сум" },
-  { key: "2", initial: "А", name: "Азиз Рахимов", spec: "Барбер · Chop Shop", rating: "5.0", next: "Завтра", price: "от 180 000 сум" },
-  { key: "3", initial: "М", name: "Д-р Марина Ким", spec: "Дерматолог · Clear Skin", rating: "4.8", next: "12 июля", price: "от 400 000 сум" },
-];
 
 export default function Saved() {
   const router = useRouter();
@@ -56,7 +51,7 @@ export default function Saved() {
   };
 
   const loading = supabaseConfigured && remote === null;
-  const source = supabaseConfigured ? (remote ?? []) : DEMO;
+  const source = remote ?? [];
   const catName = CATS[cat];
   const list = source
     .filter((s) => !removed[s.key])

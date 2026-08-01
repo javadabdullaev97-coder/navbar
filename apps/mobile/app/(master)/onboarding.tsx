@@ -140,7 +140,7 @@ export default function MasterOnboarding() {
               </View>
               <View style={{ gap: space.md, marginTop: space.lg }}>
                 <Field label={t("Имя")}>
-                  <TextInput value={name} onChangeText={setName} placeholder="Дилноза" placeholderTextColor={colors.outline} style={styles.input} />
+                  <TextInput value={name} onChangeText={setName} placeholder={t("Ваше имя")} placeholderTextColor={colors.outline} style={styles.input} />
                 </Field>
                 <Field label={t("Специализация")}>
                   <TextInput value={spec} onChangeText={setSpec} placeholder={t("Психолог")} placeholderTextColor={colors.outline} style={styles.input} />

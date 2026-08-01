@@ -10,11 +10,6 @@ import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { radius, space, ThemeColors } from "../../theme";
 
 type Item = { key: string; initial: string; name: string; spec: string; rating: string; reviews: string; dist: string; price: string };
-const DEMO: Item[] = [
-  { key: "1", initial: "А", name: "Анна Маринина", spec: "Клинический психолог", rating: "4.9", reviews: "42", dist: "1.2 км", price: "от 150 000 сум" },
-  { key: "2", initial: "А", name: "Артур Хакимов", spec: "Гештальт-терапевт", rating: "4.8", reviews: "118", dist: "2.5 км", price: "от 220 000 сум" },
-  { key: "3", initial: "Е", name: "Елена Громова", spec: "Семейный консультант", rating: "5.0", reviews: "89", dist: "0.8 км", price: "от 300 000 сум" },
-];
 
 export default function Category() {
   const router = useRouter();
@@ -31,17 +26,15 @@ export default function Category() {
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   const loading = supabaseConfigured && remote === null;
-  const rows: Item[] = supabaseConfigured
-    ? (remote ?? [])
-        .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
-        .slice()
-        .sort((a, b) =>
-          sort === "rating"
-            ? (b.rating ?? 0) - (a.rating ?? 0)
-            : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
-        )
-        .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }))
-    : DEMO;
+  const rows: Item[] = (remote ?? [])
+    .filter((m) => (topRated ? (m.rating ?? 0) >= 4.5 : true))
+    .slice()
+    .sort((a, b) =>
+      sort === "rating"
+        ? (b.rating ?? 0) - (a.rating ?? 0)
+        : (a.min_price ?? Infinity) - (b.min_price ?? Infinity)
+    )
+    .map((m) => ({ key: m.slug, initial: initialOf(m.name), name: m.name, spec: m.specialization ?? m.category ?? "", rating: m.rating ? m.rating.toFixed(1) : "—", reviews: String(m.review_count), dist: "", price: m.min_price ? `от ${fmtMoney(m.min_price)}` : "" }));
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>

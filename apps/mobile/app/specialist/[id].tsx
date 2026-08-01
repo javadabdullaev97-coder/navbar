@@ -19,29 +19,13 @@ function reviewDate(iso: string): string {
 
 const TABS = ["Услуги", "Портфолио", "Отзывы"] as const;
 
-const DEMO = {
-  slug: "",
-  name: "Дилноза Каримова",
-  spec: "Клинический психолог, 8 лет опыта",
-  rating: 4.9,
-  reviews: 213,
-  address: "Ташкент, Мирабад",
-  bio: "Помогаю находить гармонию с собой и окружающими. Использую когнитивно-поведенческую терапию и гештальт-подход, адаптируя методы под запрос каждого клиента.",
-  services: [
-    { id: "d1", name: "Индивидуальная консультация", duration_min: 50, price: 180000 },
-    { id: "d2", name: "Семейная терапия", duration_min: 90, price: 250000 },
-    { id: "d3", name: "Онлайн-сессия", duration_min: 50, price: 150000 },
-  ],
-  availability: null,
-};
-
 export default function Specialist() {
   const router = useRouter();
   const tr = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { master, reload } = useMaster(id);
+  const { master, loading, reload } = useMaster(id);
   const { data: reviewList, loading: reviewsLoading, reload: reloadReviews } = useReviews(master?.slug);
   const { patchDraft } = useStore();
   const [tab, setTab] = useState(0);
@@ -57,26 +41,45 @@ export default function Specialist() {
   // Обновляем отзывы при каждом возврате на экран (после отправки нового).
   useFocusEffect(useCallback(() => { reloadReviews(); }, [reloadReviews]));
 
-  const name = master?.name ?? DEMO.name;
-  const spec = master ? (master.specialization ?? master.category ?? "") : DEMO.spec;
-  const rating = master?.rating ?? DEMO.rating;
-  const reviews = master?.review_count ?? DEMO.reviews;
-  const address = master?.address ?? DEMO.address;
-  const bio = master?.bio ?? DEMO.bio;
-  const services = master?.services ?? DEMO.services;
+  // Пока грузится или специалист не найден — честные состояния, без фейка.
+  if (!master) {
+    return (
+      <View style={styles.root}>
+        <SafeAreaView edges={["top"]} style={styles.floatBar} pointerEvents="box-none">
+          <Pressable style={styles.circleBtn} onPress={() => router.back()}>
+            <Sym name="arrow-back" size={22} color={colors.accent} />
+          </Pressable>
+        </SafeAreaView>
+        {loading ? <Loading /> : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+            <Sym name="person-off" size={44} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary}>{tr("Специалист не найден")}</AppText>
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  const name = master.name;
+  const spec = master.specialization ?? master.category ?? "";
+  const rating = master.rating;
+  const reviews = master.review_count;
+  const address = master.address ?? "";
+  const bio = master.bio ?? "";
+  const services = master.services;
   const initial = initialOf(name);
-  const avatar = master?.avatar_url ?? null;
-  const verified = master?.verified ?? false;
+  const avatar = master.avatar_url;
+  const verified = master.verified;
 
   function startBooking(pre?: { id: string; name: string; duration_min: number; price: number }) {
     const chosen = pre ?? services[0];
     patchDraft({
-      slug: master?.slug ?? "",
+      slug: master!.slug,
       specialist: name,
       initial,
       spec,
       address,
-      availability: master?.availability ?? null,
+      availability: master!.availability,
       serviceOptions: services,
       service: chosen?.name ?? "",
       serviceIds: chosen ? [chosen.id] : [],
@@ -114,11 +117,13 @@ export default function Specialist() {
             <AppText variant="labelMd" color={colors.ink}>{rating ? rating.toFixed(1) : "—"}</AppText>
             <AppText variant="labelSm" color={colors.secondary}>{tr("({count} отзывов)", { count: reviews })}</AppText>
           </View>
-          <View style={styles.locRow}>
-            <Sym name="location-on" size={16} color={colors.secondary} />
-            <AppText variant="labelSm" color={colors.secondary}>{address} ·</AppText>
-            <AppText variant="labelSm" color={colors.accent} style={{ textDecorationLine: "underline" }}>{tr("на карте")}</AppText>
-          </View>
+          {address ? (
+            <View style={styles.locRow}>
+              <Sym name="location-on" size={16} color={colors.secondary} />
+              <AppText variant="labelSm" color={colors.secondary}>{address} ·</AppText>
+              <AppText variant="labelSm" color={colors.accent} style={{ textDecorationLine: "underline" }}>{tr("на карте")}</AppText>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.tabs}>
@@ -131,6 +136,9 @@ export default function Specialist() {
 
         {tab === 0 && (
           <View style={{ paddingHorizontal: space.margin, gap: space.md, marginTop: space.md }}>
+            {services.length === 0 ? (
+              <AppText variant="bodyMd" color={colors.secondary}>{tr("Услуги пока не добавлены")}</AppText>
+            ) : null}
             {services.map((s) => (
               <Pressable key={s.id} onPress={() => startBooking(s)}>
                 <View style={[styles.service, cardShadow]}>
@@ -147,8 +155,12 @@ export default function Specialist() {
               </Pressable>
             ))}
 
-            <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: space.lg }}>{tr("О себе")}</AppText>
-            <AppText variant="bodyMd" color={colors.secondary}>{bio}</AppText>
+            {bio ? (
+              <>
+                <AppText variant="headlineMd" color={colors.accent} style={{ marginTop: space.lg }}>{tr("О себе")}</AppText>
+                <AppText variant="bodyMd" color={colors.secondary}>{bio}</AppText>
+              </>
+            ) : null}
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: space.sm }}>
               {verified ? (
                 <View style={[styles.pill, { backgroundColor: colors.infoBg }]}>
@@ -183,7 +195,7 @@ export default function Specialist() {
           <View style={{ paddingHorizontal: space.margin, marginTop: space.md, gap: space.md }}>
             <Pressable
               style={styles.leaveReview}
-              onPress={() => router.push({ pathname: "/review", params: { slug: master?.slug ?? "" } })}
+              onPress={() => router.push({ pathname: "/review", params: { slug: master.slug, name, spec } })}
             >
               <Sym name="rate-review" size={20} color={colors.accent} />
               <AppText variant="labelMd" color={colors.accent}>{tr("Оставить отзыв")}</AppText>

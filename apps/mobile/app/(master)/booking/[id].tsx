@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Avatar, PrimaryButton, Sym } from "../../../components/ui";
+import { AppText, Avatar, Loading, PrimaryButton, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
 import { fmtDate, fmtTime } from "../../../lib/format";
@@ -27,19 +27,7 @@ export default function MasterBooking() {
   const [busy, setBusy] = useState(false);
   const { data: bookings, reload } = useMasterBookings();
 
-  const b = masterConfigured && bookings ? bookings.find((x) => x.id === id) : null;
-  const clientName = b?.client_name ?? "Азиза Р.";
-  const phone = b?.client_phone ?? "+998 90 123 45 67";
-  const service = b?.service_name ?? t("Консультация");
-  const dateStr = b ? fmtDate(new Date(b.starts_at)) : t("Пт, 12 июля");
-  const timeStr = b ? fmtTime(new Date(b.starts_at)) : "11:00";
-  const status: MasterBookingStatus = b?.status ?? "confirmed";
-  const meta = STATUS_META[status];
-  const badgeColor = meta.kind === "success" ? { bg: colors.successBg, fg: colors.successText }
-    : meta.kind === "warning" ? { bg: colors.warningBg, fg: colors.warningText }
-    : meta.kind === "info" ? { bg: colors.infoBg, fg: colors.infoText }
-    : { bg: colors.surfaceHigh, fg: colors.secondary };
-  const canManage = status === "pending" || status === "confirmed";
+  const b = bookings ? bookings.find((x) => x.id === id) : null;
 
   // Заметка о клиенте (client.notes) — грузим из брони, сохраняем на blur.
   useEffect(() => { if (b?.client_note != null) setNote(b.client_note); }, [b?.client_note]);
@@ -65,6 +53,38 @@ export default function MasterBooking() {
     ]);
   }
 
+  // Пока грузится или брони нет — честные состояния, без фейка.
+  if (!b) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={10}><Sym name="chevron-left" size={28} color={colors.accent} /></Pressable>
+          <AppText variant="headlineMd" color={colors.accent}>{t("Запись")}</AppText>
+          <View style={{ width: 28 }} />
+        </View>
+        {bookings === null ? <Loading /> : (
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: space.lg }}>
+            <Sym name="event-busy" size={44} color={colors.outlineVariant} />
+            <AppText variant="bodyMd" color={colors.secondary}>{t("Запись не найдена")}</AppText>
+          </View>
+        )}
+      </SafeAreaView>
+    );
+  }
+
+  const clientName = b.client_name ?? t("Клиент");
+  const phone = b.client_phone ?? "";
+  const service = b.service_name ?? t("Услуга");
+  const dateStr = fmtDate(new Date(b.starts_at));
+  const timeStr = fmtTime(new Date(b.starts_at));
+  const status: MasterBookingStatus = b.status;
+  const meta = STATUS_META[status];
+  const badgeColor = meta.kind === "success" ? { bg: colors.successBg, fg: colors.successText }
+    : meta.kind === "warning" ? { bg: colors.warningBg, fg: colors.warningText }
+    : meta.kind === "info" ? { bg: colors.infoBg, fg: colors.infoText }
+    : { bg: colors.surfaceHigh, fg: colors.secondary };
+  const canManage = status === "pending" || status === "confirmed";
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <View style={styles.header}>
@@ -81,10 +101,10 @@ export default function MasterBooking() {
               <Avatar initial={initialOf(clientName)} size={56} round tint={colors.surfaceMid} fg={colors.inkVariant} />
               <View>
                 <AppText variant="labelMd" color={colors.ink}>{clientName}</AppText>
-                <AppText variant="labelSm" color={colors.secondary}>{phone}</AppText>
+                {phone ? <AppText variant="labelSm" color={colors.secondary}>{phone}</AppText> : null}
               </View>
             </View>
-            <Pressable style={styles.chatBtn}>
+            <Pressable style={styles.chatBtn} onPress={() => router.push({ pathname: "/chat/[id]", params: { id: b.id, name: clientName } })}>
               <Sym name="chat-bubble-outline" size={18} color={colors.accent} />
               <AppText variant="labelSm" color={colors.accent}>{t("Написать")}</AppText>
             </Pressable>
