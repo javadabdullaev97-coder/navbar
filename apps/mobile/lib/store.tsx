@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { detectDeviceLang } from "./locale";
 import type { Avail } from "./slots";
 
 export type Role = "client" | "master";
@@ -13,7 +14,12 @@ export const THEME_LABEL: Record<ThemeMode, string> = { light: "Светлая",
 /** Профиль клиента на устройстве (без OTP). Имя/телефон для записей. */
 export type ClientProfile = { name: string; phone: string };
 const PROFILE_KEY = "ora.client.profile";
+const LANG_KEY = "ora.lang";
+const THEME_KEY = "ora.theme";
 const DEFAULT_PROFILE: ClientProfile = { name: "", phone: "" };
+
+const isLang = (v: unknown): v is Lang => v === "ru" || v === "uz" || v === "en";
+const isTheme = (v: unknown): v is ThemeMode => v === "light" || v === "dark" || v === "auto";
 
 export type Booking = {
   id: string;
@@ -73,23 +79,39 @@ const Ctx = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>("client");
-  const [lang, setLang] = useState<Lang>("ru");
-  const [themeMode, setThemeMode] = useState<ThemeMode>("auto");
+  // Первый запуск — язык устройства (en/ru/uz, иначе English). Потом — сохранённый.
+  const [lang, setLangState] = useState<Lang>(() => detectDeviceLang());
+  // Тема по умолчанию следует системе (светлая/тёмная по устройству).
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("auto");
   const [profile, setProfileState] = useState<ClientProfile>(DEFAULT_PROFILE);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [draft, setDraft] = useState<Draft>(DEFAULT_DRAFT);
 
-  // Загружаем профиль клиента из хранилища при старте.
+  // Загружаем сохранённые настройки при старте.
   useEffect(() => {
-    AsyncStorage.getItem(PROFILE_KEY)
-      .then((raw) => { if (raw) setProfileState(JSON.parse(raw)); })
+    let alive = true;
+    AsyncStorage.multiGet([PROFILE_KEY, LANG_KEY, THEME_KEY])
+      .then((pairs) => {
+        if (!alive) return;
+        const map = Object.fromEntries(pairs) as Record<string, string | null>;
+        if (map[PROFILE_KEY]) { try { setProfileState(JSON.parse(map[PROFILE_KEY] as string)); } catch { /* игнор */ } }
+        // Язык: сохранённый выбор пользователя > язык устройства (фиксируем на первом запуске).
+        if (isLang(map[LANG_KEY])) setLangState(map[LANG_KEY] as Lang);
+        else AsyncStorage.setItem(LANG_KEY, detectDeviceLang()).catch(() => {});
+        if (isTheme(map[THEME_KEY])) setThemeModeState(map[THEME_KEY] as ThemeMode);
+      })
       .catch(() => {});
+    return () => { alive = false; };
   }, []);
 
   const setProfile = (p: ClientProfile) => {
     setProfileState(p);
     AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(p)).catch(() => {});
   };
+
+  // Смена языка/темы — сохраняем на устройстве, чтобы держалось между запусками.
+  const setLang = (l: Lang) => { setLangState(l); AsyncStorage.setItem(LANG_KEY, l).catch(() => {}); };
+  const setThemeMode = (m: ThemeMode) => { setThemeModeState(m); AsyncStorage.setItem(THEME_KEY, m).catch(() => {}); };
 
   const value = useMemo<StoreValue>(() => ({
     role, setRole,
