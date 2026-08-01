@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DurationSheet, HoursSheet } from "../../components/pickers";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
@@ -15,7 +15,17 @@ import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
 
-const CITIES = ["Ташкент", "Самарканд", "Бухара", "Наманган", "Андижан"];
+const UZ_CITIES = [
+  "Ташкент", "Самарканд", "Бухара", "Наманган", "Андижан", "Нукус", "Фергана", "Карши",
+  "Коканд", "Маргилан", "Джизак", "Ургенч", "Термез", "Гулистан", "Навои", "Хива",
+  "Ангрен", "Чирчик", "Алмалык", "Бекабад", "Шахрисабз", "Каттакурган", "Денау", "Янгиюль",
+  "Зарафшан", "Кувасай", "Асака",
+];
+const BASE_CATEGORIES = [
+  "Барбер", "Парикмахер", "Стилист", "Колорист", "Маникюр", "Педикюр", "Ногтевой сервис",
+  "Косметолог", "Визажист", "Бровист", "Лашмейкер", "Массажист", "Депиляция", "Тату-мастер",
+  "Психолог", "Стоматолог", "Врач", "Нутрициолог", "Тренер", "Репетитор",
+];
 const COVERS = ["#5E1226", "#D4AF37", "#3F0013", "#5E5E5E", "#003527", "#C1A57B"];
 const DAY_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 const STEP_TITLE = ["Расскажите о себе", "Добавьте услуги", "Настройте график", "Загрузите портфолио", "Документы и верификация"];
@@ -36,13 +46,18 @@ export default function MasterOnboarding() {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   // Шаг 1
-  const [name, setName] = useState(profile.name);
+  const [firstName, setFirstName] = useState(() => (profile.name || "").trim().split(/\s+/)[0] ?? "");
+  const [lastName, setLastName] = useState(() => (profile.name || "").trim().split(/\s+/).slice(1).join(" "));
   const [spec, setSpec] = useState("");
+  const [categories, setCategories] = useState<string[]>(BASE_CATEGORIES);
+  const [catOpen, setCatOpen] = useState(false);
   const [bio, setBio] = useState("");
-  const [city, setCity] = useState(0);
+  const [cityIdx, setCityIdx] = useState(0);
+  const [cityOpen, setCityOpen] = useState(false);
   const [address, setAddress] = useState("");
   const [cover, setCover] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   // Шаг 2
   const [svcName, setSvcName] = useState("");
   const [svcDuration, setSvcDuration] = useState(50);
@@ -75,7 +90,7 @@ export default function MasterOnboarding() {
   }
 
   const valid =
-    step === 1 ? name.trim().length > 0 && spec.trim().length > 0 :
+    step === 1 ? firstName.trim().length > 0 && spec.trim().length > 0 :
     step === 2 ? services.length > 0 :
     step === 3 ? days.some((d) => d.on) :
     true;
@@ -90,12 +105,12 @@ export default function MasterOnboarding() {
     if (!valid) { Alert.alert(t("Заполните поля"), hint); return; }
     if (step < STEPS) { setStep(step + 1); return; }
 
-    if (name.trim()) setProfile({ ...profile, name: name.trim() });
+    if (fullName) setProfile({ ...profile, name: fullName });
     if (masterConfigured) {
       setBusy(true);
       try {
         // Ядро — обязательно: без него аккаунт мастера не создать.
-        await becomeSoloMaster(name.trim(), spec.trim(), CITIES[city]);
+        await becomeSoloMaster(fullName, spec.trim(), UZ_CITIES[cityIdx]);
         for (const s of services) await upsertService(s);
         for (let i = 0; i < days.length; i++) await setAvailability(i, days[i].start, days[i].end, !days[i].on);
       } catch (e) {
@@ -104,7 +119,7 @@ export default function MasterOnboarding() {
         return;
       }
       // Необязательные шаги — сбой одного не мешает завершить регистрацию.
-      try { await updateMyProfile({ bio: bio.trim(), address: address.trim() || CITIES[city] }); } catch { /* игнор */ }
+      try { await updateMyProfile({ bio: bio.trim(), address: address.trim() || UZ_CITIES[cityIdx], category: spec.trim() }); } catch { /* игнор */ }
       try { if (avatarUrl) await setAvatar(avatarUrl); } catch { /* игнор */ }
       try { for (const url of photos) await addGalleryItem(url); } catch { /* игнор */ }
       try { if (docPath) await submitVerification(docPath); } catch { /* игнор */ }
@@ -143,25 +158,33 @@ export default function MasterOnboarding() {
                 </Pressable>
               </View>
               <View style={{ gap: space.md, marginTop: space.lg }}>
-                <Field label={t("Имя")}>
-                  <TextInput value={name} onChangeText={setName} placeholder={t("Ваше имя")} placeholderTextColor={colors.outline} style={styles.input} />
-                </Field>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Field label={t("Имя")}>
+                      <TextInput value={firstName} onChangeText={setFirstName} placeholder={t("Имя")} placeholderTextColor={colors.outline} style={styles.input} />
+                    </Field>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Field label={t("Фамилия")}>
+                      <TextInput value={lastName} onChangeText={setLastName} placeholder={t("Фамилия")} placeholderTextColor={colors.outline} style={styles.input} />
+                    </Field>
+                  </View>
+                </View>
                 <Field label={t("Специализация")}>
-                  <TextInput value={spec} onChangeText={setSpec} placeholder={t("Психолог")} placeholderTextColor={colors.outline} style={styles.input} />
+                  <Pressable style={styles.pickerRow} onPress={() => setCatOpen(true)}>
+                    <AppText variant="bodyMd" color={spec ? colors.ink : colors.outline}>{spec ? t(spec) : t("Выберите категорию")}</AppText>
+                    <Sym name="expand-more" size={22} color={colors.secondary} />
+                  </Pressable>
                 </Field>
                 <Field label={t("О себе (необязательно)")}>
                   <TextInput value={bio} onChangeText={setBio} placeholder={t("Коротко о себе и опыте…")} placeholderTextColor={colors.outline} multiline style={[styles.input, styles.textarea]} />
                 </Field>
-                <View style={{ gap: 8 }}>
-                  <AppText variant="labelMd" color={colors.secondary}>{t("Город")}</AppText>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                    {CITIES.map((c, i) => (
-                      <Pressable key={c} onPress={() => setCity(i)} style={[styles.chip, i === city ? styles.chipOn : styles.chipOff]}>
-                        <AppText variant="labelMd" color={i === city ? colors.onAccent : colors.inkVariant}>{t(c)}</AppText>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </View>
+                <Field label={t("Город")}>
+                  <Pressable style={styles.pickerRow} onPress={() => setCityOpen(true)}>
+                    <AppText variant="bodyMd" color={colors.ink}>{t(UZ_CITIES[cityIdx])}</AppText>
+                    <Sym name="expand-more" size={22} color={colors.secondary} />
+                  </Pressable>
+                </Field>
                 <Field label={t("Адрес (необязательно)")}>
                   <TextInput value={address} onChangeText={setAddress} placeholder={t("Улица, дом, ориентир")} placeholderTextColor={colors.outline} style={styles.input} />
                 </Field>
@@ -294,6 +317,24 @@ export default function MasterOnboarding() {
         )}
       </View>
 
+      <SelectModal
+        visible={catOpen}
+        title={t("Специализация")}
+        options={categories}
+        selected={spec}
+        allowCustom
+        onSelect={(v) => { setSpec(v); setCatOpen(false); }}
+        onAddCustom={(v) => { setCategories((c) => (c.includes(v) ? c : [v, ...c])); setSpec(v); setCatOpen(false); }}
+        onClose={() => setCatOpen(false)}
+      />
+      <SelectModal
+        visible={cityOpen}
+        title={t("Город")}
+        options={UZ_CITIES}
+        selected={UZ_CITIES[cityIdx]}
+        onSelect={(v) => { setCityIdx(Math.max(0, UZ_CITIES.indexOf(v))); setCityOpen(false); }}
+        onClose={() => setCityOpen(false)}
+      />
       <DurationSheet visible={durOpen} value={svcDuration} onSelect={setSvcDuration} onClose={() => setDurOpen(false)} />
       <HoursSheet
         visible={editDay !== null}
@@ -313,6 +354,64 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <AppText variant="labelMd" color={colors.secondary}>{label}</AppText>
       {children}
     </View>
+  );
+}
+
+/** Выпадающий список (категория / город) с опциональным добавлением своей категории. */
+function SelectModal({
+  visible, title, options, selected, allowCustom, onSelect, onAddCustom, onClose,
+}: {
+  visible: boolean; title: string; options: string[]; selected: string;
+  allowCustom?: boolean; onSelect: (v: string) => void; onAddCustom?: (v: string) => void; onClose: () => void;
+}) {
+  const t = useT();
+  const colors = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const [adding, setAdding] = useState(false);
+  const [custom, setCustom] = useState("");
+  useEffect(() => { if (!visible) { setAdding(false); setCustom(""); } }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={[styles.selectSheet, cardShadow]} onPress={() => {}}>
+          <View style={styles.selectHead}>
+            <AppText variant="headlineMd" color={colors.accent}>{title}</AppText>
+            <Pressable onPress={onClose} hitSlop={8}><Sym name="close" size={24} color={colors.secondary} /></Pressable>
+          </View>
+          <ScrollView style={{ maxHeight: 360 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            {options.map((o) => {
+              const on = o === selected;
+              return (
+                <Pressable key={o} onPress={() => onSelect(o)} style={styles.selectRow}>
+                  <AppText variant="bodyMd" color={on ? colors.accent : colors.ink} style={on ? { fontFamily: "Manrope_600SemiBold" } : undefined}>{t(o)}</AppText>
+                  {on ? <Sym name="check" size={22} color={colors.accent} /> : null}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          {allowCustom ? (
+            adding ? (
+              <View style={styles.customRow}>
+                <TextInput value={custom} onChangeText={setCustom} placeholder={t("Название категории")} placeholderTextColor={colors.outline} style={[styles.input, { flex: 1 }]} autoFocus />
+                <Pressable
+                  disabled={!custom.trim()}
+                  onPress={() => { const v = custom.trim(); if (v) onAddCustom?.(v); }}
+                  style={[styles.customAddBtn, { backgroundColor: custom.trim() ? colors.accent : colors.surfaceHigh }]}
+                >
+                  <AppText variant="labelMd" color={colors.onAccent}>{t("Добавить")}</AppText>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable style={styles.addCatBtn} onPress={() => setAdding(true)}>
+                <Sym name="add" size={20} color={colors.accent} />
+                <AppText variant="labelMd" color={colors.accent}>{t("Добавить свою категорию")}</AppText>
+              </Pressable>
+            )
+          ) : null}
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -348,4 +447,11 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   dropIcon: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   verifyNote: { flexDirection: "row", gap: 10, alignItems: "center", padding: 16, borderRadius: radius.xl },
   footer: { paddingHorizontal: space.margin, paddingTop: space.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.outlineVariant },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" },
+  selectSheet: { backgroundColor: colors.surface, borderTopLeftRadius: radius.x2l, borderTopRightRadius: radius.x2l, padding: space.margin, paddingBottom: 32 },
+  selectHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: space.sm },
+  selectRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
+  customRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: space.md },
+  customAddBtn: { paddingHorizontal: 18, height: 56, borderRadius: radius.xl, alignItems: "center", justifyContent: "center" },
+  addCatBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, marginTop: space.md, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.accent, borderStyle: "dashed" },
 });
