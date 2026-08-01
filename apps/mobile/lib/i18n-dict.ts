@@ -450,4 +450,42 @@ export const DICT: Translations = {
   "Показывать в поиске": { uz: "Qidiruvda ko'rsatish", en: "Show in search" },
   "Клиенты смогут находить вас в каталоге. Ссылка на запись работает всегда.": { uz: "Mijozlar sizni katalogdan topadi. Yozuv havolasi doim ishlaydi.", en: "Clients can find you in the catalogue. Your booking link always works." },
   "Не удалось сохранить профиль.": { uz: "Profilni saqlab bo'lmadi.", en: "Couldn't save the profile." },
+
+  // --- Ошибки сети ---
+  "Нет соединения": { uz: "Aloqa yo'q", en: "No connection" },
+  "Не удалось загрузить данные. Проверьте интернет и попробуйте снова.": { uz: "Ma'lumotlarni yuklab bo'lmadi. Internetni tekshiring va qayta urinib ko'ring.", en: "Couldn't load data. Check your internet and try again." },
+  "Повторить": { uz: "Qayta urinish", en: "Retry" },
+
+  // --- Не найдено ---
+  "Запись не найдена": { uz: "Yozuv topilmadi", en: "Booking not found" },
+  "Специалист не найден": { uz: "Mutaxassis topilmadi", en: "Specialist not found" },
+  "Клиент не найден": { uz: "Mijoz topilmadi", en: "Client not found" },
+  "Услуги пока не добавлены": { uz: "Xizmatlar hali qo'shilmagan", en: "No services added yet" },
+  "У специалиста пока нет услуг": { uz: "Mutaxassisda hali xizmatlar yo'q", en: "The specialist has no services yet" },
+
+  // --- Чат (заглушка) ---
+  "Чат": { uz: "Chat", en: "Chat" },
+  "Чат скоро появится": { uz: "Chat tez orada paydo bo'ladi", en: "Chat is coming soon" },
+  "Здесь можно будет переписываться с мастером и клиентом. Мы включим чат в одном из ближайших обновлений.": { uz: "Bu yerda usta va mijoz bilan yozishish mumkin bo'ladi. Chatni yaqin yangilanishlardan birida yoqamiz.", en: "Here you'll be able to message the master and client. We'll enable chat in an upcoming update." },
+
+  // --- Поделиться ---
+  "Ваш профиль": { uz: "Sizning profilingiz", en: "Your profile" },
+
+  // --- Удаление аккаунта ---
+  "Отмена": { uz: "Bekor qilish", en: "Cancel" },
+  "Удалить": { uz: "O'chirish", en: "Delete" },
+  "Удалить аккаунт": { uz: "Akkauntni o'chirish", en: "Delete account" },
+  "Удаление аккаунта": { uz: "Akkauntni o'chirish", en: "Account deletion" },
+  "Удалить аккаунт навсегда?": { uz: "Akkaunt butunlay o'chirilsinmi?", en: "Delete account permanently?" },
+  "Мы безвозвратно удалим все данные, связанные с аккаунтом. Восстановить их будет невозможно.": { uz: "Akkaunt bilan bog'liq barcha ma'lumotlarni butunlay o'chiramiz. Ularni tiklab bo'lmaydi.", en: "We'll permanently delete all data associated with the account. It cannot be recovered." },
+  "Что будет удалено": { uz: "Nima o'chiriladi", en: "What will be deleted" },
+  "Профиль и настройки": { uz: "Profil va sozlamalar", en: "Profile and settings" },
+  "Все записи и историю": { uz: "Barcha yozuvlar va tarix", en: "All bookings and history" },
+  "Услуги, график и портфолио": { uz: "Xizmatlar, jadval va portfolio", en: "Services, schedule and portfolio" },
+  "Клиентскую базу и заметки": { uz: "Mijozlar bazasi va eslatmalar", en: "Client base and notes" },
+  "Отзывы и избранное": { uz: "Sharhlar va sevimlilar", en: "Reviews and favorites" },
+  "Удалить мой аккаунт": { uz: "Akkauntimni o'chirish", en: "Delete my account" },
+  "Удалить аккаунт?": { uz: "Akkaunt o'chirilsinmi?", en: "Delete account?" },
+  "Это действие необратимо. Все данные будут удалены навсегда.": { uz: "Bu amalni ortga qaytarib bo'lmaydi. Barcha ma'lumotlar butunlay o'chiriladi.", en: "This action is irreversible. All data will be permanently deleted." },
+  "Не удалось удалить аккаунт. Попробуйте позже.": { uz: "Akkauntni o'chirib bo'lmadi. Keyinroq urinib ko'ring.", en: "Couldn't delete the account. Please try again later." },
 };
