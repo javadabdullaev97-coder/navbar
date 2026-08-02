@@ -573,4 +573,13 @@ export const DICT: Translations = {
   "Зарафшан": { uz: "Zarafshon", en: "Zarafshan" },
   "Кувасай": { uz: "Quvasoy", en: "Kuvasay" },
   "Асака": { uz: "Asaka", en: "Asaka" },
+
+  // --- Выбор роли / вход ---
+  "Я специалист": { uz: "Men mutaxassisman", en: "I'm a specialist" },
+  "Записаться к специалисту: мастер, врач, юрист, тренер": { uz: "Mutaxassisga yozilish: usta, shifokor, yurist, murabbiy", en: "Book a specialist: master, doctor, lawyer, trainer" },
+  "Принимать записи и вести своё расписание": { uz: "Yozuvlarni qabul qilib, jadvalni yuritish", en: "Accept bookings and manage your schedule" },
+  "Проверьте номер": { uz: "Raqamni tekshiring", en: "Check the number" },
+  "Введите корректный номер телефона.": { uz: "To'g'ri telefon raqamini kiriting.", en: "Enter a valid phone number." },
+  "Не удалось отправить код": { uz: "Kodni yuborib bo'lmadi", en: "Couldn't send the code" },
+  "Попробуйте позже или войдите по email.": { uz: "Keyinroq urinib ko'ring yoki email orqali kiring.", en: "Try again later or sign in with email." },
 };

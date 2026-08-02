@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
-import { sendEmailCode, verifyEmailCode } from "../lib/auth";
+import { sendEmailCode, sendPhoneCode, verifyEmailCode, verifyPhoneCode } from "../lib/auth";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
 import { useColors, useThemedStyles } from "../lib/theme-context";
@@ -16,7 +16,8 @@ export default function Otp() {
   const t = useT();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
-  const { email, role } = useLocalSearchParams<{ email?: string; role?: string }>();
+  const { email, phone, role } = useLocalSearchParams<{ email?: string; phone?: string; role?: string }>();
+  const target = email ?? phone ?? "";
   const inputRef = useRef<TextInput>(null);
   const [code, setCode] = useState("");
   const [left, setLeft] = useState(60);
@@ -38,10 +39,11 @@ export default function Otp() {
   async function confirm() {
     if (busy) return;
     if (code.length < LEN) { Alert.alert(t("Введите код"), t("Код состоит из 6 цифр.")); return; }
-    if (!supabaseConfigured || !email) { done(); return; }
+    if (!supabaseConfigured || !target) { done(); return; }
     setBusy(true);
     try {
-      await verifyEmailCode(email, code);
+      if (phone) await verifyPhoneCode(phone, code);
+      else await verifyEmailCode(email as string, code);
       done();
     } catch (e) {
       Alert.alert(t("Неверный код"), e instanceof Error ? e.message : t("Проверьте код и попробуйте снова."));
@@ -51,9 +53,11 @@ export default function Otp() {
   }
 
   async function resend() {
-    if (!supabaseConfigured || !email) { setLeft(60); return; }
-    try { await sendEmailCode(email); setLeft(60); setCode(""); }
-    catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : ""); }
+    if (!supabaseConfigured || !target) { setLeft(60); return; }
+    try {
+      if (phone) await sendPhoneCode(phone); else await sendEmailCode(email as string);
+      setLeft(60); setCode("");
+    } catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : ""); }
   }
 
   return (
@@ -69,7 +73,7 @@ export default function Otp() {
           <AppText variant="displayLg" color={colors.accent}>{t("Введите код")}</AppText>
           <AppText variant="bodyMd" color={colors.inkVariant}>
             {t("Код отправлен на")}{" "}
-            <AppText variant="bodyMd" color={colors.ink} style={{ fontFamily: "Manrope_500Medium" }}>{email ?? ""}</AppText>
+            <AppText variant="bodyMd" color={colors.ink} style={{ fontFamily: "Manrope_500Medium" }}>{target}</AppText>
           </AppText>
         </View>
 
@@ -106,7 +110,7 @@ export default function Otp() {
         <View style={{ marginTop: "auto", gap: space.lg }}>
           <PrimaryButton label={t("Подтвердить")} onPress={confirm} loading={busy} />
           <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.changeNum, pressed && { opacity: 0.6 }]}>
-            <AppText variant="labelMd" color={colors.inkVariant}>{t("Изменить email")}</AppText>
+            <AppText variant="labelMd" color={colors.inkVariant}>{phone ? t("Изменить номер") : t("Изменить email")}</AppText>
             <Sym name="edit" size={16} color={colors.inkVariant} />
           </Pressable>
         </View>

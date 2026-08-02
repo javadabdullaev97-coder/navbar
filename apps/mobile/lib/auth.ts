@@ -21,6 +21,28 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
   if (error) throw error;
 }
 
+/** Нормализовать телефон в E.164 (пробелы/дефисы прочь, ведущий +). */
+export function normalizePhone(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, "");
+  return digits.startsWith("+") ? digits : `+${digits}`;
+}
+
+/** Отправить SMS-код на номер (нужен настроенный SMS-провайдер в Supabase). */
+export async function sendPhoneCode(phone: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({ phone: normalizePhone(phone) });
+  if (error) throw error;
+}
+
+/** Проверить SMS-код и открыть сессию. */
+export async function verifyPhoneCode(phone: string, token: string): Promise<void> {
+  const { error } = await supabase.auth.verifyOtp({
+    phone: normalizePhone(phone),
+    token: token.trim(),
+    type: "sms",
+  });
+  if (error) throw error;
+}
+
 /** Вход или регистрация по email+паролю (без SMTP; при выключенном
  *  «Confirm email» сессия открывается сразу). Новый email → регистрируем,
  *  существующий с верным паролем → входим, иначе — ошибка. */
