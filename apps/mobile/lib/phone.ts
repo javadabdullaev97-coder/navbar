@@ -1,7 +1,7 @@
 // Телефонный ввод на libphonenumber-js: все страны, формат по стране,
 // определение страны по номеру, флаг из ISO-кода. Код оператора (2-я группа)
 // оборачиваем в скобки, чтобы отличался от основного номера.
-import { AsYouType, CountryCode, getCountryCallingCode, isValidPhoneNumber } from "libphonenumber-js";
+import { AsYouType, CountryCode, getCountryCallingCode, isValidPhoneNumber, validatePhoneNumberLength } from "libphonenumber-js";
 
 /** Эмодзи-флаг из ISO-кода страны. */
 export function flagOf(iso: string): string {
@@ -37,4 +37,9 @@ export function dialForRegion(region?: string | null): string {
 /** Валидный ли полный номер (по правилам страны). */
 export function isValidPhone(raw: string): boolean {
   try { return isValidPhoneNumber(raw); } catch { return false; }
+}
+
+/** Слишком длинный номер для своей страны — нельзя вводить дальше. */
+export function isTooLong(raw: string): boolean {
+  try { return validatePhoneNumberLength(raw) === "TOO_LONG"; } catch { return false; }
 }

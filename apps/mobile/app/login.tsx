@@ -6,7 +6,7 @@ import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Glass, PrimaryButton, Sym } from "../components/ui";
 import { ensureGuest, sendPhoneCode, signInOrUp } from "../lib/auth";
-import { dialForRegion, flagOf, formatPhone, isValidPhone } from "../lib/phone";
+import { dialForRegion, flagOf, formatPhone, isTooLong, isValidPhone } from "../lib/phone";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
 import { useColors, useIsDark, useThemedStyles } from "../lib/theme-context";
@@ -175,7 +175,15 @@ export default function Login() {
                       )}
                       <TextInput
                         value={phone}
-                        onChangeText={(v) => { edited.current = true; setPhone(formatPhone(v).text); }}
+                        onChangeText={(v) => {
+                          const next = formatPhone(v).text;
+                          const growing = next.replace(/\D/g, "").length > phone.replace(/\D/g, "").length;
+                          // Индивидуальный лимит по стране: не даём выйти за максимум
+                          // и не даём добавлять цифры к уже валидному номеру.
+                          if (growing && (isTooLong(next) || isValidPhone(phone))) return;
+                          edited.current = true;
+                          setPhone(next);
+                        }}
                         placeholder="+998 90 123 45 67"
                         placeholderTextColor={colors.outlineVariant}
                         keyboardType="phone-pad"
