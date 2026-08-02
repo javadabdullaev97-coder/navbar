@@ -575,6 +575,11 @@ export const DICT: Translations = {
   "Асака": { uz: "Asaka", en: "Asaka" },
 
   // --- Выбор роли / вход ---
+  "Найти специалиста и записаться": { uz: "Mutaxassis topib, yozilish", en: "Find a specialist and book" },
+  "Уже есть аккаунт?": { uz: "Akkauntingiz bormi?", en: "Already have an account?" },
+  "Нет аккаунта?": { uz: "Akkaunt yo'qmi?", en: "No account?" },
+  "По email — аккаунт создастся сам, если вы впервые": { uz: "Email orqali — birinchi marta bo'lsangiz, akkaunt o'zi yaratiladi", en: "With email — an account is created automatically if you're new" },
+  "Введите номер — пришлём код в SMS": { uz: "Raqamni kiriting — SMS orqali kod yuboramiz", en: "Enter your number — we'll text you a code" },
   "Регистрация": { uz: "Ro'yxatdan o'tish", en: "Sign up" },
   "Войти": { uz: "Kirish", en: "Log in" },
   "Создать аккаунт": { uz: "Akkaunt yaratish", en: "Create account" },

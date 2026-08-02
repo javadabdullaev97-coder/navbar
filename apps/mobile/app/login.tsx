@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppText, Glass, PrimaryButton, Sym } from "../components/ui";
+import { AppText, PrimaryButton, Sym } from "../components/ui";
 import { ensureGuest, sendPhoneCode, signInOrUp } from "../lib/auth";
 import { dialForRegion, flagOf, formatPhone, isTooLong, isValidPhone } from "../lib/phone";
 import { supabaseConfigured } from "../lib/data";
@@ -42,10 +42,7 @@ export default function Login() {
     let alive = true;
     fetch("https://ipapi.co/json/")
       .then((r) => r.json())
-      .then((j) => {
-        if (!alive || edited.current || !j?.country_code) return;
-        setPhone(`+${dialForRegion(j.country_code)}`);
-      })
+      .then((j) => { if (alive && !edited.current && j?.country_code) setPhone(`+${dialForRegion(j.country_code)}`); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -61,28 +58,18 @@ export default function Login() {
     if (password.length < 4) { Alert.alert(t("Короткий пароль"), t("Пароль — минимум 4 символа.")); return; }
     if (!supabaseConfigured) { go(); return; }
     setBusy(true);
-    try {
-      await signInOrUp(email, password);
-      go();
-    } catch (e) {
-      Alert.alert(t("Не удалось войти"), e instanceof Error ? e.message : t("Проверьте email и пароль."));
-    } finally {
-      setBusy(false);
-    }
+    try { await signInOrUp(email, password); go(); }
+    catch (e) { Alert.alert(t("Не удалось войти"), e instanceof Error ? e.message : t("Проверьте email и пароль.")); }
+    finally { setBusy(false); }
   }
 
   async function submitPhone() {
     if (!isValidPhone(phone)) { Alert.alert(t("Проверьте номер"), t("Введите корректный номер телефона.")); return; }
     if (!supabaseConfigured) { router.push(`/otp?phone=${encodeURIComponent(phone)}&role=${role ?? ""}`); return; }
     setBusy(true);
-    try {
-      await sendPhoneCode(phone);
-      router.push(`/otp?phone=${encodeURIComponent(phone)}&role=${role ?? ""}`);
-    } catch (e) {
-      Alert.alert(t("Не удалось отправить код"), e instanceof Error ? e.message : t("Попробуйте позже или войдите по email."));
-    } finally {
-      setBusy(false);
-    }
+    try { await sendPhoneCode(phone); router.push(`/otp?phone=${encodeURIComponent(phone)}&role=${role ?? ""}`); }
+    catch (e) { Alert.alert(t("Не удалось отправить код"), e instanceof Error ? e.message : t("Попробуйте позже или войдите по email.")); }
+    finally { setBusy(false); }
   }
 
   function submit() {
@@ -97,14 +84,14 @@ export default function Login() {
 
   const title = auth === "login" ? t("Вход") : t("Регистрация");
   const subtitle = mode === "email"
-    ? t("Войдите по email — новый аккаунт создаётся автоматически")
-    : t("Введите номер телефона — пришлём код");
+    ? t("По email — аккаунт создастся сам, если вы впервые")
+    : t("Введите номер — пришлём код в SMS");
   const primaryLabel = mode === "phone" ? t("Получить код") : auth === "login" ? t("Войти") : t("Создать аккаунт");
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <LinearGradient
-        colors={[isDark ? "rgba(6,78,59,0.32)" : "rgba(6,78,59,0.10)", "transparent"]}
+        colors={[isDark ? "rgba(6,78,59,0.26)" : "rgba(6,78,59,0.09)", "transparent"]}
         style={StyleSheet.absoluteFill}
       />
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
@@ -115,111 +102,79 @@ export default function Login() {
         </View>
 
         <View style={styles.body}>
-          <AppText variant="displayLg" color={colors.accent} style={{ marginBottom: space.sm }}>{title}</AppText>
-          <AppText variant="bodyMd" color={colors.inkVariant} style={styles.subtitle}>{subtitle}</AppText>
+          <AppText variant="displayLg" color={colors.accent}>{title}</AppText>
+          <AppText variant="bodyMd" color={colors.secondary} style={styles.subtitle}>{subtitle}</AppText>
 
-          {/* Стеклянная карточка с формой */}
-          <Glass style={{ marginTop: space.md }}>
-            <View style={styles.panel}>
-              {/* Метод: Email / Телефон */}
-              <View style={styles.modeRow}>
-                <Pressable onPress={() => setMode("email")} style={[styles.modeTab, mode === "email" && styles.modeOn]}>
-                  <Sym name="mail-outline" size={18} color={mode === "email" ? colors.accent : colors.secondary} />
-                  <AppText variant="labelMd" color={mode === "email" ? colors.accent : colors.secondary}>Email</AppText>
-                </Pressable>
-                <Pressable onPress={() => setMode("phone")} style={[styles.modeTab, mode === "phone" && styles.modeOn]}>
-                  <Sym name="smartphone" size={18} color={mode === "phone" ? colors.accent : colors.secondary} />
-                  <AppText variant="labelMd" color={mode === "phone" ? colors.accent : colors.secondary}>{t("Телефон")}</AppText>
-                </Pressable>
-              </View>
-
-              <View style={styles.inputZone}>
-                {mode === "email" ? (
-                  <View style={{ gap: space.md }}>
-                    <View style={styles.field}>
-                      <Sym name="mail-outline" size={20} color={colors.outline} />
-                      <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="you@email.com"
-                        placeholderTextColor={colors.outlineVariant}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        style={styles.input}
-                      />
-                    </View>
-                    <View style={styles.field}>
-                      <Sym name="lock-outline" size={20} color={colors.outline} />
-                      <TextInput
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder={t("Пароль")}
-                        placeholderTextColor={colors.outlineVariant}
-                        secureTextEntry={!show}
-                        autoCapitalize="none"
-                        style={styles.input}
-                      />
-                      <Pressable onPress={() => setShow((s) => !s)} hitSlop={8}>
-                        <Sym name={show ? "visibility-off" : "visibility"} size={20} color={colors.outline} />
-                      </Pressable>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={{ gap: space.sm }}>
-                    <View style={styles.field}>
-                      {info.country ? (
-                        <AppText style={{ fontSize: 22, opacity: info.hasNational ? 1 : 0.45 }}>{flagOf(info.country)}</AppText>
-                      ) : (
-                        <Sym name="phone-iphone" size={20} color={colors.outline} />
-                      )}
-                      <TextInput
-                        value={phone}
-                        onChangeText={(v) => {
-                          const next = formatPhone(v).text;
-                          const growing = next.replace(/\D/g, "").length > phone.replace(/\D/g, "").length;
-                          // Индивидуальный лимит по стране: не даём выйти за максимум
-                          // и не даём добавлять цифры к уже валидному номеру.
-                          if (growing && (isTooLong(next) || isValidPhone(phone))) return;
-                          edited.current = true;
-                          setPhone(next);
-                        }}
-                        placeholder="+998 90 123 45 67"
-                        placeholderTextColor={colors.outlineVariant}
-                        keyboardType="phone-pad"
-                        style={[styles.input, { opacity: info.hasNational ? 1 : 0.6 }]}
-                      />
-                    </View>
-                    <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>
-                      {t("Мы отправим SMS с кодом подтверждения")}
-                    </AppText>
-                  </View>
-                )}
-              </View>
-            </View>
-          </Glass>
-
-          <View style={{ marginTop: space.lg }}>
-            <PrimaryButton label={primaryLabel} onPress={submit} loading={busy} />
+          {/* Метод — тихие текстовые вкладки */}
+          <View style={styles.tabs}>
+            {(["email", "phone"] as Mode[]).map((m) => (
+              <Pressable key={m} onPress={() => setMode(m)} style={styles.tab}>
+                <AppText variant="bodyMd" color={mode === m ? colors.accent : colors.outline} style={mode === m ? { fontFamily: "Manrope_600SemiBold" } : undefined}>
+                  {m === "email" ? "Email" : t("Телефон")}
+                </AppText>
+                <View style={[styles.tabBar, { backgroundColor: mode === m ? colors.accent : "transparent" }]} />
+              </Pressable>
+            ))}
           </View>
 
-          {/* Переключатель Вход ↔ Регистрация */}
-          <Pressable
-            onPress={() => setAuth((a) => (a === "login" ? "register" : "login"))}
-            style={({ pressed }) => [{ alignItems: "center", paddingVertical: 14 }, pressed && { opacity: 0.6 }]}
-          >
-            <AppText variant="labelMd" color={colors.accent}>
-              {auth === "login" ? t("Нет аккаунта? Зарегистрироваться") : t("Уже есть аккаунт? Войти")}
-            </AppText>
-          </Pressable>
+          {/* Поля — мягкие, без рамок */}
+          <View style={styles.inputZone}>
+            {mode === "email" ? (
+              <View style={{ gap: 12 }}>
+                <View style={styles.field}>
+                  <Sym name="mail-outline" size={20} color={colors.outline} />
+                  <TextInput value={email} onChangeText={setEmail} placeholder="you@email.com" placeholderTextColor={colors.outline} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} style={styles.input} />
+                </View>
+                <View style={styles.field}>
+                  <Sym name="lock-outline" size={20} color={colors.outline} />
+                  <TextInput value={password} onChangeText={setPassword} placeholder={t("Пароль")} placeholderTextColor={colors.outline} secureTextEntry={!show} autoCapitalize="none" style={styles.input} />
+                  <Pressable onPress={() => setShow((s) => !s)} hitSlop={8}>
+                    <Sym name={show ? "visibility-off" : "visibility"} size={20} color={colors.outline} />
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.field}>
+                {info.country ? (
+                  <AppText style={{ fontSize: 22, opacity: info.hasNational ? 1 : 0.4 }}>{flagOf(info.country)}</AppText>
+                ) : (
+                  <Sym name="phone-iphone" size={20} color={colors.outline} />
+                )}
+                <TextInput
+                  value={phone}
+                  onChangeText={(v) => {
+                    const next = formatPhone(v).text;
+                    const growing = next.replace(/\D/g, "").length > phone.replace(/\D/g, "").length;
+                    if (growing && (isTooLong(next) || isValidPhone(phone))) return;
+                    edited.current = true;
+                    setPhone(next);
+                  }}
+                  placeholder="+998 90 123 45 67"
+                  placeholderTextColor={colors.outline}
+                  keyboardType="phone-pad"
+                  style={[styles.input, { opacity: info.hasNational ? 1 : 0.55 }]}
+                />
+              </View>
+            )}
+          </View>
 
-          {role !== "master" && (
-            <Pressable onPress={guest} style={({ pressed }) => [{ paddingVertical: 6, alignItems: "center" }, pressed && { opacity: 0.6 }]}>
-              <AppText variant="labelMd" color={colors.inkVariant}>{t("Продолжить как гость")}</AppText>
+          <PrimaryButton label={primaryLabel} onPress={submit} loading={busy} />
+
+          <View style={styles.links}>
+            <Pressable onPress={() => setAuth((a) => (a === "login" ? "register" : "login"))} hitSlop={8}>
+              <AppText variant="bodyMd" color={colors.secondary}>
+                {auth === "login" ? t("Нет аккаунта?") : t("Уже есть аккаунт?")}{" "}
+                <AppText variant="bodyMd" color={colors.accent}>{auth === "login" ? t("Регистрация") : t("Войти")}</AppText>
+              </AppText>
             </Pressable>
-          )}
+            {role !== "master" && (
+              <Pressable onPress={guest} hitSlop={8} style={{ marginTop: 14 }}>
+                <AppText variant="bodyMd" color={colors.outline}>{t("Продолжить как гость")}</AppText>
+              </Pressable>
+            )}
+          </View>
 
-          <AppText variant="labelSm" color={colors.inkVariant} style={styles.terms}>
+          <AppText variant="labelSm" color={colors.outline} style={styles.terms}>
             {t("Продолжая, вы принимаете условия и политику конфиденциальности")}
           </AppText>
         </View>
@@ -229,15 +184,15 @@ export default function Login() {
 }
 
 const makeStyles = (colors: ThemeColors) => StyleSheet.create({
-  header: { height: 64, justifyContent: "center", paddingHorizontal: space.margin },
-  body: { flex: 1, paddingHorizontal: space.margin, paddingTop: space.md },
-  subtitle: { minHeight: 44, maxWidth: 320 },
-  panel: { padding: 16, gap: space.md },
-  modeRow: { flexDirection: "row", gap: 6, backgroundColor: colors.surfaceLow, borderRadius: radius.xl, padding: 4 },
-  modeTab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 12, borderRadius: radius.lg },
-  modeOn: { backgroundColor: colors.surface },
-  inputZone: { minHeight: 156, justifyContent: "flex-start" },
-  field: { flexDirection: "row", alignItems: "center", gap: 10, height: 58, paddingHorizontal: 16, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl },
+  header: { height: 56, justifyContent: "center", paddingHorizontal: space.margin },
+  body: { flex: 1, paddingHorizontal: space.margin, paddingTop: space.lg },
+  subtitle: { marginTop: 8, maxWidth: 300, lineHeight: 22 },
+  tabs: { flexDirection: "row", gap: 28, marginTop: space.lg, marginBottom: space.lg },
+  tab: { alignItems: "center", gap: 8 },
+  tabBar: { height: 2, width: 22, borderRadius: 1 },
+  inputZone: { minHeight: 140, justifyContent: "flex-start", marginBottom: space.lg },
+  field: { flexDirection: "row", alignItems: "center", gap: 12, height: 58, paddingHorizontal: 18, backgroundColor: colors.surface, borderRadius: radius.xl },
   input: { flex: 1, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
-  terms: { textAlign: "center", opacity: 0.6, paddingHorizontal: 16, marginTop: "auto", paddingBottom: space.sm },
+  links: { alignItems: "center", marginTop: space.lg },
+  terms: { textAlign: "center", opacity: 0.7, paddingHorizontal: 24, marginTop: "auto", paddingBottom: space.sm, letterSpacing: 0 },
 });
