@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { detectDeviceLang } from "./locale";
+import { setFmtLang } from "./format";
 import type { Avail } from "./slots";
 
 export type Role = "client" | "master";
@@ -112,6 +113,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Смена языка/темы — сохраняем на устройстве, чтобы держалось между запусками.
   const setLang = (l: Lang) => { setLangState(l); AsyncStorage.setItem(LANG_KEY, l).catch(() => {}); };
   const setThemeMode = (m: ThemeMode) => { setThemeModeState(m); AsyncStorage.setItem(THEME_KEY, m).catch(() => {}); };
+
+  // Держим форматтер дат/денег/длительности в том же языке (синхронно до рендера детей).
+  setFmtLang(lang);
 
   const value = useMemo<StoreValue>(() => ({
     role, setRole,

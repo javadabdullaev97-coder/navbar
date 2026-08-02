@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, Card, Loading, Sym } from "../../components/ui";
 import { ClientBooking, getMyBookings } from "../../lib/api";
 import { initialOf, supabaseConfigured } from "../../lib/data";
-import { fmtMoney, MONTHS_GEN } from "../../lib/format";
+import { fmtMoney, monGen } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { BookingStatus, useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
@@ -20,7 +20,7 @@ const makeBadge = (colors: ThemeColors): Record<BookingStatus, { bg: string; fg:
 
 type Item = { id: string; initial: string; name: string; service: string; date: Date; status: BookingStatus; price: number | null };
 const p2 = (n: number) => String(n).padStart(2, "0");
-const when = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+const when = (d: Date) => `${d.getDate()} ${monGen(d.getMonth())}, ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 
 export default function Bookings() {
   const router = useRouter();

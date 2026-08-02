@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../../components/ui";
 import { getDayBusy } from "../../lib/api";
 import { supabaseConfigured } from "../../lib/data";
-import { fmtDate, MONTHS_NOM, nextDays, WD_SHORT, withTime } from "../../lib/format";
+import { fmtDate, monNom, nextDays, wdShort, withTime } from "../../lib/format";
 import { useT } from "../../lib/i18n";
 import { Busy, freeSlots, minutesToTime, toOurDow } from "../../lib/slots";
 import { useStore } from "../../lib/store";
@@ -54,7 +54,7 @@ export default function DateTime() {
 
   useEffect(() => { setSlot(0); }, [day]);
 
-  const monthLabel = `${MONTHS_NOM[days[day].getMonth()]} ${days[day].getFullYear()}`.toUpperCase();
+  const monthLabel = `${monNom(days[day].getMonth())} ${days[day].getFullYear()}`.toUpperCase();
   const canNext = slots.length > 0;
 
   function next() {
@@ -80,7 +80,7 @@ export default function DateTime() {
             const on = i === day;
             return (
               <Pressable key={i} onPress={() => setDay(i)} style={[styles.day, on && styles.dayOn]}>
-                <AppText variant="labelSm" color={on ? "rgba(255,255,255,0.7)" : colors.secondary}>{WD_SHORT[d.getDay()].toUpperCase()}</AppText>
+                <AppText variant="labelSm" color={on ? "rgba(255,255,255,0.7)" : colors.secondary}>{wdShort(d.getDay()).toUpperCase()}</AppText>
                 <AppText variant="labelMd" color={on ? colors.onAccent : colors.accent} style={{ marginTop: 4 }}>{d.getDate()}</AppText>
               </Pressable>
             );

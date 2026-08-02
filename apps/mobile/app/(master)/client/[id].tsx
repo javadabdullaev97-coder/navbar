@@ -4,7 +4,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
-import { fmtDate, fmtMoney, MONTHS_NOM } from "../../../lib/format";
+import { fmtDate, fmtMoney, monNom } from "../../../lib/format";
 import { getClient, MasterClientDetail, setClientNote } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
@@ -59,7 +59,7 @@ export default function ClientCard() {
   }
   const c = client;
   const sinceD = new Date(c.since);
-  const since = isNaN(sinceD.getTime()) ? "—" : `${MONTHS_NOM[sinceD.getMonth()].toLowerCase()} ${sinceD.getFullYear()}`;
+  const since = isNaN(sinceD.getTime()) ? "—" : `${monNom(sinceD.getMonth()).toLowerCase()} ${sinceD.getFullYear()}`;
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>

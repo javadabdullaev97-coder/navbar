@@ -7,7 +7,7 @@ import { ClientBooking, getMyBookings } from "../lib/api";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
 import { useColors, useThemedStyles } from "../lib/theme-context";
-import { MONTHS_GEN } from "../lib/format";
+import { monGen } from "../lib/format";
 import { cardShadow, radius, space, ThemeColors } from "../theme";
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -19,7 +19,7 @@ type Note = {
 
 const p2 = (n: number) => String(n).padStart(2, "0");
 const clock = (d: Date) => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
-const dayLabel = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+const dayLabel = (d: Date) => `${d.getDate()} ${monGen(d.getMonth())}`;
 
 // Формируем уведомления из реальных записей клиента.
 function buildNotes(bookings: ClientBooking[], now: number, t: TFn, colors: ThemeColors): Note[] {

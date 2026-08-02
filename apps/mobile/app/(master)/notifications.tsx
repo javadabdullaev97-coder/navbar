@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, ErrorState, Loading, Sym } from "../../components/ui";
-import { MONTHS_GEN } from "../../lib/format";
+import { monGen } from "../../lib/format";
 import { masterConfigured, MasterBooking, useMasterBookings } from "../../lib/master-api";
 import { useT } from "../../lib/i18n";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
@@ -14,7 +14,7 @@ type Note = { id: string; icon: IconName; kind: "pending" | "info" | "confirmed"
 
 const p2 = (n: number) => String(n).padStart(2, "0");
 const clock = (d: Date) => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
-const dayLabel = (d: Date) => `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+const dayLabel = (d: Date) => `${d.getDate()} ${monGen(d.getMonth())}`;
 
 function build(bookings: MasterBooking[], now: number, t: (k: string, p?: Record<string, string | number>) => string): Note[] {
   const notes: Note[] = [];

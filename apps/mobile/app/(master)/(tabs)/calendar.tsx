@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
-import { fmtTime, MONTHS_NOM, WD_SHORT } from "../../../lib/format";
+import { fmtTime, monNom, wdShort } from "../../../lib/format";
 import { masterConfigured, useMasterBookings } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
@@ -44,9 +44,9 @@ export default function Calendar() {
   const monthHas = (d: Date) => events.some((e) => sameDay(e.date, d));
 
   const title =
-    view === "month" ? `${MONTHS_NOM[anchor.getMonth()]} ${anchor.getFullYear()}` :
-    view === "week" ? `${weekStart.getDate()} – ${addDays(weekStart, 6).getDate()} ${MONTHS_NOM[addDays(weekStart, 6).getMonth()].toLowerCase()}` :
-    `${anchor.getDate()} ${MONTHS_NOM[anchor.getMonth()].toLowerCase()} ${anchor.getFullYear()}`;
+    view === "month" ? `${monNom(anchor.getMonth())} ${anchor.getFullYear()}` :
+    view === "week" ? `${weekStart.getDate()} – ${addDays(weekStart, 6).getDate()} ${monNom(addDays(weekStart, 6).getMonth()).toLowerCase()}` :
+    `${anchor.getDate()} ${monNom(anchor.getMonth()).toLowerCase()} ${anchor.getFullYear()}`;
 
   const shift = (dir: number) => setAnchor((a) => (view === "month" ? addMonths(a, dir) : addDays(a, view === "week" ? dir * 7 : dir)));
 
@@ -82,7 +82,7 @@ export default function Calendar() {
             const today = sameDay(d, new Date());
             return (
               <Pressable key={i} onPress={() => setAnchor(d)} style={[styles.dayCell, on && styles.dayOn]}>
-                <AppText variant="labelSm" color={on ? "rgba(255,255,255,0.8)" : i === 6 ? colors.error : colors.secondary}>{WD_SHORT[d.getDay()]}</AppText>
+                <AppText variant="labelSm" color={on ? "rgba(255,255,255,0.8)" : i === 6 ? colors.error : colors.secondary}>{wdShort(d.getDay())}</AppText>
                 <AppText variant="labelMd" color={on ? colors.onAccent : colors.ink} style={{ marginTop: 4 }}>{d.getDate()}</AppText>
                 {monthHas(d) && !on ? <View style={[styles.dot, today && { backgroundColor: colors.accent }]} /> : <View style={{ height: 6 }} />}
               </Pressable>
@@ -129,7 +129,7 @@ export default function Calendar() {
             if (evs.length === 0) return null;
             return (
               <View key={i} style={{ gap: 8 }}>
-                <AppText variant="labelSm" color={colors.secondary} style={styles.dayHead}>{WD_SHORT[d.getDay()]}, {d.getDate()} {MONTHS_NOM[d.getMonth()].toLowerCase()}</AppText>
+                <AppText variant="labelSm" color={colors.secondary} style={styles.dayHead}>{wdShort(d.getDay())}, {d.getDate()} {monNom(d.getMonth()).toLowerCase()}</AppText>
                 {evs.map((e) => <EventCard key={e.id} e={e} onPress={() => router.push(`/(master)/booking/${e.id}`)} />)}
               </View>
             );

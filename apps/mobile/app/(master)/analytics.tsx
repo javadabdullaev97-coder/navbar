@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, ErrorState, Loading, Sym } from "../../components/ui";
 import { useT } from "../../lib/i18n";
-import { fmtMoney, WD_SHORT } from "../../lib/format";
+import { fmtMoney, wdShort } from "../../lib/format";
 import { Analytics, masterConfigured, useMasterAnalytics } from "../../lib/master-api";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
@@ -101,7 +101,7 @@ export default function AnalyticsScreen() {
                         <View style={styles.barTrack}>
                           <View style={[styles.bar, { height: `${Math.max(6, (d.amount / maxDay) * 100)}%` }]} />
                         </View>
-                        <AppText variant="labelSm" color={colors.secondary} style={{ fontSize: 10 }}>{isNaN(dt.getTime()) ? "" : WD_SHORT[dt.getDay()]}</AppText>
+                        <AppText variant="labelSm" color={colors.secondary} style={{ fontSize: 10 }}>{isNaN(dt.getTime()) ? "" : wdShort(dt.getDay())}</AppText>
                       </View>
                     );
                   })}

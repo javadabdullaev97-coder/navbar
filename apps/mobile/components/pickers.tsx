@@ -2,24 +2,21 @@
 // (шаг 30 мин). Оба до 24 часов. На базе WheelPicker.
 // Важно: лист — обычный View (не Pressable), иначе Pressable перехватывает
 // жест и колесо «застывает». Закрытие — по тапу в пустую зону сверху.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { fmtDur, minToHHMM } from "../lib/format";
 import { useT } from "../lib/i18n";
+import { useStore } from "../lib/store";
 import { useColors, useThemedStyles } from "../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../theme";
 import { AppText, PrimaryButton } from "./ui";
 import { WheelItem, WheelPicker } from "./WheelPicker";
 
-const range = (from: number, to: number, step: number): WheelItem[] => {
-  const out: WheelItem[] = [];
-  for (let v = from; v <= to; v += step) out.push({ value: v, label: "" });
-  return out;
-};
-
-const DURATIONS: WheelItem[] = range(5, 720, 5).map((i) => ({ ...i, label: fmtDur(i.value) })); // до 12 часов
-const STARTS: WheelItem[] = range(0, 1410, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
-const ENDS: WheelItem[] = range(30, 1440, 30).map((i) => ({ ...i, label: minToHHMM(i.value) }));
+// Часы (HH:MM) от языка не зависят — считаем один раз.
+const STARTS: WheelItem[] = [];
+for (let v = 0; v <= 1410; v += 30) STARTS.push({ value: v, label: minToHHMM(v) });
+const ENDS: WheelItem[] = [];
+for (let v = 30; v <= 1440; v += 30) ENDS.push({ value: v, label: minToHHMM(v) });
 
 function Sheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const styles = useThemedStyles(makeStyles);
@@ -40,10 +37,17 @@ export function DurationSheet({
   visible: boolean; value: number; onSelect: (min: number) => void; onClose: () => void;
 }) {
   const t = useT();
+  const { lang } = useStore();
   const colors = useColors();
   const styles = useThemedStyles(makeStyles);
   const [v, setV] = useState(value);
   useEffect(() => { if (visible) setV(value); }, [visible, value]);
+  // Ярлыки длительности переводятся вместе с языком (мин/ч → min/h → daq/soat).
+  const DURATIONS = useMemo<WheelItem[]>(() => {
+    const out: WheelItem[] = [];
+    for (let m = 5; m <= 720; m += 5) out.push({ value: m, label: fmtDur(m) });
+    return out;
+  }, [lang]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>

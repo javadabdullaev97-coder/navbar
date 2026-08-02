@@ -4,7 +4,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } fr
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, Avatar, ErrorState, Loading, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
-import { MONTHS_GEN } from "../../../lib/format";
+import { monGen } from "../../../lib/format";
 import { masterConfigured, useMyClients } from "../../../lib/master-api";
 import { useT } from "../../../lib/i18n";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
@@ -15,7 +15,7 @@ const CHIPS = ["Все", "Постоянные", "Новые"];
 function shortDate(iso: string | null): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return isNaN(d.getTime()) ? "—" : `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}`;
+  return isNaN(d.getTime()) ? "—" : `${d.getDate()} ${monGen(d.getMonth())}`;
 }
 
 export default function Clients() {
