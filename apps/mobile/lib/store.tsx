@@ -15,7 +15,9 @@ export const THEME_LABEL: Record<ThemeMode, string> = { light: "Светлая",
 /** Профиль клиента на устройстве (без OTP). Имя/телефон для записей. */
 export type ClientProfile = { name: string; phone: string };
 const PROFILE_KEY = "ora.client.profile";
-const LANG_KEY = "ora.lang";
+// Только ЯВНЫЙ выбор языка пользователем. Пусто → следуем языку телефона.
+// Новый ключ (…pref) намеренно игнорирует старое авто-сохранение, которое «прилипало».
+const LANG_KEY = "ora.lang.pref";
 const THEME_KEY = "ora.theme";
 const DEFAULT_PROFILE: ClientProfile = { name: "", phone: "" };
 
@@ -96,9 +98,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (!alive) return;
         const map = Object.fromEntries(pairs) as Record<string, string | null>;
         if (map[PROFILE_KEY]) { try { setProfileState(JSON.parse(map[PROFILE_KEY] as string)); } catch { /* игнор */ } }
-        // Язык: сохранённый выбор пользователя > язык устройства (фиксируем на первом запуске).
+        // Язык: только явный выбор пользователя переопределяет язык телефона.
+        // Если пользователь ничего не выбирал — оставляем язык устройства (initial state)
+        // и НЕ сохраняем, чтобы приложение всегда следовало языку телефона.
         if (isLang(map[LANG_KEY])) setLangState(map[LANG_KEY] as Lang);
-        else AsyncStorage.setItem(LANG_KEY, detectDeviceLang()).catch(() => {});
         if (isTheme(map[THEME_KEY])) setThemeModeState(map[THEME_KEY] as ThemeMode);
       })
       .catch(() => {});
