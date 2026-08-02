@@ -5,7 +5,7 @@ import { Alert, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText, PrimaryButton, Sym } from "../components/ui";
 import { ensureGuest, sendPhoneCode, signInOrUp } from "../lib/auth";
-import { countryByCode, countryFromNumber, DEFAULT_COUNTRY, flagOf } from "../lib/countries";
+import { dialForRegion, flagOf, formatPhone, isValidPhone } from "../lib/phone";
 import { supabaseConfigured } from "../lib/data";
 import { useT } from "../lib/i18n";
 import { useColors, useThemedStyles } from "../lib/theme-context";
@@ -16,12 +16,8 @@ const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 type Mode = "email" | "phone";
 
 function initialDial(): string {
-  try {
-    const c = countryByCode(getLocales()[0]?.regionCode);
-    return `+${(c ?? DEFAULT_COUNTRY).dial}`;
-  } catch {
-    return `+${DEFAULT_COUNTRY.dial}`;
-  }
+  try { return `+${dialForRegion(getLocales()[0]?.regionCode)}`; }
+  catch { return "+998"; }
 }
 
 export default function Login() {
@@ -44,17 +40,14 @@ export default function Login() {
     fetch("https://ipapi.co/json/")
       .then((r) => r.json())
       .then((j) => {
-        if (!alive || edited.current) return;
-        const c = countryByCode(j?.country_code);
-        if (c) setPhone(`+${c.dial}`);
+        if (!alive || edited.current || !j?.country_code) return;
+        setPhone(`+${dialForRegion(j.country_code)}`);
       })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
 
-  const country = countryFromNumber(phone);
-  const digits = phone.replace(/\D/g, "");
-  const hasNumber = digits.length > country.dial.length;
+  const info = formatPhone(phone);
 
   function go() {
     router.replace(role === "master" ? "/(master)/onboarding" : "/(tabs)/home");
@@ -76,7 +69,7 @@ export default function Login() {
   }
 
   async function submitPhone() {
-    if (digits.length - country.dial.length < 6) { Alert.alert(t("Проверьте номер"), t("Введите корректный номер телефона.")); return; }
+    if (!isValidPhone(phone)) { Alert.alert(t("Проверьте номер"), t("Введите корректный номер телефона.")); return; }
     if (!supabaseConfigured) { router.push(`/otp?phone=${encodeURIComponent(phone)}&role=${role ?? ""}`); return; }
     setBusy(true);
     try {
@@ -163,14 +156,18 @@ export default function Login() {
           ) : (
             <View style={{ gap: space.sm }}>
               <View style={styles.field}>
-                <AppText style={{ fontSize: 22, opacity: hasNumber ? 1 : 0.45 }}>{flagOf(country.code)}</AppText>
+                {info.country ? (
+                  <AppText style={{ fontSize: 22, opacity: info.hasNational ? 1 : 0.45 }}>{flagOf(info.country)}</AppText>
+                ) : (
+                  <Sym name="phone-iphone" size={20} color={colors.outline} />
+                )}
                 <TextInput
                   value={phone}
-                  onChangeText={(v) => { edited.current = true; setPhone(v.replace(/[^\d+ ]/g, "")); }}
+                  onChangeText={(v) => { edited.current = true; setPhone(formatPhone(v).text); }}
                   placeholder="+998 90 123 45 67"
                   placeholderTextColor={colors.outlineVariant}
                   keyboardType="phone-pad"
-                  style={[styles.input, { opacity: hasNumber ? 1 : 0.6 }]}
+                  style={[styles.input, { opacity: info.hasNational ? 1 : 0.6 }]}
                 />
               </View>
               <AppText variant="labelSm" color={colors.inkVariant} style={{ paddingHorizontal: 4 }}>
