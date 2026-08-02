@@ -80,7 +80,7 @@ export default function Schedule() {
                 {days.map((d, i) => (
                   <View key={i} style={[styles.dayRow, i < days.length - 1 && styles.divider, !d.on && { opacity: 0.6 }]}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-                      <Switch value={d.on} onValueChange={() => toggle(i)} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+                      <Switch value={d.on} onValueChange={() => toggle(i)} trackColor={{ true: colors.accent, false: colors.outlineVariant }} thumbColor="#fff" />
                       <AppText variant="labelMd" color={colors.ink}>{t(LABELS[i])}</AppText>
                     </View>
                     {d.on ? (

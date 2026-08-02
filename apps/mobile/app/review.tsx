@@ -122,7 +122,7 @@ export default function Review() {
               <AppText variant="labelMd" color={colors.ink}>{t("Оставить отзыв анонимно")}</AppText>
               <AppText variant="labelSm" color={colors.secondary}>{t("Ваше имя не будет видно другим")}</AppText>
             </View>
-            <Switch value={anon} onValueChange={setAnon} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+            <Switch value={anon} onValueChange={setAnon} trackColor={{ true: colors.accent, false: colors.outlineVariant }} thumbColor="#fff" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -10,7 +10,7 @@ import {
   addGalleryItem, becomeSoloMaster, masterConfigured, setAvailability, setAvatar,
   submitVerification, updateMyProfile, upsertService,
 } from "../../lib/master-api";
-import { uploadImage } from "../../lib/storage";
+import { chooseDiploma, uploadImage } from "../../lib/storage";
 import { useStore } from "../../lib/store";
 import { useColors, useThemedStyles } from "../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../theme";
@@ -83,6 +83,16 @@ export default function MasterOnboarding() {
     if (uploading) return;
     setUploading(true);
     try { const r = await uploadImage(bucket); if (r) onDone(r); }
+    catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось загрузить файл.")); }
+    finally { setUploading(false); }
+  }
+
+  // Диплом/сертификат — выбор из галереи или файлов (PDF/Word/фото).
+  async function pickDoc() {
+    if (!masterConfigured) { Alert.alert(t("Скоро"), t("Загрузка станет доступна после подключения к серверу.")); return; }
+    if (uploading) return;
+    setUploading(true);
+    try { const r = await chooseDiploma("docs", t); if (r) setDocPath(r.path); }
     catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : t("Не удалось загрузить файл.")); }
     finally { setUploading(false); }
   }
@@ -237,7 +247,7 @@ export default function MasterOnboarding() {
                 {days.map((d, i) => (
                   <View key={i} style={[styles.dayRow, i < days.length - 1 && styles.divider]}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                      <Switch value={d.on} onValueChange={() => setDays((x) => x.map((y, idx) => (idx === i ? { ...y, on: !y.on } : y)))} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+                      <Switch value={d.on} onValueChange={() => setDays((x) => x.map((y, idx) => (idx === i ? { ...y, on: !y.on } : y)))} trackColor={{ true: colors.accent, false: colors.outlineVariant }} thumbColor="#fff" />
                       <AppText variant="labelMd" color={colors.ink}>{t(DAY_LABELS[i])}</AppText>
                     </View>
                     {d.on ? (
@@ -264,8 +274,8 @@ export default function MasterOnboarding() {
                   </Pressable>
                 ))}
                 {photos.length < MAX_PHOTOS && (
-                  <Pressable style={[styles.tile, styles.addTile]} onPress={() => upload("portfolio", (r) => setPhotos((p) => [...p, r.url]))}>
-                    {uploading ? <ActivityIndicator color={colors.accent} /> : <Sym name="add-a-photo" size={26} color={colors.accent} />}
+                  <Pressable style={styles.addTile} onPress={() => upload("portfolio", (r) => setPhotos((p) => [...p, r.url]))}>
+                    {uploading ? <ActivityIndicator color={colors.accent} /> : <Sym name="add-a-photo" size={30} color={colors.accent} />}
                   </Pressable>
                 )}
               </View>
@@ -276,7 +286,7 @@ export default function MasterOnboarding() {
           {step === 5 && (
             <View style={{ marginTop: space.lg, gap: space.md }}>
               <AppText variant="bodyMd" color={colors.secondary}>{t("Загрузите диплом или сертификат. После проверки в профиле появится бейдж «Диплом проверен». Шаг необязательный.")}</AppText>
-              <Pressable style={styles.dropzone} onPress={() => upload("docs", (r) => setDocPath(r.path))}>
+              <Pressable style={styles.dropzone} onPress={pickDoc}>
                 <View style={styles.dropIcon}>
                   {uploading ? <ActivityIndicator color={colors.accent} /> : <Sym name={docPath ? "check-circle" : "upload-file"} size={30} color={docPath ? colors.successText : colors.accent} />}
                 </View>
@@ -429,10 +439,10 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   hoursBtn: { backgroundColor: colors.surfaceLow, paddingHorizontal: 16, height: 36, justifyContent: "center", borderRadius: radius.lg },
   svcRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 14 },
   addSvcBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 52, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.accent, borderStyle: "dashed" },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  tile: { width: "31%", aspectRatio: 1, borderRadius: radius.xl, overflow: "hidden", alignItems: "center", justifyContent: "center", backgroundColor: colors.surfaceMid },
+  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 },
+  tile: { width: "48%", aspectRatio: 1, borderRadius: radius.xl, overflow: "hidden", backgroundColor: colors.surfaceMid },
   tileImg: { width: "100%", height: "100%" },
-  addTile: { borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
+  addTile: { width: "48%", aspectRatio: 1, borderRadius: radius.xl, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
   dropzone: { alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 36, borderRadius: radius.x2l, borderWidth: 2, borderColor: colors.outlineVariant, borderStyle: "dashed", backgroundColor: colors.surfaceLow },
   dropIcon: { width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.accentTint, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   verifyNote: { flexDirection: "row", gap: 10, alignItems: "center", padding: 16, borderRadius: radius.xl },

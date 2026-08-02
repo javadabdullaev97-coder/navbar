@@ -514,6 +514,11 @@ export const DICT: Translations = {
   "Новые клиенты": { uz: "Yangi mijozlar", en: "New clients" },
   "Завершено": { uz: "Yakunlangan", en: "Completed" },
 
+  // --- Загрузка документа ---
+  "Откуда выбрать файл?": { uz: "Faylni qayerdan tanlaysiz?", en: "Where to pick the file from?" },
+  "Из галереи": { uz: "Galereyadan", en: "From gallery" },
+  "Из файлов": { uz: "Fayllardan", en: "From files" },
+
   // --- Вкладки / профиль мастера ---
   "Сегодня": { uz: "Bugun", en: "Today" },
   "Ссылка для записи": { uz: "Yozuv havolasi", en: "Booking link" },

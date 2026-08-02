@@ -105,7 +105,7 @@ export default function EditProfile() {
               <AppText variant="labelMd" color={colors.ink}>{t("Показывать в поиске")}</AppText>
               <AppText variant="labelSm" color={colors.secondary}>{t("Клиенты смогут находить вас в каталоге. Ссылка на запись работает всегда.")}</AppText>
             </View>
-            <Switch value={visible} onValueChange={setVisible} trackColor={{ true: colors.accent, false: colors.surfaceHighest }} thumbColor="#fff" />
+            <Switch value={visible} onValueChange={setVisible} trackColor={{ true: colors.accent, false: colors.outlineVariant }} thumbColor="#fff" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

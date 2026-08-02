@@ -7,7 +7,7 @@ import { AppText, Avatar, Sym } from "../../../components/ui";
 import { initialOf } from "../../../lib/data";
 import { useT } from "../../../lib/i18n";
 import { masterConfigured, submitVerification, useMyMaster } from "../../../lib/master-api";
-import { uploadImage } from "../../../lib/storage";
+import { chooseDiploma } from "../../../lib/storage";
 import { Lang, ThemeMode, useStore } from "../../../lib/store";
 import { useColors, useThemedStyles } from "../../../lib/theme-context";
 import { cardShadow, radius, space, ThemeColors } from "../../../theme";
@@ -47,7 +47,7 @@ export default function MasterProfile() {
     if (verifying) return;
     setVerifying(true);
     try {
-      const r = await uploadImage("docs");
+      const r = await chooseDiploma("docs", t);
       if (r) { await submitVerification(r.path); Alert.alert(t("Отправлено"), t("Документ отправлен на проверку. Обычно занимает 1–2 дня.")); }
     } catch (e) { Alert.alert(t("Ошибка"), e instanceof Error ? e.message : ""); }
     finally { setVerifying(false); }
