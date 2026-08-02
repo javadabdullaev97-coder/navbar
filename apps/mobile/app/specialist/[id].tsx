@@ -257,7 +257,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   head: { paddingHorizontal: space.margin, marginTop: -64 },
   avatar: { width: 128, height: 128, borderRadius: radius.x2l, backgroundColor: colors.surfaceMid, borderWidth: 4, borderColor: colors.bg, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   avatarImg: { width: "100%", height: "100%" },
-  avatarInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 52, lineHeight: 58 },
+  avatarInitial: { fontFamily: "Manrope_700Bold", fontSize: 52, lineHeight: 58 },
   verifiedBadge: { position: "absolute", bottom: 4, right: 4, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.infoText, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   metaRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 },
   locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },

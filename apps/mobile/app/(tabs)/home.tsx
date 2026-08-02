@@ -172,7 +172,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   sectionHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingHorizontal: space.margin, marginTop: space.lg, marginBottom: space.md },
   nearCard: { width: 256, backgroundColor: colors.surface, borderRadius: radius.xl, padding: 12 },
   nearPhoto: { position: "relative", width: "100%", aspectRatio: 1, borderRadius: radius.xl, overflow: "hidden", marginBottom: 12, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  nearInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 64, lineHeight: 70 },
+  nearInitial: { fontFamily: "Manrope_700Bold", fontSize: 64, lineHeight: 70 },
   ratingBadge: { position: "absolute", top: 8, left: 8, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.9)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
   distBadge: { position: "absolute", bottom: 8, left: 8, backgroundColor: "rgba(6,78,59,0.85)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.full },
 });

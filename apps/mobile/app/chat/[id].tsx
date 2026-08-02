@@ -42,5 +42,5 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   header: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
   av: { width: 40, height: 40, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center" },
-  avInit: { fontFamily: "LibreCaslonText_400Regular", fontSize: 18 },
+  avInit: { fontFamily: "Manrope_700Bold", fontSize: 18 },
 });

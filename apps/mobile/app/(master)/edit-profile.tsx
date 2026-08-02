@@ -132,7 +132,7 @@ const makeStyles = (colors: ThemeColors) => StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: space.margin, height: 60, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
   avatar: { width: 112, height: 112, borderRadius: radius.full, backgroundColor: colors.surfaceMid, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   avatarImg: { width: "100%", height: "100%" },
-  avatarInitial: { fontFamily: "LibreCaslonText_400Regular", fontSize: 44, lineHeight: 50 },
+  avatarInitial: { fontFamily: "Manrope_700Bold", fontSize: 44, lineHeight: 50 },
   avatarBadge: { position: "absolute", bottom: 2, right: 2, width: 30, height: 30, borderRadius: radius.full, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.bg },
   input: { minHeight: 56, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.outlineVariant, borderRadius: radius.xl, paddingHorizontal: 16, fontFamily: "Manrope_400Regular", fontSize: 16, color: colors.ink },
   textarea: { minHeight: 96, paddingTop: 14, textAlignVertical: "top" },

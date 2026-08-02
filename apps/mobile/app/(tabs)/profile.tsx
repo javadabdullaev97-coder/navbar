@@ -68,7 +68,7 @@ export default function Profile() {
         {/* Профиль */}
         <Pressable onPress={() => setEditing(true)} style={{ alignItems: "center", paddingTop: 8, paddingBottom: space.lg }}>
           <View style={styles.avatar}>
-            <AppText style={{ fontFamily: "LibreCaslonText_400Regular", fontSize: 40, lineHeight: 46 }} color={colors.inkVariant}>{profile.name ? initialOf(profile.name) : "•"}</AppText>
+            <AppText style={{ fontFamily: "Manrope_700Bold", fontSize: 40, lineHeight: 46 }} color={colors.inkVariant}>{profile.name ? initialOf(profile.name) : "•"}</AppText>
             <View style={styles.editBadge}><Sym name="edit" size={14} color={colors.onAccent} /></View>
           </View>
           <AppText variant="headlineMd" color={colors.ink} style={{ marginTop: 12 }}>{displayName}</AppText>

@@ -50,7 +50,7 @@ export const darkColors: ThemeColors = {
   secondary: "#9BA39C",
   outline: "#8A928C",
   outlineVariant: "#3C443E",
-  accent: "#77D9AE", // осветлённый forest
+  accent: "#2FC08A", // глубокий изумруд (читаем на тёмном)
   accentTint: "#0C3F30", // тёмная подложка акцента
   accentDeep: "#052A20",
   onAccent: "#00382A", // тёмный текст на светлом акценте
@@ -107,7 +107,7 @@ export const masterDarkColors: ThemeColors = {
   secondary: "#A89EA0",
   outline: "#A08D90",
   outlineVariant: "#4A3F41",
-  accent: "#FFB2BC", // осветлённый бордо
+  accent: "#F0819A", // насыщенная роза (читаема на тёмном)
   accentTint: "#5E1226",
   accentDeep: "#3F0013",
   onAccent: "#400013", // тёмный текст на светлом акценте
@@ -162,8 +162,8 @@ export const fonts = {
 
 // Типографика 1:1 из макетов
 export const type = {
-  displayLg: { fontFamily: fonts.caslon, fontSize: 32, lineHeight: 38 }, // display-lg-mobile
-  headlineMd: { fontFamily: fonts.caslon, fontSize: 24, lineHeight: 32 },
+  displayLg: { fontFamily: fonts.bold, fontSize: 30, lineHeight: 38, letterSpacing: -0.4 }, // display-lg-mobile
+  headlineMd: { fontFamily: fonts.bold, fontSize: 22, lineHeight: 30, letterSpacing: -0.2 },
   bodyLg: { fontFamily: fonts.body, fontSize: 18, lineHeight: 28 },
   bodyMd: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
   labelMd: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 20, letterSpacing: 0.14 },
