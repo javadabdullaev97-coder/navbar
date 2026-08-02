@@ -575,6 +575,10 @@ export const DICT: Translations = {
   "Асака": { uz: "Asaka", en: "Asaka" },
 
   // --- Выбор роли / вход ---
+  "Регистрация": { uz: "Ro'yxatdan o'tish", en: "Sign up" },
+  "Войти": { uz: "Kirish", en: "Log in" },
+  "Создать аккаунт": { uz: "Akkaunt yaratish", en: "Create account" },
+  "Нет аккаунта? Зарегистрироваться": { uz: "Akkaunt yo'qmi? Ro'yxatdan o'ting", en: "No account? Sign up" },
   "Я специалист": { uz: "Men mutaxassisman", en: "I'm a specialist" },
   "Записаться к специалисту: мастер, врач, юрист, тренер": { uz: "Mutaxassisga yozilish: usta, shifokor, yurist, murabbiy", en: "Book a specialist: master, doctor, lawyer, trainer" },
   "Принимать записи и вести своё расписание": { uz: "Yozuvlarni qabul qilib, jadvalni yuritish", en: "Accept bookings and manage your schedule" },

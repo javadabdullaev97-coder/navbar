@@ -1,6 +1,7 @@
 // Переиспользуемые «кирпичи» ORA. Цвета берутся из активной темы (useColors),
 // поэтому компоненты автоматически адаптируются к светлой/тёмной теме.
 import { MaterialIcons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { ComponentProps } from "react";
 import {
   ActivityIndicator,
@@ -12,7 +13,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { useColors } from "../lib/theme-context";
+import { useColors, useIsDark } from "../lib/theme-context";
 import { useT } from "../lib/i18n";
 import { cardShadow, radius, space, type as T } from "../theme";
 
@@ -112,6 +113,31 @@ export function Loading() {
     <View style={{ paddingVertical: 48, alignItems: "center" }}>
       <ActivityIndicator color={colors.accent} />
     </View>
+  );
+}
+
+/** Матовое «стекло» (frosted glass) — размывает фон + лёгкая заливка и рамка.
+ *  Тема-осознанное: светлое стекло на светлой теме, тёмное — на тёмной. */
+export function Glass({
+  children,
+  style,
+  intensity = 30,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  intensity?: number;
+}) {
+  const isDark = useIsDark();
+  return (
+    <BlurView
+      intensity={intensity}
+      tint={isDark ? "dark" : "light"}
+      style={[styles.glass, { borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.05)" }, style]}
+    >
+      <View style={{ backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.45)" }}>
+        {children}
+      </View>
+    </BlurView>
   );
 }
 
@@ -229,6 +255,11 @@ export function GhostBorderButton({
 
 // Статические (не зависящие от темы) части стилей.
 const styles = StyleSheet.create({
+  glass: {
+    borderRadius: radius.x2l,
+    overflow: "hidden",
+    borderWidth: 1,
+  },
   chip: {
     height: 40,
     paddingHorizontal: 20,
